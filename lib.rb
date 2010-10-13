@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+
 def get_used_mem_by_ps (pid)
 #returns used memory in KB
         @pid=pid
