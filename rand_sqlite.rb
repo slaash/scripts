@@ -5,11 +5,19 @@ require 'sqlite3'
 def query (conn,query)
 	@conn=conn
 	@query=query
-	rows=@conn.execute(@query)
-	rows.each do |row|
-		puts row
+	begin
+		rows=@conn.execute(@query)
+		
+	rescue
+		puts "ERROR QUERY: "+@query
+		puts "ERROR MSG:   "+$!
 	end
-	rows
+	if (rows) then
+		rows.each do |row|
+			puts row
+		end
+		rows
+	end
 end
 
 def init_db (conn)
@@ -24,8 +32,8 @@ end
 
 conn = SQLite3::Database.new("rand.db")
 
-init_db(conn)
+#init_db(conn)
 
-#drop_db(conn)
+drop_db(conn)
 
 
