@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+#by Radu Moisa
 
 require './lib.rb'
 
