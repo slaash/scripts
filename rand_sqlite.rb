@@ -42,7 +42,9 @@ def populate (conn,no)
 	puts "Adding "+no.to_s+" values..."
 	(0..no).each do |i|
         	val=rand(max).to_s
-	        puts i.to_s+": "+val
+		if (i % 1000 ==0) then
+		        puts i.to_s+": "+val
+		end
         	query(conn,"insert into numbers(number) values('"+val+"')")
 	end
 end
