@@ -1,0 +1,27 @@
+#############################################################################
+# Id: match-all.action,v
+#
+# This file contains the actions that are applied to all requests and
+# may be overruled later on by other actions files. Less experienced
+# users should only edit this file through the actions file editor.
+#
+#############################################################################
+{+change-x-forwarded-for{add} \
+ +client-header-filter{hide-tor-exit-notation} \
+ +client-header-filter{privoxy-control} \
+ +deanimate-gifs{last} \
+ +filter{js-annoyances} \
+ +filter{refresh-tags} \
+ +filter{img-reorder} \
+ +filter{banners-by-size} \
+ +filter{webbugs} \
+ +filter{jumping-windows} \
+ +filter{ie-exploits} \
+ +hide-from-header{block} \
+ +hide-referrer{forge} \
+ +hide-user-agent{Mozilla/4.0 (compatible; Powermarks/3.5; Windows 95/98/2000/NT)} \
+ +server-header-filter{privoxy-control} \
+ +session-cookies-only \
+ +set-image-blocker{pattern} \
+}
+/ # Match all URLs
