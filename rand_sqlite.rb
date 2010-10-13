@@ -14,7 +14,10 @@ def query (conn,query)
 	end
 	if (rows) then
 		rows.each do |row|
-			puts row
+			(0..row.length).each do |col|
+				print row[col].to_s+"\t"
+			end
+			puts ""
 		end
 		rows
 	else
