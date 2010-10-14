@@ -5,12 +5,27 @@ require 'sqlite3'
 def query (conn,query)
 	@conn=conn
 	@query=query
-	begin
-		rows=@conn.execute(@query)
-		
-	rescue
-		puts "ERROR QUERY: "+@query
-		puts "ERROR MSG:   "+$!
+	db_locked=1
+	first=1
+	while (db_locked==1) do
+		db_locked=0
+		begin
+			rows=@conn.execute(@query)
+		rescue
+			err_msg=$!.to_s.chomp
+			if (err_msg!="database is locked") then
+				puts "ERROR QUERY: "+@query
+				puts "ERROR MSG:   "+err_msg
+			else
+				if (first==1) then
+	                                puts "ERROR QUERY: "+@query
+					puts "ERROR MSG:   "+err_msg
+					puts "Retrying..."
+					first=0
+				end
+				db_locked=1
+			end
+		end
 	end
 	if (rows) then
 		rows.each do |row|
