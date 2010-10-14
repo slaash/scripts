@@ -27,6 +27,9 @@ def query (conn,query)
 			end
 		end
 	end
+	if (first==0) then
+		puts "Got token!"
+	end
 	if (rows) then
 		rows.each do |row|
 			(0..row.length).each do |col|
@@ -69,6 +72,11 @@ def list (conn)
 	query(conn,"select * from numbers")
 end
 
+def count (conn)
+	@conn=conn
+	query(conn,"select count(id) from numbers")
+end
+
 if (ARGV.length==0) then
 	puts "Usage: rand_sqlite.rb <no. of values to generate>"
 	exit
@@ -98,7 +106,7 @@ else
 	puts "Db created"
 end
 
-puts "What's your poison(<p>opulate/<l>ist/<q>uit)?"
+puts "What's your poison(<p>opulate/<l>ist/<c>ount/<q>uit)?"
 while (opt=gets.chomp) do
 	case opt
 	when "p" then
@@ -108,8 +116,10 @@ while (opt=gets.chomp) do
 	when "q" then
 		conn.close
 		exit
+	when "c" then
+		count(conn)
 	else
-		puts "Try again(<p>opulate/<l>ist/<q>uit)!"
+		puts "Try again(<p>opulate/<l>ist/<c>ount/<q>uit)!"
 	end
 end
 
