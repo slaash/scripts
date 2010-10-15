@@ -65,6 +65,7 @@ def populate (conn,no)
 		end
         	query(conn,"insert into numbers(number) values('"+val+"')")
 	end
+	puts "Added "+no.to_s+" numbers."
 end
 
 def list (conn)
@@ -84,7 +85,7 @@ else
 	NO=ARGV.shift.to_i
 end
 
-conn = SQLite3::Database.new("rand.db")
+conn = SQLite3::Database.new("../db/rand.db")
 
 if (init_db(conn) == -1) then
 	puts "Db already existing! Do you want to drop(y/n)?"
