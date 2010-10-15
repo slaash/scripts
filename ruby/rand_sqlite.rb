@@ -53,6 +53,11 @@ def drop_db (conn)
 	query(conn,"drop table numbers");
 end
 
+def most_common(conn)
+	@conn=conn
+	query(conn,"select number,count(number) from numbers where number>99000000 group by number having (count(number)>1) limit 10")
+end
+
 def populate (conn,no)
 	@conn=conn
 	@no=no
