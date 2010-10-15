@@ -1,0 +1,5 @@
+export INFORMIXDIR=/opt/IBM/informix
+export INFORMIXSERVER=test
+export ONCONFIG=test
+export PATH=$INFORMIXDIR/bin:$PATH
+
