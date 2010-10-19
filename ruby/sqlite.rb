@@ -29,7 +29,7 @@ def useradd(db,uid,*args)
 	@db.execute("insert into users(uid,name, shell,passwd) values ('"+@uid+"','"+@name+"','"+@shell+"','"+@passwd+"')")
 end
 
-db = SQLite3::Database.new( "test.db" )
+db = SQLite3::Database.new( "../db/test.db" )
 
 useradd(db,"uidl9004","John Doe3","/bin/bash","asdf13")
 
