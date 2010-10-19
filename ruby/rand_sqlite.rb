@@ -112,7 +112,7 @@ else
 	puts "Db created"
 end
 
-puts "What's your poison(<p>opulate/<l>ist/<c>ount/<q>uit)?"
+puts "What's your poison(<p>opulate/<l>ist/<c>ount/<s>tatistic>/<q>uit)?"
 while (opt=gets.chomp) do
 	case opt
 	when "p" then
@@ -124,8 +124,10 @@ while (opt=gets.chomp) do
 		exit
 	when "c" then
 		count(conn)
+	when "s" then
+		most_common(conn)
 	else
-		puts "Try again(<p>opulate/<l>ist/<c>ount/<q>uit)!"
+		puts "Try again(<p>opulate/<l>ist/<c>ount/<s>tatistic>/<q>uit)!"
 	end
 end
 
