@@ -1,4 +1,4 @@
-#!/PROJ/cis/gen/general/sun_utils/gnu/sun4/bin.solaris/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -36,14 +36,14 @@ sub query{
 	}
 }
 
-my $basedir="/HOME/ccm_wet/local/scripts/sqlite";
+my $basedir="./";
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=".$basedir."/bmw_ids.db","","");
 &query($dbh,"select sqlite_version()");
 
-#&query($dbh,"drop table bmw_ids");
+&query($dbh,"drop table bmw_ids");
 
-#&query($dbh,"create table bmw_ids(id INTEGER PRIMARY KEY,conti_id TEXT,bmw_id INTEGER)");
+&query($dbh,"create table bmw_ids(id INTEGER PRIMARY KEY,conti_id TEXT,bmw_id INTEGER)");
 
 &query($dbh,"select * from bmw_ids");
 
@@ -53,7 +53,8 @@ while (my $line=<FILE>){
 	chomp $line;
 	my @l=split(/,/,$line);
 	my @found_ids=&query($dbh,"select * from bmw_ids where bmw_id='".$l[1]."'");
-	if ($#found_ids>0){
+#	print "Cu asta comparam: ".$#found_ids."\n";
+	if ($#found_ids>=0){
 		print "Updating $l[0] -> $l[1]\n";
 		&query($dbh,"update bmw_ids set conti_id='".$l[0]."' where bmw_id='".$l[1]."'");
 	}
