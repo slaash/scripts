@@ -1,4 +1,4 @@
-#!/PROJ/cis/gen/general/sun_utils/gnu/sun4/bin.solaris/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -7,44 +7,54 @@ use Data::Dumper;
 use DBI;
 
 sub query{
-	my $conn=$_[0];
-	my $query=$_[1];
-	my $sth;
-	my $array_ref;
-	my @ret_array;
-	eval{
-		$sth=$conn->prepare("$query");
-		$sth->execute();
-		$array_ref=$sth->fetchall_arrayref();
-	}; 
-	if ($@){
-		print "Error in query: $query!\n";
-	}
-	else{
-		my $rows_found=$#$array_ref+1;
-		$query=~/(\w+)\s(.+)/;
-#		print "$1 returned $rows_found rows.\n";
-		if ($rows_found>0){
-#			for my $arr ($array_ref){
-#				for my $a (@$arr){
-#					for (@$a){
-#						print "$_\t";
-#					}
-#					print "\n";
-#				}
-#			}
-			return @$array_ref;
-		}
-		else{
-			return undef;
-		}
-	}
+        my $conn=$_[0];
+        my $query=$_[1];
+        my $sth;
+        my $array_ref;
+        my @ret_array;
+        $query=~/(\w+)\s(.+)/;
+        my $cmd=$1;
+        eval{
+                if ($cmd eq "select"){
+                        $sth=$conn->prepare("$query");
+                        $sth->execute();
+                        $array_ref=$sth->fetchall_arrayref();
+                }
+                else{
+                        $sth=$conn->do("$query");
+                }
+        };
+        if ($@){
+                print "Error in query: $query!\n";
+        }
+        elsif($array_ref){
+                my $rows_found=$#$array_ref+1;
+#                print "$cmd returned $rows_found rows.\n";
+                if ($rows_found>0){
+#                        for my $arr ($array_ref){
+#                                for my $a (@$arr){
+#                                        for (@$a){
+#                                                print "$_\t";
+#                                        }
+#                                        print "\n";
+#                                }
+#	                }
+                        return @$array_ref;
+                }
+                else{
+                        return undef;
+                }
+        }
+#        else{
+#                print "$cmd successfull.\n";
+#        }
 }
 
-my $basedir="/HOME/ccm_wet/local/scripts/sqlite";
+my $basedir="./";
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=".$basedir."/bmw_ids.db","","");
-&query($dbh,"select sqlite_version()");
+my @rez=&query($dbh,"select sqlite_version()");
+print "$rez[0]->[0]\n";
 
 &query($dbh,"drop table bmw_ids");
 
