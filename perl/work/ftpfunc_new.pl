@@ -1,3 +1,5 @@
+#!/usr/local/bin/perl -I/HOME/ccm_wet/local/scripts/msext/lib
+
 use strict;
 use warnings;
 use Net::FTP;
@@ -11,34 +13,37 @@ sub start_conn{
 	return $ftp;
 }
 
-#upload_file(<connection>,<file>,<directory>)
-#uploads file to specified directory
 sub upload_file{
-	my ($conn,$file,$dir)=@_;
-	$conn->cwd($dir) or die "Could not change to remote directory $dir !\n";
-	$conn->binary();
-	if (-e $file){
-		my $try=1;
-		while ($try<=3){
-			eval{
-				$conn->put($file);
-			};
-			if ($@){
-                                print "Error #$try uploading file $file!\n";
-                                $try++;
-                                if ($try>3){
-					print "File $file can not be uploaded!\n";
-				}
-			}
-			else{
+        my ($server,$user,$pass,$dir,$file)=@_;
+        my $max_tries=5;
+        if (-e $file){
+                my $ok=0;
+                my $try=0;
+                my $conn;
+                while ($ok==0 and $try<$max_tries){
+                        $conn=&start_conn("$server","$user","$pass");
+                        $conn->cwd($dir) or die "Could not change to remote directory $dir !\n";
+                        $conn->binary();
+                        my $rez=$conn->put("$file");
+                        if ($rez and $rez eq $file){
                                 print "Successfully uploaded file $file on try #$try\n";
-				$try=4;
-			}
-		}
-	}
-	else{
-		print "Local file $file can not be accessed!\n";
-	}
+                                $ok=1;
+                        }
+                        else{
+                                print "Fail #$try uploading $file\n";
+                                $try++;
+                        }
+                }
+                &stop_conn($conn);
+                if ($ok==0){
+                        print "Could not upload $file after $try tries!\n";
+                        exit 1;
+                }
+        }
+        else{
+                print "Local file $file can not be accessed!\n";
+                exit 1;
+        }
 }
 
 #stop_conn(<connection>)
