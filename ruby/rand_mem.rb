@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 
+
 max=10
 no=100
 
