@@ -43,7 +43,9 @@ def query (conn,query)
         end
 end
 
-conn = SQLite3::Database.new("../db/rand.db")
+conn = SQLite3::Database.new("/home/virtual2/db/rand.db")
 
 query(conn,"select sqlite_version()")
+
+conn.close
 
