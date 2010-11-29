@@ -1,5 +1,8 @@
 #!/usr/bin/ruby
 
+QUIET=1
+HEAD=20
+
 PID=Process.pid
 
 def get_mem_info_by_proc (pid)
@@ -19,7 +22,7 @@ end
 NO=ARGV.shift.to_i
 MAX=ARGV.shift.to_i
 
-file=open("/home/virtual2/db/random.out","w")
+file=open("/home/uidl9555/db/random.out","w")
 
 file.puts get_mem_info_by_proc(PID)
 file.puts 'Generating '+NO.to_s+' random numgers between 0 and '+MAX.to_s
@@ -45,9 +48,17 @@ file.puts get_mem_info_by_proc(PID)
 file.puts 'Counting generated numbers...'
 puts 'Counting generated numbers...'
 count_hash=Hash.new(0)
+cnt=0
 array.each do |pair|
 	count_hash[pair[1]]+=1
-	file.puts "Pos.\t"+pair[0].to_s+":\tNo.\t"+pair[1].to_s
+	if (QUIET==1) then
+		if (cnt<HEAD) then
+			file.puts "Pos.\t"+pair[0].to_s+":\tNo.\t"+pair[1].to_s
+			cnt+=1
+		end
+	else
+		file.puts "Pos.\t"+pair[0].to_s+":\tNo.\t"+pair[1].to_s
+	end
 end
 
 array.clear
@@ -64,11 +75,20 @@ file.puts get_mem_info_by_proc(PID)
 file.puts 'Listing counted values...'
 puts 'Listing counted values...'
 file.puts 'Counted Values:'
+cnt=0
 count_array.each do |pair|
-	file.puts "\t\tNo.\t"+pair[0].to_s+":\t"+pair[1].to_s+"\ttimes"
+	if (QUIET==1) then
+		if (cnt<HEAD) then
+			file.puts "\t\tNo.\t"+pair[0].to_s+":\t"+pair[1].to_s+"\ttimes"
+			cnt+=1
+		end
+	else
+		file.puts "\t\tNo.\t"+pair[0].to_s+":\t"+pair[1].to_s+"\ttimes"
+	end
 end
 
 count_array.clear
 
 file.close
+
 
