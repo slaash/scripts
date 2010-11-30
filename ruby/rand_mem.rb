@@ -21,8 +21,9 @@ end
 
 NO=ARGV.shift.to_i
 MAX=ARGV.shift.to_i
+MAX=2**4196
 
-file=open("/home/uidl9555/db/random.out","w")
+file=open("/home/rmoisa/db/random.out","w")
 
 file.puts get_mem_info_by_proc(PID)
 file.puts 'Generating '+NO.to_s+' random numgers between 0 and '+MAX.to_s
