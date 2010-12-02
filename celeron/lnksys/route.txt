@@ -1,0 +1,6 @@
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+86.124.41.128   *               255.255.255.192 U     0      0        0 WAN
+82.77.239.192   *               255.255.255.192 U     0      0        0 br0
+127.0.0.0       *               255.0.0.0       U     0      0        0 lo
+default         86.124.41.129   0.0.0.0         UG    0      0        0 WAN

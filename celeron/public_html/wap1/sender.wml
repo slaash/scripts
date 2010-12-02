@@ -1,0 +1,17 @@
+Content-type: text/vnd.wap.wml
+<?xml version="1.0"?>
+<!DOCTYPE wml PUBLIC "-//WAPFORUM//DTD WML 1.1//EN"
+"http://www.wapforum.org/DTD/wml_1.1.xml">
+
+<wml>
+<card id="sender" title="Sender">
+  <p>
+	Nume:<input type="text" name="nume"/>
+  </p>
+  <do type="accept" label="Hello">
+	<go href="receiver.php" method="post">
+		<postfield name="Nume" value="$nume"/>
+	</go>
+  </do>
+</card>
+</wml>

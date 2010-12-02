@@ -1,0 +1,9 @@
+kernel = "/usr/lib/xen/boot/hvmloader"
+builder="hvm"
+memory = 64
+name = "test"
+vif = [ '' ]
+disk = [ "file:/vmachines/rootdisk1.img,hda1,w" ]
+
+cdrom="/mnt/fileserv/livecd-xen-3.0.3-0.iso"
+boot="d"

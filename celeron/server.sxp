@@ -1,0 +1,6 @@
+name="server"
+kernel="/boot/vmlinuz-2.6.16.29-xen"
+root="/dev/hda1 ro"
+memory=64
+disk=['file:/vmachines/server.img,hda1,w','file:/vmachines/swapfile3.img,hda2,w']
+vif=['']
