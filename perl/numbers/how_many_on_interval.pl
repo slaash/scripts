@@ -49,7 +49,7 @@ for my $interv(@all_interv){
 	my $min=$interv->[0];
 	my $max=$interv->[1];
 	my $cnt=0;
-	open FILE,"emag_reteaua_11.txt";
+	open FILE,"reteaua_bilete_s12.txt";
 	while(<FILE>){
 		chomp $_;
 		if ($_>$max){
