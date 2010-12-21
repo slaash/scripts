@@ -3,17 +3,24 @@
 use strict;
 use warnings;
 
+my $var="mama";
+my $last_var="";
+
 my $pid=fork;
 if ($pid==0){
-	system("xterm");
+	if ($var ne $last_var){
+		print "Child: $var\n";
+		$last_var=$var;
+	}
 }
 else{
-	print "still here";
+	print "Parent";
 	while(<>){
 		chomp $_;
 		if ($_ eq "q"){
 			exit;
 		}
+		$var=$_;
 	}
 }
 
