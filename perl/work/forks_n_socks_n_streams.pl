@@ -18,7 +18,7 @@ if (my $pid=fork){
                 print "Server socket failure\n";
                 exit;
         }
-	my $srv_sock=$srv->accept();
+	my $srv_sock=$srv->accept() or warn $@;
 	print "Server listening...\n";
         while(<>){
 		chomp $_;
@@ -26,8 +26,10 @@ if (my $pid=fork){
 		my $line=<$srv_sock>;
 		chomp $line;
 		print "Client responded: $line\n";
+		last if ($_ eq "quit");
         }
 	print "Parent finished\n";
+	$srv->close or warn $@;
 }
 elsif (!defined $pid){
 	print "Can't fork!\n";
@@ -40,7 +42,10 @@ else{
 		chomp $_;
 		print "Server said: $_\n";
 		print $client "$_ back to you!\n";
+		last if ($_ eq "die");
 	}
+	print "pid: $pid\n";
         print "Child finished\n";
+	$client->close or warn $@;
 }
 
