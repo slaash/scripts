@@ -14,28 +14,25 @@ def client(i,sock)
 	while (!(File.exists?(@sock))) do
         end
 	client = UNIXSocket.open(@sock)
-
-        client.puts("Hello from child"+i.to_s)
-        client.close
-end
-
-def server(sock)
-	@sock=sock
-	puts "Parent"
-	server = UNIXServer.open(sock)
-	while (socket=server.accept) do
-		line=socket.gets
-       		puts "Got "+line
-	end
+	line=client.gets
+	client.puts "Child "+i.to_s+" got: "+line
+	puts "Client "+i.to_s+" exit"
 end
 
 thr=Array.new
-thr[0]=Thread.new{server(sock)}
 (1..10).each do |i|
 	thr[i]=Thread.new{client(i,sock)}
 end
 
-thr.each do |i|
-	i.join
+puts "Main here!"
+
+server=UNIXServer.open(sock)
+while(socket=server.accept) do
+	print "Input: "
+	input=gets
+	socket.puts(input)
+	while(line=socket.gets) do
+		puts "Server got: "+line
+	end	
 end
 
