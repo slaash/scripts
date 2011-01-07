@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $min=100000000000;
-my $max=100000001100;
+my $min=1000000000000000;
+my $max=1000000000000100;
 
 sub is_prime{
 	my $n=$_[0];
