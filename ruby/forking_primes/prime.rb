@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
-min=100000000000000
-max=100000000000100
+min=10000000000000
+max=10000000000100
 
 def is_prime(n)
 	@n=n
@@ -21,12 +21,20 @@ parallel = 5
 running = 0
 
 (min..max).each do |i|
-	if (running<parallel) then
-		Process.fork{is_prime(i)}
+	pid=Process.fork
+	if (pid==nil) then
+		is_prime(i)
+		exit
 	else
-		Process.wait
+		puts "Running children: "+(running+1).to_s
+		running+=1
+		if (running==parallel) then
+			result=Process.wait()
+			running-=1
+		end
 	end
 end
 
-Process.waitall
+while (Process.wait()!=-1) do end
+puts "Done!"
 
