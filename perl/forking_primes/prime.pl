@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $min=1000000000000000;
-my $max=1000000000000100;
+my $min=100000000000000;
+my $max=100000000000100;
 
 sub is_prime{
 	my $n=$_[0];
@@ -26,7 +26,7 @@ my $parallel = 5;
 my $running = 0;
 my $result;
 
-$SIG{CHLD}="IGNORE";
+#$SIG{CHLD}="IGNORE";
 
 for (my $i=$min;$i<=$max;$i++){
 	my $pid=fork;
@@ -35,7 +35,7 @@ for (my $i=$min;$i<=$max;$i++){
 		exit;
 	}
 	else{
-#		print "Runners: $running\n";
+		print "Running childs: ".($running+1)."\n";
                 $running++;
                 if ($running >= $parallel) {
 #			print "Waiting...\n";
@@ -44,4 +44,8 @@ for (my $i=$min;$i<=$max;$i++){
                 }
 	}
 }
+
+#wait for all children to finish
+while (wait() != -1) {}
+print "Done\n";
 
