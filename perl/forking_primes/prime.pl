@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $min=100000000000000;
-my $max=100000000000100;
+my $min=$ARGV[0];
+my $max=$ARGV[1];
 
 sub is_prime{
 	my $n=$_[0];
@@ -35,7 +35,7 @@ for (my $i=$min;$i<=$max;$i++){
 		exit;
 	}
 	else{
-		print "Running childs: ".($running+1)."\n";
+#		print "Running childs: ".($running+1)."\n";
                 $running++;
                 if ($running >= $parallel) {
 #			print "Waiting...\n";

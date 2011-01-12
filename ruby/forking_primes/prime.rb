@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
-min=10000000000000
-max=10000000000100
+min=ARGV.shift.to_i;
+max=ARGV.shift.to_i;
 
 def is_prime(n)
 	@n=n
@@ -26,7 +26,7 @@ running = 0
 		is_prime(i)
 		exit
 	else
-		puts "Running children: "+(running+1).to_s
+#		puts "Running children: "+(running+1).to_s
 		running+=1
 		if (running==parallel) then
 			result=Process.wait()
