@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 
 min=ARGV.shift.to_i;
 max=ARGV.shift.to_i;
