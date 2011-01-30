@@ -1,3 +1,5 @@
+#!/usr/bin/ruby -w
+
 =begin
 **
 ** menustatus.rb
