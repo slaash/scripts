@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $min=1000000000000000;
-my $max=1000000000000100;
+my $min=$ARGV[0];
+my $max=$ARGV[1];
 
 sub is_prime{
 	my $n=$_[0];
@@ -22,7 +22,7 @@ sub is_prime{
         }
 }
 
-for (my $i=$min;$i<=$max;$i++){
+for  my $i ($min..$max){
 	&is_prime($i);
 }
 
