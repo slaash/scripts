@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use bignum;
+
 use threads;
 use threads::shared;
 
@@ -20,22 +22,25 @@ sub is_prime{
         if ($prim==1){
                 print "$n\n";
         }
+        else{
+#               warn "Discard $n\n";
+        }
 }
 
 my @threads;
-for my $i ($ARGV[0]..$ARGV[1]){
-	my $thr=threads->create(\&is_prime,$i);
-	if (scalar threads->list()<2){
+for (my $i=$ARGV[0];$i<=$ARGV[1];$i++){
+        my $thr=threads->create(\&is_prime,$i);
+        if (scalar threads->list(threads::running)<8){
                 push(@threads,$thr);
         }
         else{
-#		warn "Waiting for thread ".$thr->tid." of ".scalar threads->list()."...\n";
+#               warn "Waiting for thread ".$thr->tid." of ".scalar threads->list(threads::running)."...\n";
                 $thr->join;
         }
 }
 
-foreach (@threads) {
-#	warn "Waiting for thread ".$_->tid." of ".scalar threads->list()."...\n";
+for (@threads) {
+#       warn "Waiting for thread ".$_->tid." of ".scalar threads->list()."...\n";
         $_->join;
 }
 
