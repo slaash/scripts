@@ -14,4 +14,5 @@ sub action{
 
 $SIG{"INT"}='action';
 
-while(){}
+system("ssh iasp209x '$(perl /home/uidl9555/scripts/perl/bucla.pl')");
+
