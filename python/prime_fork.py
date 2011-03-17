@@ -15,27 +15,22 @@ def is_prime(n):
 			prim=0
 			break
 	if prim == 1:
-		print(n)
+		crt_pid=os.getpid()
+		print(str(crt_pid)+" returned: "+str(n))
 	return 0
 
 parallel=5
 running=0;
-runners=[]
 
 for i in range(min,max+1):
 	pid=os.fork()
 	if pid==0:
 		is_prime(i)
-		exit()
+#		exit()
 	else:
 #		print("Running children: "+str(running+1))
-		runners.append(pid)
 		running=running+1
 		if running>=parallel:
-			print("Waiting...\n")
+#			print("Waiting...\n")
 			os.wait()
 			running=running-1
-
-for pid in runners:
-	os.waitpid(pid,0)
-
