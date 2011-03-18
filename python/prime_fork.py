@@ -21,16 +21,25 @@ def is_prime(n):
 
 parallel=5
 running=0;
+runners=[]
 
 for i in range(min,max+1):
 	pid=os.fork()
 	if pid==0:
 		is_prime(i)
-#		exit()
+		exit()
 	else:
-#		print("Running children: "+str(running+1))
+		runners.append(pid)
 		running=running+1
 		if running>=parallel:
-#			print("Waiting...\n")
-			os.wait()
+			pid,code=os.wait()
+#			print("PID "+str(pid)+" exited with code "+str(code))
+			runners.remove(pid)
 			running=running-1
+
+#print("Now we wait for all children to exit..."+str(len(runners))+" bitches left!")
+for child in runners:
+	pid,code=os.waitpid(child,0)
+#	print("PID "+str(pid)+" exited with code "+str(code))
+#print("...Done\n")
+
