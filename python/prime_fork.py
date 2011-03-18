@@ -20,7 +20,6 @@ def is_prime(n):
 	return 0
 
 parallel=5
-running=0;
 runners=[]
 
 for i in range(min,max+1):
@@ -30,12 +29,10 @@ for i in range(min,max+1):
 		exit()
 	else:
 		runners.append(pid)
-		running=running+1
-		if running>=parallel:
+		if len(runners)>=parallel:
 			pid,code=os.wait()
 #			print("PID "+str(pid)+" exited with code "+str(code))
 			runners.remove(pid)
-			running=running-1
 
 #print("Now we wait for all children to exit..."+str(len(runners))+" bitches left!")
 for child in runners:
