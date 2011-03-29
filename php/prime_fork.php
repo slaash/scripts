@@ -17,8 +17,24 @@ function is_prime($n){
         }
 }
 
+$parallel=5;
+$running=0;
+
 for ($i=$min;$i<=$max;$i++){
-	is_prime($i);
+	$pid=pcntl_fork();
+	if ($pid==0){
+		is_prime($i);
+		exit;
+	}
+	else{
+		$running++;
+		if ($running>=$parallel){
+			pcntl_wait($status);
+			$running--;
+		}
+	}
 }
+
+while (pcntl_wait($status)!=-1){}
 ?>
 
