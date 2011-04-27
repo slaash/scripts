@@ -13,7 +13,9 @@ class thr (threading.Thread):
   self.n = n
 
  def run ( self ):
-  is_prime(self.n) 
+  ret=is_prime(self.n)
+  if ret!=-1:
+   print(self.name+" ("+str(self.ident)+")"+": "+str(ret))
 
 def is_prime(n):
  prim=1
@@ -22,8 +24,8 @@ def is_prime(n):
    prim=0
    break
  if prim == 1:
-  print(n)
- return 0
+  return n
+ return -1
 
 for i in range(min,max+1):
  t=thr(i)
