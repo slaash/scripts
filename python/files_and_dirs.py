@@ -27,7 +27,7 @@ def list_dir(dir):
 				elif os.path.isfile(item) == True:
 					print(item+"  "+str(size)+" bytes  "+str(mod_time))
 				elif os.path.isdir(item) == True:
-					print(item+"/i "+str(size)+" bytes  "+str(mod_time))
+					print(item+"/ "+str(size)+" bytes  "+str(mod_time))
 					list_dir(item+"/")
 			else:
 				print(item+" is broken")

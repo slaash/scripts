@@ -22,7 +22,6 @@ class thr (threading.Thread):
 		self.dir = dir
 
 	def run ( self ):
-		print("Got "+self.dir)
 		global filez
 		try:
 			files=os.listdir(self.dir)
@@ -41,10 +40,10 @@ class thr (threading.Thread):
 						filez[item]="  "+str(size)+" bytes  "+str(mod_time)
 					elif os.path.isdir(item) == True:
 #						print(item+"/i "+str(size)+" bytes  "+str(mod_time))
-						filez[item]="/i "+str(size)+" bytes  "+str(mod_time)
+						filez[item]="/ "+str(size)+" bytes  "+str(mod_time)
 						t=thr(item+"/")
 						t.start()
-						if threading.active_count()>10:
+						if threading.activeCount()>10:
 							t.join
 				else:
 #					print("Broken item: "+item)
@@ -52,11 +51,16 @@ class thr (threading.Thread):
 		except:
 #                        print("Can not open "+self.dir)
 			filez[self.dir]=" can not be opened"
+#		exit(0)
 
 
 t=thr(dir)
 t.start()
 t.join()
+
+for thrd in threading.enumerate():
+	if thrd != threading.currentThread():
+		thrd.join()
 
 keys=filez.keys()
 keys=list(keys)
