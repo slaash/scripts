@@ -20,7 +20,7 @@ for o,a in optlist:
 
 if len(args)>0:
 	dir=args[0]
-	if re.match("(.+)/$",dir)==None:
+	if re.search("(.+)/$",dir)==None:
 		dir=dir+"/"
 else:
 	dir="/"
