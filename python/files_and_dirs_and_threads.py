@@ -12,6 +12,7 @@ sys.argv.pop(0)
 optlist,args=getopt.getopt(sys.argv,'rs:')
 
 rec=False
+search_expr="."
 for o,a in optlist:
 	if o=="-r":
 		rec=True
