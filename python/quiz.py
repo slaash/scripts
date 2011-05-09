@@ -28,3 +28,6 @@ print("word" in [] == False)
 print(("word" in []) == False)
 #print("word" in ([] == False))
 
+dict={1:2,3:4}
+print(dict[2])
+
