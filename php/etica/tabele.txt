@@ -50,6 +50,9 @@ Forms:
 - view all questions (qadmin.php)
 	question	type	Update button
 
+	- qnew.php
+	- qdel.php
+
 Add question
 
 question	type(lisbox)
