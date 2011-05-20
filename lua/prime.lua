@@ -1,7 +1,9 @@
 #!/usr/bin/lua
 
-min=10000000000000
-max=10000000001000
+min=arg[1]
+max=arg[2]
+
+print("Calculam de la "..min.." la "..max)
 
 for i=min,max do
 	prim=1
