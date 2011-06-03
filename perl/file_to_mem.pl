@@ -9,14 +9,19 @@ my $RAND="/dev/urandom";
 my $TESTFILE="/home/uidl9555/somefile";
 
 sub get_used_mem{
-	open(my $file, '<' ,"/proc/$$/status");
-	while (<$file>){
-		chomp $_;
-		if ($_ =~ /VmSize:\s+\d+\s+kB/){
-			return "$_";
-		}
-	}
-	close($file);
+        my $ret="+-----------------+\n";
+        open(my $file, '<' ,"/proc/$$/status");
+        while (<$file>){
+                chomp $_;
+                if ($_ =~ /(^VmSize:(.+)$|^VmPeak:(.+)$|^Pid:(.+)$|^PPid:(.+)$|^Name:(.+)$|^SleepAVG:(.+)$|^Threads:(.+)$)/){
+                        $_=~s/\s+/ /;
+                        $ret.="$_\n";
+                }
+        }
+        close($file);
+        $ret.="+-----------------+";
+        chomp $ret;
+        return $ret;
 }
 
 open(my $in, '<', $RAND) or die $!;
@@ -31,23 +36,21 @@ for(my $i=0;$i<30;$i++){#30 times
 
 close($out);
 close($in);
-
 my $holdTerminator = $/;
 undef $/;
-
 open($in,'<',$TESTFILE) or die $!;
 my $var=<$in>;
 close $in;
-
 $/ = $holdTerminator;
-
-#my $var=`cat $TESTFILE`;#2 x memory used
-
 my $md5 = Digest::MD5->new;
-
 $md5->add($var);
-
 print $md5->hexdigest."\n";
+print &get_used_mem."\n";
 
+`dd if=/dev/urandom of=$TESTFILE count=10M count=30`;
+$var=`cat $TESTFILE`;
+undef $md5;
+$md5->add($var);
+print $md5->hexdigest."\n";
 print &get_used_mem."\n";
 
