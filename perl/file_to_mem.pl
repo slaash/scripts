@@ -6,7 +6,7 @@ use warnings;
 use Digest::MD5;
 
 my $RAND="/dev/urandom";
-my $TESTFILE="/home/uidl9555/somefile";
+my $TESTFILE="/home/rmoisa/somefile";
 
 sub get_used_mem{
         my $ret="+-----------------+\n";
@@ -49,7 +49,7 @@ print &get_used_mem."\n";
 
 `dd if=/dev/urandom of=$TESTFILE count=10M count=30`;
 $var=`cat $TESTFILE`;
-undef $md5;
+#undef $md5;
 $md5->add($var);
 print $md5->hexdigest."\n";
 print &get_used_mem."\n";
