@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use sigtrap qw(handler action normal-signals);
 
 sub action{
 	print "PID $$ exits!\n";
@@ -12,7 +13,13 @@ sub action{
 	exit;
 }
 
-$SIG{"INT"}='action';
+#for (keys %SIG){
+#	$SIG{"$_"}='action';
+#}
 
-system("ssh iasp209x '$(perl /home/uidl9555/scripts/perl/bucla.pl')");
+#system("ssh iasp209x '$(perl /home/uidl9555/scripts/perl/bucla.pl')");
+
+print "PID: $$\n";
+
+while(){}
 
