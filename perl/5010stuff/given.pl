@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use diagnostics;
+#use diagnostics;
 
 use 5.010;
 
@@ -87,4 +87,4 @@ use 5.010;
 #	say "Mama";
 #}
 
-#say "Tata" for qw(1) x 10;
+say "Tata" for qw(1) x 10;
