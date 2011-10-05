@@ -11,26 +11,42 @@ $string="";
 
 sub ticker{
 	my $wait=$_[0];
-	print threads->self()->tid().": started timer for $wait sec\n";
+	print "\t".threads->self()->tid()." - ticker: started timer for $wait sec\n";
 	my $old_string="";
-	while(1){
-		if ($old_string and $old_string ne $string){
-			print "$string: hmm, a new one!\n";
+	while($string ne "exit" and $string ne "exit ticker"){
+		if ($old_string ne $string){
+			print "\t$string: hmm, a new one!\n";
 			$old_string=$string;
 		}
-		last if $string eq "exit";
 		sleep($wait);
 	}
+	print "\texiting ticker...\n";
 	threads->exit;
 }
 
-my $t=threads->create(\&ticker,"1");
-
-while(1){
-	$string=<STDIN>;
-	chomp $string;
-	last if $string eq exit;
+sub watcher{
+	my $wait=$_[0];
+	print "\t\t".threads->self()->tid()." - watcher: started timer for $wait sec\n";
+	while($string ne "exit" and $string ne "exit watcher"){
+		print "\t\t".localtime.": threads available\n";
+		for (threads->list(threads::running)){
+			print "\t\t".$_->tid()."\n";
+		}
+		sleep($wait);
+	}
+	print "\t\texiting watcher...\n";
+	threads->exit;
 }
 
-$t->join();
+my $ticker=threads->create(\&ticker,"1");
+my $watcher=threads->create(\&watcher,"3");
+
+while($string=<>){
+	chomp $string;
+	last if $string eq "exit";
+}
+print "exiting main...\n";
+
+$ticker->join();
+$watcher->join();
 
