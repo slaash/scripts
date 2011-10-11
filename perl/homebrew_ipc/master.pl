@@ -28,6 +28,25 @@ use warnings;
 use Storable qw(lock_store lock_nstore lock_retrieve);
 use IPC::Open3;
 
+use threads;
+use threads::shared;
+
+my %slaves:shared;
+
+sub ticker{
+        my $wait=$_[0];
+	print "\t".threads->self()->tid()." - ticker: started timer for $wait sec\n";
+	while(1){
+		lock_store(\%slaves,'comm_file.dat');
+		print "\tticker: slaves\n";
+		for (keys %slaves){
+			print "\t$_\n";
+		}
+		sleep($wait);
+	}
+	print "\texiting ticker...\n";
+}
+
 sub check_comm_file{
 #valid commands: die#proc_id
 	my $comm_file=$_[0];
@@ -38,21 +57,41 @@ sub check_comm_file{
 	}
 }
 
-sub spawn_slave{
+sub spawn_slave_fork{
+	#DO NOT USE!!!
 	my $s_pid=fork();
 	if ($s_pid==0){
-		my($chld_out, $chld_in, $chld_err);
-		my $pid=open3($chld_out, $chld_in, $chld_err, 'perl ./slave.pl');
+		my ($chld_in, $chld_out, $chld_err);
+		my $pid=open3($chld_in, $chld_out, $chld_err, 'perl ./slave.pl');
 		print "master: slave $pid started\n";
+		$slaves{$pid}="";
 		waitpid( $pid, 0 );
 		print "master: slave exited\n";
+		delete $slaves{$pid};
 		exit;
 	}
+	#DO NOT USE!!!
 }
 
-&spawn_slave;
+sub spawn_slave_thr{
+	my ($chld_in, $chld_out, $chld_err);
+	my $pid=open3($chld_in, *STDOUT, $chld_err, 'perl ./slave.pl');
+	print "master: slave $pid started\n";
+	$slaves{$pid}="running";
+	exit;
+	waitpid( $pid, 0 );
+	print "master: slave exited\n";
+	delete $slaves{$pid};
+}
+
+
+my $ticker=threads->create(\&ticker,"1");
+my $thr=threads->create(\&spawn_slave_thr); 
 
 print "back to master\n";
 while(1){
 }
+
+$thr->join();
+$ticker->join();
 
