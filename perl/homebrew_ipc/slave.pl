@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-print "slave $$ started\n";
+print "slave: PID $$ started\n";
 while(1){
 }
 

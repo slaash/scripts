@@ -25,9 +25,8 @@
 use strict;
 use warnings;
 
-use Storable;
-
-use threads;
+use Storable qw(lock_store lock_nstore lock_retrieve);
+use IPC::Open3;
 
 sub check_comm_file{
 #valid commands: die#proc_id
@@ -40,13 +39,20 @@ sub check_comm_file{
 }
 
 sub spawn_slave{
-	system("perl ./slave.pl &");
-	print "slave spawed\n";
-	return 0;
+	my $s_pid=fork();
+	if ($s_pid==0){
+		my($chld_out, $chld_in, $chld_err);
+		my $pid=open3($chld_out, $chld_in, $chld_err, 'perl ./slave.pl');
+		print "master: slave $pid started\n";
+		waitpid( $pid, 0 );
+		print "master: slave exited\n";
+		exit;
+	}
 }
 
 &spawn_slave;
 
+print "back to master\n";
 while(1){
 }
 
