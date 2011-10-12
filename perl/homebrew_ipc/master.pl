@@ -32,12 +32,17 @@ use threads::shared;
 
 use Text::CSV;
 
+use Data::Dumper;
+
 my %slaves:shared;
+my $master_done:shared;
+$master_done=0;
 
 sub ticker{
         my $wait=$_[0];
 	print "\t".threads->self()->tid()." - ticker: started timer for $wait sec\n";
-	while(1){
+	while($master_done==0){
+		sleep($wait);
 		&slaves_to_file;
 		print "\tticker: slaves\n";
 		for (keys %slaves){
@@ -49,14 +54,14 @@ sub ticker{
 }
 
 sub slaves_to_file{
-	my @line;
-	my $csv=Text::CSV->new({sep_char=>';'});
+	my $csv=Text::CSV->new({eol=> $/, sep_char=>';'});
 	open my $file,">","slaves_stats.csv";
 	for (keys %slaves){
+		my @line;
 		push(@line,$_);
 		push(@line,$slaves{$_});
+		$csv->print($file,\@line);
 	}
-	$csv->print($file,\@line);
 	close $file;
 }
 
@@ -95,8 +100,12 @@ for (1..2){
 }
 
 print "back to master\n";
-while(1){
+for (1..5){
+	print "master...$_\n";
+	sleep(1);
 }
+print "master is done\n";
+$master_done=1;
 
 for (1..2){
 	$thr[$_]->join();
