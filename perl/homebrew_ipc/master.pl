@@ -32,8 +32,6 @@ use threads::shared;
 
 use Text::CSV;
 
-use Data::Dumper;
-
 my %slaves:shared;
 my $master_done:shared;
 $master_done=0;
