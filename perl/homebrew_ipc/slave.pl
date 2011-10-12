@@ -8,23 +8,26 @@ use Storable qw(lock_store lock_nstore lock_retrieve retrieve);
 use threads;
 use threads::shared;
 
-use Data::Dumper;
+use Text::CSV;
 
 sub ticker{
 	my $wait=$_[0];
 	print "\t\t".threads->self()->tid()." - ticker: started timer for $wait sec\n";
 	while(1){
-		if (-f 'comm_file.dat'){
-			my $slaves=lock_retrieve('comm_file.dat');
+		if (-f 'slaves_stats.csv'){
 			print "\t\tslave: slaves\n";
-#			for (keys %$slaves){
-#				print "\t\t$_\n";
-#			}
-			print Dumper $slaves;
+			my $csv=Text::CSV->new({sep_char=>';'});
+			open my $file,"<","slaves_stats.csv";
+			while(my $csv_row=$csv->getline($file)){
+				if ($csv_row->[0] == $$){
+					print "\t\t$csv_row->[0] -> $csv_row->[1]\n";
+				}
+			}
+			close $file;
 			sleep($wait);
 		}
 		else{
-			print "\t\tno comm_file.dat\n";
+			print "\t\tno slaves_stats.csv\n";
 		}
 	}
 	print "\t\texiting ticker...\n";

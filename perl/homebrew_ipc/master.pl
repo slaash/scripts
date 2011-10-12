@@ -25,11 +25,12 @@
 use strict;
 use warnings;
 
-use Storable qw(lock_store lock_nstore lock_retrieve);
 use IPC::Open3;
 
 use threads;
 use threads::shared;
+
+use Text::CSV;
 
 my %slaves:shared;
 
@@ -37,7 +38,7 @@ sub ticker{
         my $wait=$_[0];
 	print "\t".threads->self()->tid()." - ticker: started timer for $wait sec\n";
 	while(1){
-		lock_store(\%slaves,'comm_file.dat');
+		&slaves_to_file;
 		print "\tticker: slaves\n";
 		for (keys %slaves){
 			print "\t$_\n";
@@ -47,14 +48,16 @@ sub ticker{
 	print "\texiting ticker...\n";
 }
 
-sub check_comm_file{
-#valid commands: die#proc_id
-	my $comm_file=$_[0];
-	unless (-f $comm_file){
-		open my $file,">",$comm_file;
-		print $file "";
-		close $file;
+sub slaves_to_file{
+	my @line;
+	my $csv=Text::CSV->new({sep_char=>';'});
+	open my $file,">","slaves_stats.csv";
+	for (keys %slaves){
+		push(@line,$_);
+		push(@line,$slaves{$_});
 	}
+	$csv->print($file,\@line);
+	close $file;
 }
 
 sub spawn_slave_fork{
@@ -78,7 +81,6 @@ sub spawn_slave_thr{
 	my $pid=open3($chld_in, *STDOUT, $chld_err, 'perl ./slave.pl');
 	print "master: slave $pid started\n";
 	$slaves{$pid}="running";
-	exit;
 	waitpid( $pid, 0 );
 	print "master: slave exited\n";
 	delete $slaves{$pid};
@@ -86,12 +88,19 @@ sub spawn_slave_thr{
 
 
 my $ticker=threads->create(\&ticker,"1");
-my $thr=threads->create(\&spawn_slave_thr); 
+
+my @thr;
+for (1..2){
+	$thr[$_]=threads->create(\&spawn_slave_thr); 
+}
 
 print "back to master\n";
 while(1){
 }
 
-$thr->join();
+for (1..2){
+	$thr[$_]->join();
+}
+
 $ticker->join();
 
