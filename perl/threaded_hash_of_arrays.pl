@@ -19,16 +19,18 @@ my $crt : shared;
 $crt=0;
 
 my $nthreads=$ARGV[0] || 100;#100 threads by default
+my $elems=$ARGV[1] || 1000;
 
 sub add_an_array{
+	print "T";
 	lock $crt;
 	$crt++;
 	my @array;
-#	push(@array,int(rand(1000))) for (1..1000);
-	push(@array,0) for (1..1000);
+	push(@array,int(rand($elems))) for (1..$elems);
+#	push(@array,0) for (1..$elems);
 #	@array=sort {$a<=>$b} @array;
 	$hash_of_arrays{$crt}=shared_clone(\@array);
-	print "T";
+	print "F";
 }
 
 my @threads;
@@ -49,8 +51,6 @@ for (1..$nthreads){
 	}
 }
 print "\n";
-
-sleep;
 
 print &get_used_mem;
 
