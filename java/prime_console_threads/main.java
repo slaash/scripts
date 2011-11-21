@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 class prime_console{
 	
 	private static int masterAlive=1;
+	private static ThreadGroup MyThGroup=new ThreadGroup("Primes");
 	
 	public static class Watcher extends Thread{
 		
@@ -15,6 +16,8 @@ class prime_console{
 					e.printStackTrace();
 				}
 				System.out.println("Threads: "+Integer.toString(Thread.activeCount()));
+				System.out.println("MyThGroup: "+Integer.toString(MyThGroup.activeCount()));
+				System.out.println(Runtime.getRuntime().freeMemory()/1024/2014+ " MB free of " + Runtime.getRuntime().totalMemory()/1024/2014 + " MB Total, MAX is " + Runtime.getRuntime().maxMemory()/1024/2014 + " MB");
 			}
 		}	
 	
@@ -23,7 +26,7 @@ class prime_console{
 		
 		double n;
 		
-		MyThread(double n){
+		MyThread(ThreadGroup g, double n){
 			this.n=n;
 		}
 		
@@ -66,9 +69,9 @@ class prime_console{
                 }
 
 		double i;
-		int cnt=0;
+		
 		for (i=min;i<=max;i++){
-			MyThread t=new MyThread(i);
+			MyThread t=new MyThread(MyThGroup,i);
 			if (Thread.activeCount()<10){
 				t.start();
 			}
@@ -79,7 +82,6 @@ class prime_console{
 					e.printStackTrace();
 				}
 			}
-			cnt++;
 		}
 		while (Thread.activeCount()>2){
 			
