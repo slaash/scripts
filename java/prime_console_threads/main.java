@@ -3,8 +3,8 @@ import java.math.BigDecimal;
 
 class prime_console{
 	
-	private static int masterAlive=1;
-	private static ThreadGroup MyThGroup=new ThreadGroup("Primes");
+	static int masterAlive=1;
+	static ThreadGroup MyThGroup=new ThreadGroup("Primes");
 	
 	public static class Watcher extends Thread{
 		
@@ -15,10 +15,11 @@ class prime_console{
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				System.out.println("Threads: "+Integer.toString(Thread.activeCount()));
-				System.out.println("MyThGroup: "+Integer.toString(MyThGroup.activeCount()));
+				System.out.println("Threads in " + Thread.currentThread().getThreadGroup().getName() + " : "+Integer.toString(Thread.currentThread().getThreadGroup().activeCount()));
+				System.out.println("Threads in "+ MyThGroup.getName() +": "+Integer.toString(MyThGroup.activeCount()));
 				System.out.println(Runtime.getRuntime().freeMemory()/1024/2014+ " MB free of " + Runtime.getRuntime().totalMemory()/1024/2014 + " MB Total, MAX is " + Runtime.getRuntime().maxMemory()/1024/2014 + " MB");
 			}
+			System.out.println("Watcher done!");
 		}	
 	
 	}
@@ -26,11 +27,13 @@ class prime_console{
 		
 		double n;
 		
-		MyThread(ThreadGroup g, double n){
-			this.n=n;
+		MyThread(ThreadGroup tg, String n){
+			super(tg,n);
+			this.n=Double.parseDouble(n);
 		}
 		
 		public void run(){
+//			System.out.println(Thread.currentThread().getThreadGroup().getName());
 			is_prime(n);
 		}
 	
@@ -65,14 +68,15 @@ class prime_console{
 		}
 		else{
 			min=new BigDecimal("1").doubleValue();
-                        max=new BigDecimal("100").doubleValue();
-                }
+            max=new BigDecimal("100").doubleValue();
+        }
 
 		double i;
 		
 		for (i=min;i<=max;i++){
-			MyThread t=new MyThread(MyThGroup,i);
-			if (Thread.activeCount()<10){
+			MyThread t=new MyThread(MyThGroup,String.valueOf(i));
+//			if (Thread.currentThread().getThreadGroup().activeCount()<10){
+			if (MyThGroup.activeCount()<10){
 				t.start();
 			}
 			else{
@@ -83,10 +87,15 @@ class prime_console{
 				}
 			}
 		}
-		while (Thread.activeCount()>2){
-			
+//		while (Thread.currentThread().getThreadGroup().activeCount()>2){
+		while (MyThGroup.activeCount()>0){
 		}
 		masterAlive=0;
+		try {
+			w.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		System.out.println("Master done!");
 	}
 
