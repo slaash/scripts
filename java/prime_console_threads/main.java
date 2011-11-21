@@ -1,4 +1,4 @@
-import java.lang.*;
+//import java.lang.*;
 import java.math.BigDecimal;
 
 class prime_console{
@@ -7,12 +7,6 @@ class prime_console{
 	
 	public static class Watcher extends Thread{
 		
-//		double n;
-//		
-//		Watcher(double n){
-//			this.n=n;
-//		}
-//		
 		public void run(){
 			while (masterAlive==1){
 				try {
@@ -40,11 +34,6 @@ class prime_console{
 		public void is_prime(double n){
 			boolean prim=true;
 			double j;
-//			try {
-//				Thread.sleep(5000);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
 	        for (j=2;j<=Math.sqrt(n);j++){
 	                if (n % j==0){
 	                        prim=false;
@@ -62,9 +51,20 @@ class prime_console{
 		
 		Watcher w=new Watcher();
 		w.start();
+
+		double min;
+		double max;
+
+		if (args.length>0){
 		
-		double min=new BigDecimal("10000000000000000").doubleValue();
-		double max=new BigDecimal("10000000000000100").doubleValue();
+			min=new BigDecimal(args[0]).doubleValue();
+			max=new BigDecimal(args[1]).doubleValue();
+		}
+		else{
+			min=new BigDecimal("1").doubleValue();
+                        max=new BigDecimal("100").doubleValue();
+                }
+
 		double i;
 		int cnt=0;
 		for (i=min;i<=max;i++){
