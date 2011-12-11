@@ -56,9 +56,9 @@ class xml2csv extends DefaultHandler{
 
 //		if (qName=="ISSUE"){
     	int i;
-    	for (i=0;i<=atts.getLength();i++){
-				System.out.println(atts.);
-    	}
+//    	for (i=0;i<=atts.getLength();i++){
+//				System.out.println(atts.);
+//    	}
 //		}
 	}
 
