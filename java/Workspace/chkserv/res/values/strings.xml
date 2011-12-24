@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, ChkservActivity!</string>
+    <string name="app_name">Chkserv</string>
+    <string name="labelCheckbox">Service running</string>
+    <string name="labelReset">Reset SharedPrefs</string>
+    <string name="labelStore">Store value</string>
+
+</resources>
