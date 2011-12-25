@@ -19,6 +19,7 @@
             </intent-filter>
         </activity>
         <service android:name="service" android:label=""></service>
+        <activity android:name="newactivity"></activity>
     </application>
 
 </manifest>

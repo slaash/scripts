@@ -6,5 +6,8 @@
     <string name="labelCheckbox">Service running</string>
     <string name="labelReset">Reset SharedPrefs</string>
     <string name="labelStore">Store value</string>
+    <string name="labelSave">Save/Clear</string>
+    <string name="labelSpawn">Spawn</string>
+    <string name="hintEdit">Enter value</string>
 
 </resources>
