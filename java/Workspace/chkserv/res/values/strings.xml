@@ -21,5 +21,6 @@
         <item >Tasks</item>
         <item >Recent tasks</item>
     </string-array>
+        <string name="labelAsyncRun">Async Run</string>
 
 </resources>

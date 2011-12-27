@@ -39,6 +39,7 @@ public final class R {
         public static final int entryTasks=0x7f04000c;
         public static final int hello=0x7f040000;
         public static final int hintEdit=0x7f040007;
+        public static final int labelAsyncRun=0x7f04000e;
         public static final int labelCheckbox=0x7f040002;
         public static final int labelReset=0x7f040003;
         public static final int labelSave=0x7f040005;
