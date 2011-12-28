@@ -1,0 +1,7 @@
+start private adb server on android
+check port (127.0.0.1:xxxx)
+
+on win:
+adb forward tcp:9999 tcp:xxxx
+set AP_PORT=9999
+
