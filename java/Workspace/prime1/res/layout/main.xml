@@ -3,10 +3,36 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-
-    <TextView
-        android:layout_width="fill_parent"
+
+    <EditText
+        android:id="@+id/editText1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/hello" />
+        android:hint="@string/labelStartAt"
+        android:text="@string/labelMin" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/labelStopAt"
+        android:text="@string/labelMax" />
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.59"
+        android:scrollbars="vertical"
+        android:text="@string/labelEmpty" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/labelStart" />
 
 </LinearLayout>

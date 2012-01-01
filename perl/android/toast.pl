@@ -30,19 +30,38 @@ sub showrez{
 my $a=Android->new();
 $a->makeToast("Mumu from perl!");
 
-my $rez=$a->getLaunchableApplications();
+my $rez;
+
+$rez=$a->getLaunchableApplications();
 &showrez($rez);
 
-$rez=$a->getRunningPackages();
-&showrez($rez);
+# $rez=$a->getRunningPackages();
+# &showrez($rez);
 
 #$a->launch("com.android.contacts.DialtactsActivity");
 #$a->phoneCallNumber("0745815430");
 
-$rez=$a->dialogGetInput("Input dialog","User input here");
-&showrez($rez);
+# $rez=$a->dialogGetInput("Input dialog","User input here");
+# &showrez($rez);
 #$a->dialogShow();
 
+# $a->notify("Info","Notice here");
+
+# $a->sendEmail("rmoisa\@yahoo.com","test mail","this is a test");
+
+# $a->setClipboard("from PC");
+# $rez=$a->getClipboard();
+# &showrez($rez);
+
+# $a->webViewShow("http://www.yahoo.com");
+
+my @layout=("<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"
+        android:id=\"@+id/background\"
+        android:orientation=\"vertical\" android:layout_width=\"match_parent\"
+        android:layout_height=\"match_parent\" android:background=\"#ff000000\">
+</LinearLayout>");
+$a->fullShow(@layout);
 
 
 
