@@ -24,18 +24,25 @@ public class NetifActivity extends Activity {
             public void onClick(View v) {
                 // Perform action on click
             	final EditText edittext1 = (EditText) findViewById(R.id.editText1);
-            	edittext1.setText("Started\n");
+            	edittext1.setText("Started"+"\n");
             	try {
 					Enumeration<NetworkInterface> en=NetworkInterface.getNetworkInterfaces();
-					edittext1.append("Got network interfaces\n");
+					edittext1.append("Got network interfaces"+"\n");
 					while (en.hasMoreElements()){
-						edittext1.append("Got next interface\n");
+						edittext1.append("Got next interface"+"\n");
 						NetworkInterface intf=en.nextElement();
+						byte[] mac=intf.getHardwareAddress();
+						StringBuilder sb = new StringBuilder();
+						if (mac != null){
+							for (int i = 0; i < mac.length; i++) {
+								sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));		
+							}
+						}
 						Enumeration<InetAddress> addrs=intf.getInetAddresses();
 						while (addrs.hasMoreElements()){
-							edittext1.append("Got next address\n");
+							edittext1.append("Got next address"+"\n");
 							InetAddress addr=addrs.nextElement();
-							edittext1.append(addr.toString()+":"+addr.getHostAddress()+"\n");
+							edittext1.append(addr.toString()+":"+sb.toString()+"\n");
 //							Toast.makeText(NetifActivity.this, addr.getHostAddress(), Toast.LENGTH_SHORT).show();
 						}
 					}
