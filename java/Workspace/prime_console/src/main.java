@@ -1,4 +1,6 @@
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 class prime_console{
 
@@ -33,20 +35,19 @@ class prime_console{
 		}
 
 		public void run(){
-//			System.out.println(Thread.currentThread().getThreadGroup().getName());
 			is_prime(n);
 		}
 
 		public void is_prime(double n){
 			boolean prim=true;
 			double j;
-	        for (j=2;j<=Math.sqrt(n);j=j+1){
+	        for (j=2;j<=Math.sqrt(n);j++){
 	                if (n % j==0){
 	                        prim=false;
 	                        break;
 	                }
 	        }
-	        if (prim==true){
+	        if (prim){
 	                System.out.println(BigDecimal.valueOf(n));
 	        }
 		}
@@ -61,6 +62,8 @@ class prime_console{
 		double min;
 		double max;
 
+		ArrayList<Thread> threads=new ArrayList<Thread>();
+		
 		if (args.length>0){
 
 			min=Double.valueOf(args[0]);
@@ -74,32 +77,30 @@ class prime_console{
 		double i;
 		for (i=min;i<=max;i++){
 			MyThread t=new MyThread(MyThGroup,String.valueOf(i));
-//			if (Thread.currentThread().getThreadGroup().activeCount()<10){
 			if (MyThGroup.activeCount()<10){
 				t.start();
+				//we just add tasks that do not get to be immediately joined
+				threads.add(t);
 			}
 			else{
 				try {
+					//more than 10 runners, we join immediately
 					t.join();
+//					System.out.println("Joining directly:"+t.getName());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-//		while (Thread.currentThread().getThreadGroup().activeCount()>2){
-//		while (MyThGroup.activeCount()>0){
-//		}
 		
-//		int count = MyThGroup.activeCount() * 2; // factor of 2 for safety 
-		int count=(int) (max-min+1);
-		Thread[] threads = new Thread[(int) (max-min+1)];  
-		MyThGroup.enumerate(threads);  
-	    for (int j = 0; j < count; j++)  
-	    {  
-	      Thread t = threads[j];  
-	      if (t != null)  
-	        t.join();  
-	    }  
+		//here we join all threads not previously joined
+		Iterator<Thread> itr=threads.iterator();
+		while (itr.hasNext()){
+//			Thread crt_t=itr.next();
+//			crt_t.join();
+//			System.out.println("Joining later:"+crt_t.getName());
+			itr.next().join();
+		}
 				
 		masterAlive=0;
 		w.join();
