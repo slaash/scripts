@@ -4,13 +4,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class regex1 {
 	
 	public static void main (String[] args) throws IOException, InterruptedException{
 		ArrayList<String> command=new ArrayList<String>();
-		command.add("ccm.exe");
-		command.add("status");
+		command.add("tasklist");
+//		command.add("status");
 		ProcessBuilder builder=new ProcessBuilder(command);
 		Map<String, String> env = builder.environment();
 		String path=System.getenv("PATH");
@@ -24,8 +26,13 @@ class regex1 {
 		Process p=builder.start();
 		BufferedReader rdr=new BufferedReader(new InputStreamReader(p.getInputStream()));
 		String line;
+		Pattern pattern=Pattern.compile("^(s\\w+\\.\\w+).+Console");
 		while ((line=rdr.readLine()) != null){
-			System.out.println(line);
+			Matcher matcher=pattern.matcher(line);
+			if (matcher.find()){
+				System.out.println(matcher.group(1));
+			}
+//			System.out.println(line);
 		}
 		rdr.close();
 		p.waitFor();
