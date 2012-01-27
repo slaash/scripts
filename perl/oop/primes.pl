@@ -5,10 +5,16 @@ use warnings;
 
 use prime;
 
+my @numbers;
+
 for ($ARGV[0]..$ARGV[1]){
 	my $prim=new prime($_);
-	if ($prim->is_prime() == 1){
-		print "$_\n";
-	}
+	push(@numbers,$prim);
+}
+
+for (@numbers){
+        if ($_->is_prime() == 1){
+                print "$_\n";
+        }
 }
 
