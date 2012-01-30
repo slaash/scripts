@@ -6,6 +6,8 @@ sub new{
 	$self->{verbose}=$_[0];
 	shift;
 	@{$self->{list}}=@_;
+	$self->{shit}=1;
+	@{$self->{orig_list}}=@{$self->{list}};
 	bless({$self});
 	return $self;
 }
@@ -16,6 +18,18 @@ sub getNames{
 	return @{$self->{list}};
 }
 
+sub genPairs{
+	my ($self)=shift;
+	while ($self->{shit}==1){
+		@{$self->{list}}=@{$self->{orig_list}};
+		for (@{$self->{list}}){
+			print $self->remRandName($_)."\n";
+		}
+		print "---\n";
+	}
+	print "genPairs done\n";
+}
+
 sub remRandName{
 #usage: remRandName("gigi")
 #gets the element from a random position in the list
@@ -24,7 +38,7 @@ sub remRandName{
 	my ($self)=shift;
 	my $namesInList=$#{$self->{list}}+1;
 	my $randPos;
-	#if there are only two remaining in the list, compare with the supplied parameter and return the other element
+#if there are only two remaining in the list, compare with the supplied parameter and return the other element
 	if ($namesInList == 2){
 		if ($self->{verbose} == "1"){
 			print "2 remaining... ";
@@ -35,6 +49,22 @@ sub remRandName{
 		else{
 			$randPos=0;
 		}
+		$delName=${$self->{list}}[$randPos];
+		splice(@{$self->{list}},$randPos,1);#better than delete!
+		return $delName;
+	}
+#if there is only one remaining in the list, return it
+	elsif ($namesInList == 1){
+		if ($self->{verbose} == "1"){
+			print "1 remaining... ";
+		}
+		$randPos=0;
+		$delName=${$self->{list}}[$randPos];
+		if ($delName ne $_[0]){
+			$self->{shit}=0;#this means that the last guy did not extract himself
+		}
+		splice(@{$self->{list}},$randPos,1);#better than delete!
+		return $delName;
 	}
 	else{
 		$randPos=int(rand($namesInList));
