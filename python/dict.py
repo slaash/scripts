@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import pprint
 
@@ -15,6 +15,7 @@ for i in dict.keys():
 
 dict['d']={}
 dict['d'][4]=5
+dict['d'][5]=6
 
 pp.pprint(dict)
 
