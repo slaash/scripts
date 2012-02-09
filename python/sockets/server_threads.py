@@ -8,14 +8,18 @@ class thr (threading.Thread):
 		threading.Thread.__init__ ( self )
 		self.conn = conn
 
-	def run ( self ):
+	def run (self):
 		print("%s: connected to %s(%s):%s" % (self.getName(),socket.gethostbyaddr(self.conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1]))
 		while 1:
 			data = self.conn.recv(1024)
-			if not data: break
-			self.conn.send(data)
+			if not data:
+				break
+			else:
+				print("[%s(%s):%s]: %s" % (socket.gethostbyaddr(conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1],data.decode("utf-8").rstrip('\n')))
+				self.conn.send("ok\n".encode("utf-8"))
 		print("%s: Bye bye %s(%s):%s!" % (self.getName(),socket.gethostbyaddr(self.conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1]))
 		self.conn.close()
+		exit(0)
 
 HOST = ''
 PORT = 50007
