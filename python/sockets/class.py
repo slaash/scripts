@@ -5,19 +5,18 @@ class mamaLuClass():
 	motherOfAllKnowledge="aaa"
 
 	def __init__(self):
-		print("mommy")
-		self.motherOfAllKnowledge="aaa"
+		print("mommy init")
+		motherOfAllKnowledge+="bbb"
 
-	def run(self):
-		print("Set var to:",self.motherOfAllKnowledge)
-
+	def doShit(self,txt):
+		self.motherOfAllKnowledge+=txt
 
 class classAlMic(mamaLuClass):
 	def __init__(self):
 		print("kiddie")
-
-	def run(self):
 		print("Got var: ",self.motherOfAllKnowledge)
 
 kiddie=classAlMic()
+kiddie.doShit("sheise")
+print(kiddie.motherOfAllKnowledge)
 
