@@ -18,13 +18,14 @@ class worker (mainSrv):
 			pass
 		self.peerAddr=self.conn.getpeername()[0]
                 self.peerPort=self.conn.getpeername()[1]
+		self.killReceived=False
 
 	def run (self):
 		print("%s: connected to %s(%s):%s" % (self.getName(),self.peerAddr,self.peerHost,self.peerPort))
 		threadLock.acquire()
 		self.clientsPanel[self.conn]=1
 		threadLock.release()
-		while 1:
+		while not self.killReceived:
 			data = self.conn.recv(1024)
 			if not data:
 				break
@@ -49,6 +50,7 @@ class worker (mainSrv):
 
 	def listThreads(self):
 		print("---List of clients---")
+		threadLock.acquire()
 		for i in self.clientsPanel.keys():
 			peerHost=""
 			try:
@@ -59,9 +61,12 @@ class worker (mainSrv):
 			peerPort=i.getpeername()[1]
 			txt=peerAddr+"("+peerHost+"):"+str(peerPort)
 			print(txt)
+		threadLock.release()
 		print("---------End---------")
 
 threadLock = threading.Lock()
+
+threads=[]
 
 HOST = ''
 PORT = 50007
@@ -70,7 +75,13 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((HOST, PORT))
 s.listen(1)
 while (1):
-        conn,addr=s.accept()
-        t=worker(conn)
-        t.start()
-
+	try:
+        	conn,addr=s.accept()
+		t=worker(conn)
+		threads.append(t)
+		t.start()
+	except KeyboardInterrupt:
+		print("Sending terminate command to threads...")
+		for i in threads:
+			t.killReceived=True
+		exit(0)
