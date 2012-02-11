@@ -10,24 +10,30 @@ class mainSrv(threading.Thread):
 class worker (mainSrv):
 	def __init__ (self,conn):
 		threading.Thread.__init__(self)
-		self.conn = conn
+		self.conn=conn
+		self.peerHost=""
+		try:
+			self.peerHost=socket.gethostbyaddr(self.conn.getpeername()[0])[0]
+		except:
+			pass
+		self.peerAddr=self.conn.getpeername()[0]
+                self.peerPort=self.conn.getpeername()[1]
 
 	def run (self):
-		print("%s: connected to %s(%s):%s" % (self.getName(),socket.gethostbyaddr(self.conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1]))
+		print("%s: connected to %s(%s):%s" % (self.getName(),self.peerAddr,self.peerHost,self.peerPort))
 		threadLock.acquire()
 		self.clientsPanel[self.conn]=1
 		threadLock.release()
 		while 1:
 			data = self.conn.recv(1024)
-			pp=pprint.PrettyPrinter()
 			if not data:
 				break
 			else:
-				print("[%s(%s):%s]: %s" % (socket.gethostbyaddr(self.conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1],data.decode("utf-8").rstrip('\n')))
+				print("[%s(%s):%s]: %s" % (self.peerAddr,self.peerHost,self.peerPort,data.decode("utf-8").rstrip('\n')))
 				self.conn.send("ok\n".encode("utf-8"))
 				self.broadcast(data.decode("utf-8").rstrip('\n'))
-				pp.pprint(self.clientsPanel)
-		print("%s: Bye bye %s(%s):%s!" % (self.getName(),socket.gethostbyaddr(self.conn.getpeername()[0])[0],self.conn.getpeername()[0],self.conn.getpeername()[1]))
+				self.listThreads()
+		print("%s: Bye bye %s(%s):%s!" % (self.getName(),self.peerAddr,self.peerHost,self.peerPort))
 		threadLock.acquire()
 		del self.clientsPanel[self.conn]
 		threadLock.release()
@@ -37,9 +43,23 @@ class worker (mainSrv):
 		threadLock.acquire()
 		for i in self.clientsPanel.keys():
 			if i != self.conn:
-				txt="["+str(socket.gethostbyaddr(self.conn.getpeername()[0])[0])+"("+str(self.conn.getpeername()[0])+"):"+str(self.conn.getpeername()[1])+"]: "+txt+"\n"
+				txt="["+self.peerAddr+"("+self.peerHost+"):"+str(self.peerPort)+"]: "+txt+"\n"
 				i.send(txt.encode("utf-8"))
 		threadLock.release()
+
+	def listThreads(self):
+		print("---List of clients---")
+		for i in self.clientsPanel.keys():
+			peerHost=""
+			try:
+				peerHost=socket.gethostbyaddr(i.getpeername()[0])[0]
+			except:
+				pass
+			peerAddr=i.getpeername()[0]
+			peerPort=i.getpeername()[1]
+			txt=peerAddr+"("+peerHost+"):"+str(peerPort)
+			print(txt)
+		print("---------End---------")
 
 threadLock = threading.Lock()
 
