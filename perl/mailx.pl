@@ -13,9 +13,9 @@ my $subj=$ARGV[0];
 my $bcc=$ARGV[1];
 my $file=$ARGV[2];
 
-open FILE, "<$file";
-my $file_contents = do { local $/; <FILE> };
-close FILE;
+open my $f, "<",$file;
+my $file_contents = do { local $/; <$f> };
+close $f;
 
 my $from_address = 'ccm_root@continental-corporation.com';
 my $mail_host = 'smtphub07.conti.de';
