@@ -25,7 +25,7 @@ def osInfo():
 			'PWD' : os.getcwd(),
 			'UNAME' : os.uname(),
 			'Sys info' : os.times()}
-	except AttributeError as err1:
+	except AttributeError, err1:
 		print("Error in getting os info: "+str(err1))
 		info={}
 	return(info)
@@ -47,7 +47,7 @@ def platfInfo():
 			'system' : pl.system(),
 			'version' : pl.version(),
 			'dist' : pl.linux_distribution()}
-	except AttributeError as err1:
+	except AttributeError, err1:
 		print("Error in getting platform info: "+str(err1))
 		info={}
 	return(info)
