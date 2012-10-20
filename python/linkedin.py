@@ -3,9 +3,25 @@
 import oauth2 as oauth
 import httplib2
 import time, os, simplejson as json
+from types import *
 
-urls={'user_prof' : 'http://api.linkedin.com/v1/people/~',
-	'conns' : 'http://api.linkedin.com/v1/people/~/connections'
+def printItem(item):
+	if (type(item)==ListType):
+		for i in item:
+			printItem(i)
+	elif (type(item)==DictType):
+		for i in item.keys():
+			printItem(i)
+			printItem(item[i])
+	else:
+		try:
+			print(item)
+		except UnicodeEncodeError,err:
+			print(err)
+
+urls={#'user_prof' : 'http://api.linkedin.com/v1/people/~',
+#	'conns' : 'http://api.linkedin.com/v1/people/~/connections'
+	'updates' : 'http://api.linkedin.com/v1/people/~/network/updates'
 }
  
 # Fill the keys and secrets you retrieved after registering your app
@@ -29,8 +45,11 @@ client = oauth.Client(consumer, access_token)
  
 # By default, the LinkedIn API responses are in XML format. If you prefer JSON, simply specify the format in your call
 for comm in urls.keys():
-	resp,content = client.request(urls[comm]+"?format=json&count=1", "GET")
+	resp,content = client.request(urls[comm]+"?format=json", "GET")
 	d=json.loads(content)
 	for item in d.keys():
-		print("{} => {}".format(item,d[item]))
+#		print(type(d[item]))
+#		print("{} => {}".format(item,d[item]))
+		printItem(item)
+		printItem(d[item])
 	
