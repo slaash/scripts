@@ -35,19 +35,26 @@ int main(int argc,char* argv[])
 {
 printf("calculam de la %s la %s\n",argv[1],argv[2]);
 
-unsigned long long i,from,to;
+unsigned long long i,from,to,cnt;
 char prim;
 from=atoll(argv[1]);
 to=atoll(argv[2]);
-int ret;
-pthread_t thread;  /* thread variables */
+pthread_t thread[1000];  /* thread variables */
 thdata data;         /* structs to be passed to threads */
 
+cnt=0;
 for (i=from;i<=to;i++){
 	data.thread_no=i;
 	data.i=i;
-	ret=pthread_create(&thread,NULL,&is_prime,&data);
-	pthread_join(thread, NULL);
+	pthread_create(&thread[cnt],NULL,&is_prime,&data);
+	cnt++;
+//	pthread_join(thread, NULL);
+}
+
+printf("Got %lld threads",sizeof(thread));
+
+for (i=0;i<=sizeof(thread);i++){
+	pthread_join(thread[i],NULL);
 }
 
 exit(0);
