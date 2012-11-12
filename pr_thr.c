@@ -34,7 +34,7 @@ void *is_prime(void *arg)
 int main(int argc,char* argv[])
 {
 printf("calculam de la %s la %s\n",argv[1],argv[2]);
-
+dummy change
 unsigned long long i,from,to,cnt;
 char prim;
 from=atoll(argv[1]);
