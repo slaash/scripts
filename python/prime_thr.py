@@ -31,6 +31,6 @@ for i in range(min,max+1):
 	t=thr(i)
 	t.start()
 	runners=threading.active_count()
-	if runners>4:
+	if runners>=10:
 		t.join()
 
