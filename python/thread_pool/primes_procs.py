@@ -10,7 +10,6 @@ def is_prime(n,q):
 			prim=0
 			break
 	if prim == 1:
-#		print(n)
 		q.put(n)
 
 min=int(sys.argv[1])
@@ -27,6 +26,6 @@ for i in range(min,max+1):
 for p in active_children():
 	p.join()
 
-print(len(rezults))
-print(rezults.get())
-print(rezults.get())
+for r in range(1,rezults.qsize()+1):
+	print(rezults.get())
+
