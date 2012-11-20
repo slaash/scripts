@@ -4,23 +4,27 @@ from multiprocessing.pool import ThreadPool
 import os,sys,re
 
 def findItem(d,r):
-	files=os.listdir(d)
-	for item in files:
-		if re.search(r,item):
-			item=os.path.join(d,item)
-			if os.path.islink(item):
-				print("\t{} is link".format(item))
-			elif os.path.isfile(item):
-				print("\t{} is file".format(item))
-			elif os.path.isdir(item):
-				tPool.apply_async(findItem,[item,r])
-			else:
-				print("weird type...")
+	print("Dir: {}".format(d))
+	if (os.path.exists(d)):
+		files=os.listdir(d)
+#	print(d,files)
+		for item in files:
+			fullitem=os.path.join(d,item)
+			print(fullitem)
+			if (os.path.isdir(fullitem)):
+				print("start thread for {}".format(fullitem))
+				tPool.apply_async(findItem,[fullitem,r])
+	else:
+		print("{} does not exist?".format(d))
 
-d=sys.argv[1]
-r=sys.argv[2]
-tPool=ThreadPool(4)
+if (len(sys.argv)>1):
+	d=sys.argv[1]
+	if (len(sys.argv)>2):
+		r=sys.argv[2]
+	else:
+		r='.'
+tPool=ThreadPool(2)
 tPool.apply(findItem,[d,r])
-tPool.terminate()
+tPool.close()
 tPool.join()
 
