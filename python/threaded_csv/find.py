@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
-from multiprocessing.pool import Pool
-import os,sys,re
+import os,sys
 
 def findItem(d):
 	try:
@@ -13,8 +12,7 @@ def findItem(d):
 		for item in files:
 			fullitem=os.path.join(d,item)
 			if (os.path.isdir(fullitem)):
-				tPool.apply_async(findItem,[fullitem])
-#				findItem(fullitem)
+				findItem(fullitem)
 			else:
 				print(fullitem)
 
@@ -22,10 +20,5 @@ if (len(sys.argv)>1):
 	d=sys.argv[1]
 else:
 	d="./"
-
-tPool=Pool(2)
-tPool.apply(findItem,[d,])
-tPool.close()
-tPool.join()
-#findItem(d)
+findItem(d)
 
