@@ -2,38 +2,42 @@
 
 import BaseHTTPServer 
 import SocketServer
-import threading
-import cgi
+import csv, time, sys, os.path
 
 class CustomHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-	server_version="server"
-	sys_version="system"
+	server_version = "server"
+	sys_version = "system"
 
 	def do_GET(self):
 		self.send_response(200)
 		self.end_headers()
-		thrName = threading.currentThread().getName()
-		msg=self.server_version+" "+self.sys_version+"\n"+thrName+"\n"+"Hello "+self.address_string()+"("+self.client_address[0]+"):"+str(self.client_address[1])+"!\n"+self.command+" "+self.path+" "+self.request_version+"\n"
-		print(msg)
-#		self.wfile.write(msg)
+		outputCSV.writerow((time.strftime('%d-%m-%Y %H:%M:%S'), self.address_string(), self.client_address[0], self.client_address[1], self.command, self.path, self.request_version))
 		return
-
 
 	def do_POST(self):
 		self.send_response(200)
                 self.end_headers()
+		outputCSV.writerow((time.strftime('%d-%m-%Y %H:%M:%S'), self.address_string(), self.client_address[0], self.client_address[1], self.command, self.path, self.request_version))
 
-
-
-
-class thrSimpleHTTPServer(SocketServer.ThreadingMixIn,BaseHTTPServer.HTTPServer):
+class thrSimpleHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 	pass
 
 PORT = 8000
 
-httpd=thrSimpleHTTPServer(("",PORT),CustomHandler)
+outputFile = open(os.path.join(sys.path[0],'output.csv'), 'a')
+outputCSV = csv.writer(outputFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
 
-print "serving at port", PORT
-httpd.serve_forever()
+httpd = thrSimpleHTTPServer(("", PORT), CustomHandler)
+
+print("serving at port"+str(PORT))
+print("using file "+os.path.join(sys.path[0],'output.csv'))
+try:
+	httpd.serve_forever()
+except KeyboardInterrupt,err:
+	print("Got CTRL-C, exiting...\n");
+
+httpd.shutdown()
+outputFile.close()
+print("Done!\n")
 
