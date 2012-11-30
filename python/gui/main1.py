@@ -3,7 +3,6 @@
 from PyQt4 import QtCore, QtGui
 from gui1 import Ui_MainWindow
 import sys, time
-from threading import Thread
 
 class WorkThread(QtCore.QThread):
 
@@ -18,8 +17,6 @@ class WorkThread(QtCore.QThread):
 		for i in range(self.fromValue,self.toValue):
 			self.update.emit(str(i))
                         time.sleep(1)
-		return
-
 
 class MyForm(QtGui.QMainWindow):
 
@@ -31,6 +28,7 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.pushButton.clicked.connect(self.update_lcd)
 		self.ui.listWidget.itemClicked.connect(self.get_list_item)
 		self.ui.pushButton_2.clicked.connect(self.update_list_item)
+		self.lcdThreadPool=[]
 
 	def show_numbers(self):
 		for i in range(int(self.ui.lineEdit.text()),int(self.ui.lineEdit_2.text())):
@@ -38,7 +36,12 @@ class MyForm(QtGui.QMainWindow):
 			self.ui.listWidget.addItem(str(i))
 
 	def update_lcd(self):
+		if (len(self.lcdThreadPool)>0):
+			for t in self.lcdThreadPool:
+				t.terminate()
+				self.lcdThreadPool.pop()
 		self.workThread = WorkThread(self.ui.lineEdit.text(),self.ui.lineEdit_2.text())
+		self.lcdThreadPool.append(self.workThread)
 		self.workThread.update.connect(self.really_update_lcd)
 		self.workThread.start()
 
