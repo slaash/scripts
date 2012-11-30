@@ -3,6 +3,23 @@
 from PyQt4 import QtCore, QtGui
 from gui1 import Ui_MainWindow
 import sys, time
+from threading import Thread
+
+class WorkThread(QtCore.QThread):
+
+	update=QtCore.pyqtSignal(str)
+
+	def __init__(self,txt1,txt2):
+		QtCore.QThread.__init__(self)
+		self.fromValue=int(txt1)
+		self.toValue=int(txt2)
+
+	def run(self):
+		for i in range(self.fromValue,self.toValue):
+			self.update.emit(str(i))
+                        time.sleep(1)
+		return
+
 
 class MyForm(QtGui.QMainWindow):
 
@@ -11,19 +28,22 @@ class MyForm(QtGui.QMainWindow):
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 #		QtCore.QObject.connect(self.ui.pushButton, QtCore.SIGNAL("clicked()"), self.show_numbers)
-		self.ui.pushButton.clicked.connect(self.show_numbers)
+		self.ui.pushButton.clicked.connect(self.update_lcd)
 		self.ui.listWidget.itemClicked.connect(self.get_list_item)
-#		QtCore.QObject.connect(self.ui.pushButton_2, QtCore.SIGNAL("clicked()"), self.update_list_item)
 		self.ui.pushButton_2.clicked.connect(self.update_list_item)
-#		QtCore.QObject.connect(self.ui.lineEdit_2, QtCore.SIGNAL("returnPressed()"), self.add_entry)
 
 	def show_numbers(self):
 		for i in range(int(self.ui.lineEdit.text()),int(self.ui.lineEdit_2.text())):
 			self.ui.textBrowser.append(str(i))
 			self.ui.listWidget.addItem(str(i))
-			self.ui.lcdNumber.intValue=i
-			self.ui.lcdNumber.display(str(i))
-			time.sleep(1)
+
+	def update_lcd(self):
+		self.workThread = WorkThread(self.ui.lineEdit.text(),self.ui.lineEdit_2.text())
+		self.workThread.update.connect(self.really_update_lcd)
+		self.workThread.start()
+
+	def really_update_lcd(self, text="-1"):
+		self.ui.lcdNumber.display(text)
 
 	def get_list_item(self):
 		self.ui.lineEdit_3.setText(self.ui.listWidget.currentItem().text())
