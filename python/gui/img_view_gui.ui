@@ -27,18 +27,40 @@
      <string>Show</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>771</width>
-      <height>511</height>
+      <width>781</width>
+      <height>521</height>
      </rect>
     </property>
-    <property name="text">
-     <string>TextLabel</string>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
     </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>761</width>
+       <height>501</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>501</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -47,7 +69,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>15</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

@@ -10,12 +10,16 @@ class MyForm(QtGui.QMainWindow):
 		QtGui.QWidget.__init__(self,parent)
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
-		self.ui.label.geometry.Width=self.frame.geometry.Width
-                self.ui.label.geometry.Height=self.frame.geometry.Height
 		self.ui.pushButton.clicked.connect(self.displayImg)
 
 	def displayImg(self):
-		self.ui.label.setPixmap(QtGui.QPixmap('/home/slash/poze/IMG_0029.JPG').scaled(self.ui.label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+		imgFile=self.getOpenDialogRes()
+		if (imgFile != ''):	
+			self.ui.label.setPixmap(QtGui.QPixmap(imgFile).scaled(self.ui.label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+
+	def getOpenDialogRes(self):
+		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", "", "*.*", None)
+		return filename
 
 app=QtGui.QApplication(sys.argv)
 myapp=MyForm()
