@@ -5,6 +5,39 @@ from img_view_gui import Ui_MainWindow
 import sys, time, os.path
 import cv
 
+class WorkThread(QtCore.QThread):
+
+	update=QtCore.pyqtSignal(cv.cvmat)
+
+	def __init__(self,img):
+		QtCore.QThread.__init__(self)
+		self.img=img
+
+	def resizeImg(self,im):
+		print('Resizing...')
+		(pw,ph)=cv.GetSize(im)
+		r=0
+		if (pw>=ph):
+			r=pw/800
+		else:
+			r=ph/600
+		resImg=cv.CreateMat(im.rows/r,im.cols/r,cv.CV_8UC3)
+		cv.Resize(im,resImg)
+		print("W/H: {}/{}".format(*cv.GetSize(resImg)))
+		return(resImg)
+
+	def run(self):
+		im=cv.LoadImageM(str(self.img))
+		print("W/H: {}/{}".format(*cv.GetSize(im)))
+		#resize to 800x???
+		im=self.resizeImg(im)
+		#
+		faces=cv.HaarDetectObjects(im,hc,cv.CreateMemStorage(),1.2,2,cv.CV_HAAR_DO_CANNY_PRUNING)
+		for (x,y,w,h),n in faces:
+			cv.Rectangle(im,(x,y),(x+w,y+h),255)
+		#emit same type as defined for update
+		self.update.emit(im)
+
 class MyForm(QtGui.QMainWindow):
 
 	def __init__(self,parent=None):
@@ -12,7 +45,7 @@ class MyForm(QtGui.QMainWindow):
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 		self.ui.pushButton.clicked.connect(self.displayImg)
-		self.ui.pushButton_2.clicked.connect(self.showFace)
+		self.ui.pushButton_2.clicked.connect(self.findFace)
 
 	def displayImg(self):
 		self.imgFile=self.getOpenDialogRes()
@@ -23,26 +56,16 @@ class MyForm(QtGui.QMainWindow):
 		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", "", "*.*", None)
 		return filename
 
-	#begin OpenCV part
-
-	def showFace(self):
+	def findFace(self):
 		print(self.imgFile)
-		im=cv.LoadImageM(self.imgFile)
-		print("W/H: {}/{}".format(*cv.GetSize(im)))
-		#resize to 800x???
-		if (args.nores==False):
-			im=resizeImg(im)
-		#
-		faces=cv.HaarDetectObjects(im,hc,cv.CreateMemStorage(),1.2,2,cv.CV_HAAR_DO_CANNY_PRUNING)
-		for (x,y,w,h),n in faces:
-			cv.Rectangle(im,(x,y),(x+w,y+h),255)
-		cv.ShowImage('display',im)
-		c=cv.WaitKey(0)
-		print('Pressed '+str(c))
-		if (c==1048603):
-			exit(0)
+		self.workThread = WorkThread(self.imgFile)
+                self.workThread.update.connect(self.showFace)
+                self.workThread.start()
 
-	#end OpenCV part
+	def showFace(self,im):
+		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
+		pixmap = QtGui.QPixmap.fromImage(image)
+		self.ui.label_2.setPixmap(pixmap.scaled(self.ui.label_2.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))	
 
 haarPath='/usr/share/opencv/haarcascades'
 hc=cv.Load(os.path.join(haarPath,'haarcascade_frontalface_default.xml'))
