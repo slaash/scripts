@@ -9,9 +9,10 @@ class WorkThread(QtCore.QThread):
 
 	update=QtCore.pyqtSignal(cv.cvmat)
 
-	def __init__(self,img):
+	def __init__(self,img,hc):
 		QtCore.QThread.__init__(self)
 		self.img=img
+		self.hc=hc
 
 	def resizeImg(self,im):
 		print('Resizing...')
@@ -32,7 +33,7 @@ class WorkThread(QtCore.QThread):
 		#resize to 800x???
 		im=self.resizeImg(im)
 		#
-		faces=cv.HaarDetectObjects(im,hc,cv.CreateMemStorage(),1.2,2,cv.CV_HAAR_DO_CANNY_PRUNING)
+		faces=cv.HaarDetectObjects(im,self.hc,cv.CreateMemStorage(),1.2,2,cv.CV_HAAR_DO_CANNY_PRUNING)
 		for (x,y,w,h),n in faces:
 			cv.Rectangle(im,(x,y),(x+w,y+h),255)
 		#emit same type as defined for update
@@ -40,25 +41,36 @@ class WorkThread(QtCore.QThread):
 
 class MyForm(QtGui.QMainWindow):
 
+	haarPath='/usr/share/opencv/haarcascades'
+
 	def __init__(self,parent=None):
 		QtGui.QWidget.__init__(self,parent)
 		self.ui=Ui_MainWindow()
 		self.ui.setupUi(self)
 		self.ui.pushButton.clicked.connect(self.displayImg)
-		self.ui.pushButton_2.clicked.connect(self.findFace)
+		self.ui.pushButton_2.clicked.connect(self.setHC)
+		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
 
 	def displayImg(self):
 		self.imgFile=self.getOpenDialogRes()
 		if (self.imgFile != ''):	
 			self.ui.label.setPixmap(QtGui.QPixmap(self.imgFile).scaled(self.ui.label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+		self.findFace()
 
 	def getOpenDialogRes(self):
-		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", "", "*.*", None)
+		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", "~/", "*.*", None)
 		return filename
+
+	def setHC(self):
+		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", self.haarPath, "*.xml", None)
+		if (filename!=''):
+			self.hc=cv.Load(str(filename))
+			self.ui.label_4.setText(filename)
 
 	def findFace(self):
 		print(self.imgFile)
-		self.workThread = WorkThread(self.imgFile)
+		self.workThread = WorkThread(self.imgFile,self.hc)
                 self.workThread.update.connect(self.showFace)
                 self.workThread.start()
 
@@ -66,9 +78,6 @@ class MyForm(QtGui.QMainWindow):
 		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
 		pixmap = QtGui.QPixmap.fromImage(image)
 		self.ui.label_2.setPixmap(pixmap.scaled(self.ui.label_2.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))	
-
-haarPath='/usr/share/opencv/haarcascades'
-hc=cv.Load(os.path.join(haarPath,'haarcascade_frontalface_default.xml'))
 
 app=QtGui.QApplication(sys.argv)
 myapp=MyForm()
