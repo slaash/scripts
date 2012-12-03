@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>943</width>
     <height>600</height>
    </rect>
   </property>
@@ -18,21 +18,21 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>540</y>
-      <width>75</width>
+      <y>530</y>
+      <width>91</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>Show</string>
+     <string>Browse</string>
     </property>
    </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>781</width>
+      <x>0</x>
+      <y>0</y>
+      <width>941</width>
       <height>521</height>
      </rect>
     </property>
@@ -47,20 +47,78 @@
       <rect>
        <x>10</x>
        <y>10</y>
-       <width>761</width>
-       <height>501</height>
+       <width>451</width>
+       <height>481</height>
       </rect>
      </property>
      <property name="minimumSize">
       <size>
-       <width>501</width>
+       <width>0</width>
        <height>0</height>
       </size>
      </property>
      <property name="text">
-      <string>TextLabel</string>
+      <string>QPixmap</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>0</y>
+       <width>451</width>
+       <height>491</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>OpenCV</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>500</y>
+       <width>451</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Original image</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>500</y>
+       <width>451</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Filter used</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+     <rect>
+      <x>480</x>
+      <y>530</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Change filter</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -68,7 +126,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>943</width>
      <height>19</height>
     </rect>
    </property>
