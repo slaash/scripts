@@ -7,18 +7,18 @@ import cv
 
 class WorkThread(QtCore.QThread):
 
-	update=QtCore.pyqtSignal(cv.cvmat)
+	update=QtCore.pyqtSignal(QtGui.QImage)
 
 	def __init__(self,img,hc):
 		QtCore.QThread.__init__(self)
 		self.img=img
-		print(str(self.img))
+		print("CV init",str(self.img))
 		self.hc=hc
 
 	def resizeImg(self,im):
 		print('Resizing...')
 		(pw,ph)=cv.GetSize(im)
-		print(pw,ph)
+		print("CV Resize",pw,ph)
 		r=0
 		if (pw>=ph):
 			r=pw/800
@@ -31,7 +31,7 @@ class WorkThread(QtCore.QThread):
 
 	def run(self):
 		im=cv.LoadImageM(str(self.img))
-		print("W/H: {}/{}".format(*cv.GetSize(im)))
+		print("CV W/H: {}/{}".format(*cv.GetSize(im)))
 		#resize to 800x???
 		im=self.resizeImg(im)
 		#
@@ -39,7 +39,8 @@ class WorkThread(QtCore.QThread):
 		for (x,y,w,h),n in faces:
 			cv.Rectangle(im,(x,y),(x+w,y+h),255)
 		#emit same type as defined for update
-		self.update.emit(im)
+		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
+		self.update.emit(image)
 
 class MyForm(QtGui.QMainWindow):
 
@@ -53,37 +54,43 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.pushButton_2.clicked.connect(self.setHC)
 		self.hc=None
 		self.imgFile=''
-#		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
-#		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
 
 	def displayImg(self):
-		self.getOpenDialogRes()
-		if (self.imgFile != ''):	
-			self.ui.label.setPixmap(QtGui.QPixmap(self.imgFile).scaled(self.ui.label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-		if (self.hc==None):
-			self.setHC()
-		self.findFace()
-
-	def getOpenDialogRes(self):
-		self.imgFile=QtGui.QFileDialog.getOpenFileName(None, "Select image", "~/", "*.*", None)
-		self.ui.label_4.setText(self.imgFile)
+		res=self.getOpenDialogRes()
+		if (res != ''):
+			self.imgFile=res
+			self.ui.label_3.setText(self.imgFile)
+			self.setImageToLabel(self.imgFile,self.ui.label)
+			self.findFace()
 
 	def setHC(self):
-		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", self.haarPath, "*.xml", None)
-		if (filename!=''):
-			self.hc=cv.Load(str(filename))
-			self.ui.label_4.setText(filename)
+		res=self.getOpenDialogRes("Select HAAR filter",self.haarPath,"*.xml")
+		if (res!=''):
+			self.hc=cv.Load(str(res))
+			self.ui.label_4.setText(res)
+			self.findFace()
 
 	def findFace(self):
-		print(self.imgFile,self.hc)
-		self.workThread = WorkThread(self.imgFile,self.hc)
-		self.workThread.update.connect(self.showFace)
-		self.workThread.start()
+		if (self.hc==None):
+			self.setHC()
+		else:
+			print("FindFace",self.imgFile,self.hc)
+			self.workThread = WorkThread(self.imgFile,self.hc)
+			self.workThread.update.connect(self.showFace)
+			self.workThread.start()
 
-	def showFace(self,im):
-		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
-		pixmap = QtGui.QPixmap.fromImage(image)
-		self.ui.label_2.setPixmap(pixmap.scaled(self.ui.label_2.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))	
+	def showFace(self,image):
+		self.setImageToLabel(image, self.ui.label_2)
+		
+	def setImageToLabel(self,image,label):
+		label.setPixmap(QtGui.QPixmap(image).scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+		
+	def getOpenDialogRes(self,caption='Select file',startDir='',fileFilter='*.*'):
+		res=QtGui.QFileDialog.getOpenFileName(None, caption, startDir, fileFilter, None)
+		#returns path or ''
+		return res
 
 app=QtGui.QApplication(sys.argv)
 myapp=MyForm()
