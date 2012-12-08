@@ -12,11 +12,13 @@ class WorkThread(QtCore.QThread):
 	def __init__(self,img,hc):
 		QtCore.QThread.__init__(self)
 		self.img=img
+		print(str(self.img))
 		self.hc=hc
 
 	def resizeImg(self,im):
 		print('Resizing...')
 		(pw,ph)=cv.GetSize(im)
+		print(pw,ph)
 		r=0
 		if (pw>=ph):
 			r=pw/800
@@ -49,18 +51,22 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.setupUi(self)
 		self.ui.pushButton.clicked.connect(self.displayImg)
 		self.ui.pushButton_2.clicked.connect(self.setHC)
-		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
-		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+		self.hc=None
+		self.imgFile=''
+#		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+#		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
 
 	def displayImg(self):
-		self.imgFile=self.getOpenDialogRes()
+		self.getOpenDialogRes()
 		if (self.imgFile != ''):	
 			self.ui.label.setPixmap(QtGui.QPixmap(self.imgFile).scaled(self.ui.label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+		if (self.hc==None):
+			self.setHC()
 		self.findFace()
 
 	def getOpenDialogRes(self):
-		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", "~/", "*.*", None)
-		return filename
+		self.imgFile=QtGui.QFileDialog.getOpenFileName(None, "Select image", "~/", "*.*", None)
+		self.ui.label_4.setText(self.imgFile)
 
 	def setHC(self):
 		filename=QtGui.QFileDialog.getOpenFileName(None, "Select image", self.haarPath, "*.xml", None)
@@ -69,10 +75,10 @@ class MyForm(QtGui.QMainWindow):
 			self.ui.label_4.setText(filename)
 
 	def findFace(self):
-		print(self.imgFile)
+		print(self.imgFile,self.hc)
 		self.workThread = WorkThread(self.imgFile,self.hc)
-                self.workThread.update.connect(self.showFace)
-                self.workThread.start()
+		self.workThread.update.connect(self.showFace)
+		self.workThread.start()
 
 	def showFace(self,im):
 		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
