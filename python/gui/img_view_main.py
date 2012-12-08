@@ -7,18 +7,19 @@ import cv
 
 class WorkThread(QtCore.QThread):
 
-	update=QtCore.pyqtSignal(QtGui.QImage)
-
+	finida=QtCore.pyqtSignal(QtGui.QImage)
+	chatty=QtCore.pyqtSignal(str)
+	
 	def __init__(self,img,hc):
 		QtCore.QThread.__init__(self)
 		self.img=img
-		print("CV init",str(self.img))
+		self.chatty.emit("CV init {}".format(self.img))
 		self.hc=hc
 
 	def resizeImg(self,im):
-		print('Resizing...')
+		self.chatty.emit('Resizing...')
 		(pw,ph)=cv.GetSize(im)
-		print("CV Resize",pw,ph)
+		self.chatty.emit("CV Resize {} {}".format(pw,ph))
 		r=0
 		if (pw>=ph):
 			r=pw/800
@@ -26,12 +27,12 @@ class WorkThread(QtCore.QThread):
 			r=ph/600
 		resImg=cv.CreateMat(im.rows/r,im.cols/r,cv.CV_8UC3)
 		cv.Resize(im,resImg)
-		print("W/H: {}/{}".format(*cv.GetSize(resImg)))
+		self.chatty.emit("W/H: {}/{}".format(*cv.GetSize(resImg)))
 		return(resImg)
 
 	def run(self):
 		im=cv.LoadImageM(str(self.img))
-		print("CV W/H: {}/{}".format(*cv.GetSize(im)))
+		self.chatty.emit("CV W/H: {}/{}".format(*cv.GetSize(im)))
 		#resize to 800x???
 		im=self.resizeImg(im)
 		#
@@ -40,7 +41,8 @@ class WorkThread(QtCore.QThread):
 			cv.Rectangle(im,(x,y),(x+w,y+h),255)
 		#emit same type as defined for update
 		image = QtGui.QImage(im.tostring(), im.width, im.height, QtGui.QImage.Format_RGB888).rgbSwapped()
-		self.update.emit(image)
+		self.finida.emit(image)
+		self.chatty.emit('Done')
 
 class MyForm(QtGui.QMainWindow):
 
@@ -56,6 +58,8 @@ class MyForm(QtGui.QMainWindow):
 		self.imgFile=''
 		self.hc=cv.Load(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
 		self.ui.label_4.setText(os.path.join(self.haarPath,'haarcascade_frontalface_default.xml'))
+		self.logStatus("Is ready")
+		self.stupidPrgBarUpd()
 
 	def displayImg(self):
 		res=self.getOpenDialogRes()
@@ -76,9 +80,10 @@ class MyForm(QtGui.QMainWindow):
 		if (self.hc==None):
 			self.setHC()
 		else:
-			print("FindFace",self.imgFile,self.hc)
+			self.logStatus("FindFace {} {}".format(self.imgFile,self.hc))
 			self.workThread = WorkThread(self.imgFile,self.hc)
-			self.workThread.update.connect(self.showFace)
+			self.workThread.chatty.connect(self.logStatus)
+			self.workThread.finida.connect(self.showFace)
 			self.workThread.start()
 
 	def showFace(self,image):
@@ -91,9 +96,16 @@ class MyForm(QtGui.QMainWindow):
 		res=QtGui.QFileDialog.getOpenFileName(None, caption, startDir, fileFilter, None)
 		#returns path or ''
 		return res
+		
+	def stupidPrgBarUpd(self):
+		for i in range(0,101):
+			self.ui.progressBar.setValue(i)
+#			time.sleep(1)
+		
+	def logStatus(self,msg):
+		self.ui.textEdit.append("{}: {}".format(time.strftime('%H:%M:%S'),msg))
 
 app=QtGui.QApplication(sys.argv)
 myapp=MyForm()
 myapp.show()
 sys.exit(app.exec_())
- 
