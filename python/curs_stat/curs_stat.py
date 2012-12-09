@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import xml.etree.ElementTree as ET
+import matplotlib
 
 file='/home/slash/nbrfxrates2012.xml'
 #file='./test.xml'
