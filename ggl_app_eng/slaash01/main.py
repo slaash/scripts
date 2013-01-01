@@ -18,6 +18,7 @@ import webapp2
 from google.appengine.api import users
 import os,time
 import platform as pl
+import subprocess
 
 class MainHandler(webapp2.RequestHandler):
 	def get(self):
@@ -25,26 +26,25 @@ class MainHandler(webapp2.RequestHandler):
 		if (user):
 			now=time.ctime(time.time())
 			self._print('{} - Hello {} ({}) !'.format(now,user.nickname(),user.email()))
+			self._hr()
+			self._print("Your IP: "+self.request.remote_addr)
+			self._print("Origin URL: "+self.request.url)
 			self._print("uid: "+str(os.getuid()))
 			self._print("pid: "+str(os.getpid()))
 			self._print("cwd: "+os.getcwd())
 			self._print(pl.system()+", "+pl.architecture()[0])
-#			self._print(os.uname())
-#			self._print(pl.machine())
-#			self._print(pl.node())
-#			self._print(pl.processor())
 			self._print(pl.python_implementation()+", "+pl.python_version())
-#			self._print(pl.release())
-#			self._print(pl.system())
-#			self._print(pl.uname())
-#			self._print(pl.version())
-#			self._print(pl.linux_distribution())
+			self._hr()
+			self.response.out.write("<a href='"+self.request.url.rstrip("/")+users.create_logout_url(self.request.uri)+"'>LogOut</a>")
 		else:
 			self.redirect(users.create_login_url(self.request.uri))
 
 	def _print(self,txt):
 		self.response.out.write(txt)
 		self.response.out.write('<br/>'+"\n")
+
+	def _hr(self):
+		self.response.out.write('<hr/>'+"\n")
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
