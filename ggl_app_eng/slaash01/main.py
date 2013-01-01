@@ -16,14 +16,35 @@
 #
 import webapp2
 from google.appengine.api import users
+import os,time
+import platform as pl
 
 class MainHandler(webapp2.RequestHandler):
-    def get(self):
+	def get(self):
 		user = users.get_current_user()
 		if (user):
-			self.response.write('Hello {} {} {}'.format(user.nickname(),user.email(),user.user_id()))
+			now=time.ctime(time.time())
+			self._print('{} - Hello {} ({}) !'.format(now,user.nickname(),user.email()))
+			self._print("uid: "+str(os.getuid()))
+			self._print("pid: "+str(os.getpid()))
+			self._print("cwd: "+os.getcwd())
+			self._print(pl.system()+", "+pl.architecture()[0])
+#			self._print(os.uname())
+#			self._print(pl.machine())
+#			self._print(pl.node())
+#			self._print(pl.processor())
+			self._print(pl.python_implementation()+", "+pl.python_version())
+#			self._print(pl.release())
+#			self._print(pl.system())
+#			self._print(pl.uname())
+#			self._print(pl.version())
+#			self._print(pl.linux_distribution())
 		else:
 			self.redirect(users.create_login_url(self.request.uri))
+
+	def _print(self,txt):
+		self.response.out.write(txt)
+		self.response.out.write('<br/>'+"\n")
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
