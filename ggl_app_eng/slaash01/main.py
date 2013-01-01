@@ -18,9 +18,20 @@ import webapp2
 from google.appengine.api import users
 import os,time
 import platform as pl
-import subprocess
+import cgi
 
-class MainHandler(webapp2.RequestHandler):
+class BaseHandler(webapp2.RequestHandler):
+	def _print(self,txt):
+		self.response.out.write(txt)
+		self._br()
+
+	def _hr(self):
+		self.response.out.write('<hr/>'+"\n")
+
+	def _br(self):
+		self.response.out.write('<br/>'+"\n")
+
+class MainHandler(BaseHandler):
 	def get(self):
 		user = users.get_current_user()
 		if (user):
@@ -35,17 +46,33 @@ class MainHandler(webapp2.RequestHandler):
 			self._print(pl.system()+", "+pl.architecture()[0])
 			self._print(pl.python_implementation()+", "+pl.python_version())
 			self._hr()
-			self.response.out.write("<a href='"+self.request.url.rstrip("/")+users.create_logout_url(self.request.uri)+"'>LogOut</a>")
+			self._form("/primez","de la","la")
+			self._hr()
+			self.response.out.write("<a href='/logoff'>LogOut_1</a>")
+			self._br()	
+			self.response.out.write("<a href='"+users.create_logout_url("/")+"'>LogOut_2</a>")
 		else:
 			self.redirect(users.create_login_url(self.request.uri))
 
-	def _print(self,txt):
-		self.response.out.write(txt)
-		self.response.out.write('<br/>'+"\n")
+	def _form(self,*args):
+		url=args[0]
+		self._print('<form action="'+url+'" method="POST">')
+		for a in args[1:]:
+			self._print(a+' <input type="text" name="'+a+'">')
+		self._print('<input type="submit" value="Run">')
+		self._print('</form>')
 
-	def _hr(self):
-		self.response.out.write('<hr/>'+"\n")
+class LogoffHandler(BaseHandler):
+	def get(self):
+		self.redirect(users.create_logout_url("/"))
+
+class PrimezHandler(BaseHandler):
+	def post(self):
+		self._print(cgi.escape(self.request.get('de la')))
+		self._print(cgi.escape(self.request.get('la')))
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+	('/', MainHandler),
+	('/logoff', LogoffHandler),
+	('/primez', PrimezHandler)
 ], debug=True)
