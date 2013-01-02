@@ -19,6 +19,7 @@ from google.appengine.api import users
 import os,time
 import platform as pl
 import cgi
+import json
 
 class BaseHandler(webapp2.RequestHandler):
 	def _print(self,txt):
@@ -57,6 +58,10 @@ class MainHandler(BaseHandler):
 	def _form(self,*args):
 		url=args[0]
 		self._print('<form action="'+url+'" method="POST">')
+		self._print('<select name="qtype" size="2">')
+		self._print('<option value="HTML" selected="selected">HTML</option>')
+		self._print('<option value="JSON">JSON</option>')
+		self._print('</select>')
 		for a in args[1:]:
 			self._print(a+' <input type="text" name="'+a+'">')
 		self._print('<input type="submit" value="Run">')
@@ -68,8 +73,15 @@ class LogoffHandler(BaseHandler):
 
 class PrimezHandler(BaseHandler):
 	def post(self):
-		self._print(cgi.escape(self.request.get('de la')))
-		self._print(cgi.escape(self.request.get('la')))
+		qtype=cgi.escape(self.request.get('qtype'))
+		if (qtype=='HTML'):
+			self._print(cgi.escape(self.request.get('de la')))
+			self._print(cgi.escape(self.request.get('la')))
+		elif (qtype=='JSON'):
+			d={}
+			d['de la']=cgi.escape(self.request.get('de la'))
+			d['la']=cgi.escape(self.request.get('la'))
+			self.response.out.write(json.dumps(d))
 
 app = webapp2.WSGIApplication([
 	('/', MainHandler),
