@@ -8,6 +8,8 @@ import webapp2
 from google.appengine.ext import db
 from google.appengine.api import runtime
 
+import math
+
 class PrimerInfo(db.Model):
         date = db.DateTimeProperty(auto_now_add=True)
         de_la = db.StringProperty()
@@ -15,6 +17,22 @@ class PrimerInfo(db.Model):
         numbers = db.StringProperty()
 
 class PrimerHandler(webapp2.RequestHandler):
+
+	def getPrimes(self,de_la,la):
+		de_la=int(de_la)
+		la=int(la)
+		primes=[]
+		for i in range(de_la,la+1):
+			prim=1
+			for j in range(2,int(math.sqrt(i)+1)):
+				if i % j == 0:
+					prim=0
+					break
+			if prim == 1:
+				primes.append(i)
+		print(primes)
+		return(primes)
+
 	def setPrimerInfo(self,de_la,la,numbers):
 		pr=PrimerInfo()
 		pr.de_la=de_la
@@ -23,12 +41,16 @@ class PrimerHandler(webapp2.RequestHandler):
 		pr.put()
 
 	def get(self):
-		self.response.out.write("hello from backend!")
-		self.setPrimerInfo('111','222','get 113,115,117,...')
+		de_la=cgi.escape(self.request.get('de_la'))
+		la=cgi.escape(self.request.get('la'))
+		self.response.out.write("get: hello from backend!")
+		self.setPrimerInfo('111','222',','.join(self.getPrimes(de_la,la)))
 
 	def post(self):
-		self.response.out.write("hello from backend!")
-		self.setPrimerInfo('111','222','post 113,115,117,...')
+		de_la=str(cgi.escape(self.request.get('de_la')))
+		la=str(cgi.escape(self.request.get('la')))
+		self.response.out.write("post: hello from backend!")
+		self.setPrimerInfo('111','222',','.join(self.getPrimes(de_la,la)))
 
 class StartHandler(webapp2.RequestHandler):
 	"""Handler for '/_ah/start'.

@@ -19,6 +19,7 @@ import time
 import platform as pl
 import cgi
 import json
+import urllib
 
 import webapp2
 
@@ -116,10 +117,12 @@ class PrimezHandler(BaseHandler):
 			d['la']=cgi.escape(self.request.get('la'))
 			self.response.out.write(json.dumps(d))
 		elif (qtype=='Backend'):
+			payload = urllib.urlencode({'de_la': cgi.escape(self.request.get('de_la')), 'la':cgi.escape(self.request.get('la'))})
 			url = backends.get_url('primer') + '/backend/primer/mumu'
 			self._print("Backend at "+url)
-			result = urlfetch.fetch(url)
-			self._print(result.content.strip())
+			urlfetch.fetch(url, method='POST', payload=payload)
+			self._print("Done!")
+#			self._print(result.content.strip())
 
 	def get(self):
 		self.post()
