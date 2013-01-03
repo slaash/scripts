@@ -35,7 +35,8 @@ class StartHandler(webapp2.RequestHandler):
 	This url is called once when the backend is started.
 	"""
 	def get(self):
-		runtime.set_shutdown_hook(_counter_store.shutdown_hook)
+#		runtime.set_shutdown_hook(_counter_store.shutdown_hook)
+		pass
 
 app = webapp2.WSGIApplication([
         ('/_ah/start', StartHandler),
