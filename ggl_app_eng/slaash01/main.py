@@ -22,7 +22,7 @@ import json
 
 import webapp2
 
-from google.appengine.api import users
+from google.appengine.api import users, backends, urlfetch, runtime
 from google.appengine.ext import db
 
 class VisitorInfo(db.Model):
@@ -74,8 +74,14 @@ class MainHandler(BaseHandler):
 		self._print("cwd: "+os.getcwd())
 		self._print(pl.system()+", "+pl.architecture()[0])
 		self._print(pl.python_implementation()+", "+pl.python_version())
+		self._print("Used mem: "+str(runtime.memory_usage().current())+" MB")
+		self._print("Used mem last min: "+str(runtime.memory_usage().average1m())+" MB")
+		self._print("CPU usage: "+str(runtime.cpu_usage().total())+" Mcycles")
+		self._print("CPU usage last min: "+str(runtime.cpu_usage().rate1m())+" Mcycles")
 		self._hr()
 		self._form("/primez","de_la","la")
+		self._hr()
+		self.response.out.write("<a href='"+backends.get_url('primer')+"/backend/primer/mumu'>Primer</a>")
 		self._hr()
 		self.response.out.write("<a href='/logoff'>LogOut_1</a>")
 		self._br()	
@@ -87,6 +93,7 @@ class MainHandler(BaseHandler):
 		self._print('<select name="qtype" size="2">')
 		self._print('<option value="HTML" selected="selected">HTML</option>')
 		self._print('<option value="JSON">JSON</option>')
+		self._print('<option value="Backend">Backend</option>')
 		self._print('</select>')
 		for a in args[1:]:
 			self._print(a+' <input type="text" name="'+a+'">')
@@ -108,6 +115,11 @@ class PrimezHandler(BaseHandler):
 			d['de_la']=cgi.escape(self.request.get('de_la'))
 			d['la']=cgi.escape(self.request.get('la'))
 			self.response.out.write(json.dumps(d))
+		elif (qtype=='Backend'):
+			url = backends.get_url('primer') + '/backend/primer/mumu'
+			self._print("Backend at "+url)
+			result = urlfetch.fetch(url)
+			self._print(result.content.strip())
 
 	def get(self):
 		self.post()
@@ -123,5 +135,5 @@ app = webapp2.WSGIApplication([
 	('/', MainHandler),
 	('/logoff', LogoffHandler),
 	('/primez', PrimezHandler),
-	('/who', VisitorsHandler)
+	('/doctor/who', VisitorsHandler)
 ], debug=True)

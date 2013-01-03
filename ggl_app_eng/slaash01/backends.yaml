@@ -1,0 +1,5 @@
+backends:
+- name: primer
+  start: primer.app
+  instances: 1
+  class: B2
