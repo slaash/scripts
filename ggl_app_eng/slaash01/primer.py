@@ -29,35 +29,29 @@ class PrimerHandler(webapp2.RequestHandler):
 					prim=0
 					break
 			if prim == 1:
-				primes.append(i)
-		print(primes)
+				primes.append(str(i))
 		return(primes)
 
 	def setPrimerInfo(self,de_la,la,numbers):
 		pr=PrimerInfo()
 		pr.de_la=de_la
 		pr.la=la
-		pr.numbers=numbers
+		pr.numbers=numbers[:500]
 		pr.put()
 
 	def get(self):
-		de_la=cgi.escape(self.request.get('de_la'))
-		la=cgi.escape(self.request.get('la'))
-		self.response.out.write("get: hello from backend!")
-		self.setPrimerInfo('111','222',','.join(self.getPrimes(de_la,la)))
+		pass
 
 	def post(self):
-		de_la=str(cgi.escape(self.request.get('de_la')))
-		la=str(cgi.escape(self.request.get('la')))
-		self.response.out.write("post: hello from backend!")
-		self.setPrimerInfo('111','222',','.join(self.getPrimes(de_la,la)))
+		de_la=cgi.escape(self.request.get('de_la'))
+		la=cgi.escape(self.request.get('la'))
+		self.setPrimerInfo(de_la,la,','.join(self.getPrimes(de_la,la)))
 
 class StartHandler(webapp2.RequestHandler):
 	"""Handler for '/_ah/start'.
 	This url is called once when the backend is started.
 	"""
 	def get(self):
-#		runtime.set_shutdown_hook(_counter_store.shutdown_hook)
 		pass
 
 app = webapp2.WSGIApplication([

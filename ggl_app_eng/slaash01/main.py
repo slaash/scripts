@@ -23,7 +23,7 @@ import urllib
 
 import webapp2
 
-from google.appengine.api import users, backends, urlfetch, runtime
+from google.appengine.api import users, backends, taskqueue, runtime
 from google.appengine.ext import db
 
 class VisitorInfo(db.Model):
@@ -31,6 +31,12 @@ class VisitorInfo(db.Model):
 	ip = db.StringProperty()
 	nick = db.StringProperty()
 	email = db.StringProperty()
+
+class PrimerInfo(db.Model):
+	date = db.DateTimeProperty(auto_now_add=True)
+	de_la = db.StringProperty()
+	la = db.StringProperty()
+	numbers = db.StringProperty()
 
 class BaseHandler(webapp2.RequestHandler):
 
@@ -120,7 +126,8 @@ class PrimezHandler(BaseHandler):
 			payload = urllib.urlencode({'de_la': cgi.escape(self.request.get('de_la')), 'la':cgi.escape(self.request.get('la'))})
 			url = backends.get_url('primer') + '/backend/primer/mumu'
 			self._print("Backend at "+url)
-			urlfetch.fetch(url, method='POST', payload=payload)
+#			urlfetch.fetch(url, method='POST', payload=payload) # timesout
+			taskqueue.add(url='/backend/primer/mumu',params=dict(de_la=cgi.escape(self.request.get('de_la')), la=cgi.escape(self.request.get('la'))))
 			self._print("Done!")
 #			self._print(result.content.strip())
 
@@ -132,11 +139,19 @@ class VisitorsHandler(BaseHandler):
 		rez=db.GqlQuery("select * from VisitorInfo")
 		for line in rez:
 			self._print("{} | {} | {} | {}".format(line.date,line.ip,line.nick,line.email))
-			self._hr()	
+			self._hr()
+
+class ShowPrimezHandler(BaseHandler):
+	def get(self):
+		rez=db.GqlQuery("select * from PrimerInfo")
+		for line in rez:
+			self._print("{} | {} | {} | {}".format(line.date,line.de_la,line.la,line.numbers))
+			self._hr()
 
 app = webapp2.WSGIApplication([
 	('/', MainHandler),
 	('/logoff', LogoffHandler),
 	('/primez', PrimezHandler),
-	('/doctor/who', VisitorsHandler)
+	('/doctor/who', VisitorsHandler),
+	('/got/primez', ShowPrimezHandler)
 ], debug=True)

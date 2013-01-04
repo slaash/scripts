@@ -3,3 +3,4 @@ backends:
   start: primer.app
   instances: 1
   class: B2
+  options: dynamic
