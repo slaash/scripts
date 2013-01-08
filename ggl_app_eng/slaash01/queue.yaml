@@ -1,0 +1,3 @@
+queue:
+- name: MyQueue
+  rate: 1/s

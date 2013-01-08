@@ -127,9 +127,9 @@ class PrimezHandler(BaseHandler):
 			url = backends.get_url('primer') + '/backend/primer/mumu'
 			self._print("Backend at "+url)
 #			urlfetch.fetch(url, method='POST', payload=payload) # timesout
-			q=taskqueue.Queue('default')
+			q=taskqueue.Queue('MyQueue')
 			q.purge()
-			taskqueue.add(url='/backend/primer/mumu',params=dict(de_la=cgi.escape(self.request.get('de_la')), la=cgi.escape(self.request.get('la'))))
+			taskqueue.add(queue_name='MyQueue', url='/backend/primer/mumu',params=dict(de_la=cgi.escape(self.request.get('de_la')), la=cgi.escape(self.request.get('la')), transactional=False))
 			self._print("In task queue: "+str(q.fetch_statistics().tasks))
 			self._print("Done!")
 #			self._print(result.content.strip())
