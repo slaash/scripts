@@ -137,6 +137,12 @@ class PrimezHandler(BaseHandler):
 	def get(self):
 		self.post()
 
+class dropTable(BaseHandler):
+
+	def get(self):
+		taskqueue.add(queue_name='default', url='/backend/primer/drop')
+		self._print("Done!")
+
 class VisitorsHandler(BaseHandler):
 	def get(self):
 		rez=db.GqlQuery("select * from VisitorInfo")
@@ -156,5 +162,6 @@ app = webapp2.WSGIApplication([
 	('/logoff', LogoffHandler),
 	('/primez', PrimezHandler),
 	('/doctor/who', VisitorsHandler),
-	('/got/primez', ShowPrimezHandler)
+	('/got/primez', ShowPrimezHandler),
+	('/drop/table', dropTable)
 ], debug=True)

@@ -11,7 +11,7 @@ handlers:
 
 - url: /backend/primer/.*
   script: primer.app
-#  login: admin
+  login: admin
 
 - url: .*
   script: main.app
