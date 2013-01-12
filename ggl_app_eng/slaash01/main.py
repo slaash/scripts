@@ -20,23 +20,14 @@ import platform as pl
 import cgi
 import json
 import urllib
+import logging
 
 import webapp2
 
 from google.appengine.api import users, backends, taskqueue, runtime
 from google.appengine.ext import db
 
-class VisitorInfo(db.Model):
-	date = db.DateTimeProperty(auto_now_add=True)
-	ip = db.StringProperty()
-	nick = db.StringProperty()
-	email = db.StringProperty()
-
-class PrimerInfo(db.Model):
-	date = db.DateTimeProperty(auto_now_add=True)
-	de_la = db.StringProperty()
-	la = db.StringProperty()
-	numbers = db.StringProperty()
+import db_models
 
 class BaseHandler(webapp2.RequestHandler):
 
@@ -63,10 +54,11 @@ class BaseHandler(webapp2.RequestHandler):
 class MainHandler(BaseHandler):
 
 	def setVisInfo(self,ip,nick,email):
-		vis=VisitorInfo()
+		vis=db_models.VisitorInfo()
 		vis.ip=ip
 		vis.nick=nick
 		vis.email=email
+		logging.info("{} {} {}".format(ip,nick,email))
 		vis.put()
 
 	def get(self):
@@ -98,9 +90,9 @@ class MainHandler(BaseHandler):
 		url=args[0]
 		self._print('<form action="'+url+'" method="POST">')
 		self._print('<select name="qtype" size="2">')
-		self._print('<option value="HTML" selected="selected">HTML</option>')
+		self._print('<option value="HTML">HTML</option>')
 		self._print('<option value="JSON">JSON</option>')
-		self._print('<option value="Backend">Backend</option>')
+		self._print('<option value="Backend" selected="selected">Backend</option>')
 		self._print('</select>')
 		for a in args[1:]:
 			self._print(a+' <input type="text" name="'+a+'">')
@@ -130,7 +122,8 @@ class PrimezHandler(BaseHandler):
 			q=taskqueue.Queue('MyQueue')
 			q.purge()
 			taskqueue.add(queue_name='MyQueue', url='/backend/primer/mumu',params=dict(de_la=cgi.escape(self.request.get('de_la')), la=cgi.escape(self.request.get('la')), transactional=False))
-			self._print("In task queue: "+str(q.fetch_statistics().tasks))
+			qstats=q.fetch_statistics()
+			self._print("{}: {} out of {} running tasks".format(qstats.queue,qstats.in_flight,qstats.tasks))
 			self._print("Done!")
 #			self._print(result.content.strip())
 
@@ -143,6 +136,17 @@ class dropTable(BaseHandler):
 		taskqueue.add(queue_name='default', url='/backend/primer/drop')
 		self._print("Done!")
 
+class purgeQueue(BaseHandler):
+
+	def get(self):
+		q=taskqueue.Queue('MyQueue')
+		qstats=q.fetch_statistics()
+		self._print("Before - {}: {} out of {} running tasks".format(qstats.queue,qstats.in_flight,qstats.tasks))
+		q.purge()
+		qstats=q.fetch_statistics()
+		self._print("After - {}: {} out of {} running tasks".format(qstats.queue,qstats.in_flight,qstats.tasks))
+		self._print("Done!")
+
 class VisitorsHandler(BaseHandler):
 	def get(self):
 		rez=db.GqlQuery("select * from VisitorInfo")
@@ -152,9 +156,9 @@ class VisitorsHandler(BaseHandler):
 
 class ShowPrimezHandler(BaseHandler):
 	def get(self):
-		rez=db.GqlQuery("select * from PrimerInfo")
+		rez=db.GqlQuery("select * from PrimerInfo order by date desc")
 		for line in rez:
-			self._print("{} | {} | {} | {}".format(line.date,line.de_la,line.la,line.numbers))
+			self._print("{} | {} | {} | {} | {} | {}".format(line.date,line.duration,line.stats,line.de_la,line.la,line.numbers))
 			self._hr()
 
 app = webapp2.WSGIApplication([
@@ -163,5 +167,6 @@ app = webapp2.WSGIApplication([
 	('/primez', PrimezHandler),
 	('/doctor/who', VisitorsHandler),
 	('/got/primez', ShowPrimezHandler),
-	('/drop/table', dropTable)
+	('/drop/table', dropTable),
+	('/purge/queue', purgeQueue)
 ], debug=True)
