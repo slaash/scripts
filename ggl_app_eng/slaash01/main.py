@@ -24,7 +24,7 @@ import logging
 
 import webapp2
 
-from google.appengine.api import users, backends, taskqueue, runtime
+from google.appengine.api import users, backends, taskqueue, runtime, files
 from google.appengine.ext import db
 
 import db_models
@@ -149,7 +149,7 @@ class purgeQueue(BaseHandler):
 
 class VisitorsHandler(BaseHandler):
 	def get(self):
-		rez=db.GqlQuery("select * from VisitorInfo")
+		rez=db.GqlQuery("select * from VisitorInfo order by date desc")
 		for line in rez:
 			self._print("{} | {} | {} | {}".format(line.date,line.ip,line.nick,line.email))
 			self._hr()
@@ -161,6 +161,20 @@ class ShowPrimezHandler(BaseHandler):
 			self._print("{} | {} | {} | {} | {} | {}".format(line.date,line.duration,line.stats,line.de_la,line.la,line.numbers))
 			self._hr()
 
+class FilezHandler(BaseHandler):
+	def get(self):
+		items=files.listdir('/gs/mybucket')
+		if (len(items)==0):
+			self._print("No filez!")
+			my_file='/gs/mybucket/readme.txt'
+			files.gs.create(my_file)
+			f=files.open(my_file,'a')
+			f.write('Hello world!')
+			f.close()
+		else:
+			for i in items:
+				self._print(i)
+
 app = webapp2.WSGIApplication([
 	('/', MainHandler),
 	('/logoff', LogoffHandler),
@@ -168,5 +182,6 @@ app = webapp2.WSGIApplication([
 	('/doctor/who', VisitorsHandler),
 	('/got/primez', ShowPrimezHandler),
 	('/drop/table', dropTable),
-	('/purge/queue', purgeQueue)
+	('/purge/queue', purgeQueue),
+	('/filez', FilezHandler)
 ], debug=True)
