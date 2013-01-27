@@ -2,22 +2,25 @@
 
 import math
 import sys
+import mem_info
 
-min=int(sys.argv[1])
-max=int(sys.argv[2])
+mn = int(sys.argv[1])
+mx = int(sys.argv[2])
 
-def myrange(start,stop):
-	i = start
-	while i < stop:
-		yield i
-		i += 1
+def myrange(start, stop):
+	n = start
+	while n < stop:
+		yield n
+		n += 1
 
-for i in myrange(min,max+1):
-	prim=1
-	for j in myrange(2,int(math.sqrt(i)+1)):
+for i in range(mn, mx+1):
+	prim = 1
+	for j in range(2, int(math.sqrt(i)+1)):
 		if i % j == 0:
-			prim=0
+			prim = 0
 			break
 	if prim == 1:
 		print(i)
+
+mem_info.get_status()
 
