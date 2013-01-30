@@ -16,5 +16,5 @@ import math, sys
 #print get_primes(1, 100)
 
 #print filter(is_prime, range(1, 100))
-print filter(lambda x: len(filter(lambda j: x % j == 0, range(2, int(math.sqrt(x)+1)))) == 0, range(int(sys.argv[0]), int(sys.argv[1])))
+print filter(lambda x: len(filter(lambda j: x % j == 0, range(2, int(math.sqrt(x)+1)))) == 0, range(int(sys.argv[1]), int(sys.argv[2])))
 
