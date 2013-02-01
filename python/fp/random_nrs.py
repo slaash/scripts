@@ -4,19 +4,20 @@ import random
 
 random.seed()
 
-rlist=list('1')
-print(rlist)
+rlist=[]
 
 def add_number(l):
-	n=random.randint(0,100)
-	if len(l)==0 or n not in l:
+	n=random.randint(0,10)
+	if n not in l:
+		print("{} {}".format(l,len(l)))
 		l.append(n)
 		return l
 	else:
-		add_number(l)
+		print("{} exists".format(n))
+		l=add_number(l)
 
 
-for i in range(0,100):
+for i in range(0,10):
 	rlist=add_number(rlist)
 
 print(rlist)
