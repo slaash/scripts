@@ -1,10 +1,10 @@
 (
 
-(defn is_prime
+(defn is_div
 [x]
-(println (range 2 (Math/sqrt x)))
+(if (= 0 (mod x (range 2 (Math/sqrt x)))) true false)
 )
 
-(is_prime (range 1 100))
+(for [x (range 1 100)] (is_div x))
 )
  
