@@ -2,7 +2,8 @@
 
 (defn is_div
 [x]
-(if (= 0 (mod x (range 2 (Math/sqrt x)))) true false)
+#(if (= (mod x 2) 0) (println "mumu") (println x))
+(println x)
 )
 
 (for [x (range 1 100)] (is_div x))
