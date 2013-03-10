@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import urllib
+import re
 
 class IntegerGenerator():
 
@@ -22,12 +23,13 @@ class IntegerGenerator():
 	def setMax(self, max):
 		self.max = max
 
+	@property
 	def getRez(self):
 		#http://www.random.org/integers/?num=10&min=1&max=6&col=1&base=10&format=plain&rnd=new
 		params = urllib.urlencode({'num': self.num, 'min': self.min, 'max': self.max, 'col': self.col, 'base': self.base, 'format': self.format, 'rnd': self.rnd})
 		url = "http://www.random.org/integers/?" + params
 		data = urllib.urlopen(url).read().rstrip()
-		return(data)
+		return(re.findall("\d+",data))
 
 class SequenceGenerator():
 
@@ -38,16 +40,40 @@ class SequenceGenerator():
 		self.format = format#html, plain
 		self.rnd = rnd#new, id.identifier, date.isodate(YYYY-MM-DD, today, yesterday)
 
+	@property
 	def getRez(self):
 		#http://www.random.org/sequences/?min=1&max=52&col=1&format=plain&rnd=new 
-		params = urllib.urlencode({'num': self.num, 'min': self.min, 'max': self.max, 'col': self.col, 'base': self.base, 'format': self.format, 'rnd': self.rnd})
+		params = urllib.urlencode({'min': self.min, 'max': self.max, 'col': self.col, 'format': self.format, 'rnd': self.rnd})
 		url = "http://www.random.org/sequences/?" + params
 		data = urllib.urlopen(url).read().rstrip()
-		return(data)
+		return(re.findall("\d+",data))
 
+class StringGenerator():
 
+	def __init__(self, num=1, len=4, digits='off', upperalpha='off', loweralpha='on', unique='on', format = 'plain', rnd = 'new'):
+		self.num = num
+		self.len = len
+		self.digits = digits
+		self.upperalpha = upperalpha
+		self.loweralpha = loweralpha
+		self.unique = unique
+		self.format = format
+		self.rnd = rnd
+	
+	@property
+	def getRez(self):
+		#http://www.random.org/strings/?num=10&len=8&digits=on&upperalpha=on&loweralpha=on&unique=on&format=html&rnd=new
+		params = urllib.urlencode({'num': self.num, 'len': self.len, 'digits': self.digits, 'upperalpha': self.upperalpha, 'loweralpha': self.loweralpha, 'unique': self.unique, 'format': self.format, 'rnd': self.rnd})
+		url = "http://www.random.org/strings/?" + params
+		data = urllib.urlopen(url).read().rstrip()
+		return(re.findall(".+",data))
 
-intFact = IntegerGenerator()
-intFact.setMax(1000000000)
-print(intFact.getRez())
+intFact = IntegerGenerator(num=10, max=100)
+print(intFact.getRez)
+
+seqFact = SequenceGenerator()
+print(seqFact.getRez)
+
+strFact = StringGenerator(num=10, len=6, digits='on')
+print(strFact.getRez)
 
