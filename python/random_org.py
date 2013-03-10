@@ -37,8 +37,13 @@ class SequenceGenerator():
 		#http://www.random.org/quota/?ip=134.226.36.80&format=plain
 		url = self.base_url + self.makeParams()
 		print("URL: " + url)
-		data = urllib.request.urlopen(url).read().decode('utf-8').rstrip()
-		return(re.findall(self.regex, data))
+		try:
+			pass
+		except urllib.error.HTTPError, err:
+			print("You shit youself: ", err)
+		else:
+			data = urllib.request.urlopen(url).read().decode('utf-8').rstrip()
+			return(list(map(int,re.findall(self.regex, data))))
 
 class IntegerGenerator(SequenceGenerator):
 
@@ -93,7 +98,7 @@ if (__name__ == '__main__'):
 	seqFact = SequenceGenerator()
 	print(seqFact.getRez)
 
-	seqFact.setMax(max = 100)
+	seqFact.setMax(max = 1000000000000000000000000)
 	print(seqFact.getRez)
 
 	strFact = StringGenerator(num=10, len=6, digits='on')
