@@ -1,54 +1,62 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-import urllib
+import urllib, urllib.parse, urllib.request
 import re
 
-class IntegerGenerator():
+class SequenceGenerator():
 
-	def __init__(self, num = 1, min = 1, max = 10, col = 1, base = 10, format = 'plain', rnd = 'new'):
-		self.num = num
-		self.min = min
-		self.max = max
-		self.col = col
-		self.base = base#2,8,10,16
+	base_url = "http://www.random.org/sequences/?"
+	regex = "\d+"
+
+	def __init__(self, min = 1, max = 10, col = 1, format = 'plain', rnd = 'new'):
+		self.min = int(min)
+		self.max = int(max)
+		self.col = int(col)
 		self.format = format#html, plain
 		self.rnd = rnd#new, id.identifier, date.isodate(YYYY-MM-DD, today, yesterday)
 
 	def setNum(self, num):
-		self.num = num
+		self.num = int(num)
 
 	def setMin(self, min):
-		self.num = min
+		self.num = int(min)
 
 	def setMax(self, max):
-		self.max = max
+		self.max = int(max)
 
-	@property
-	def getRez(self):
-		#http://www.random.org/integers/?num=10&min=1&max=6&col=1&base=10&format=plain&rnd=new
-		params = urllib.urlencode({'num': self.num, 'min': self.min, 'max': self.max, 'col': self.col, 'base': self.base, 'format': self.format, 'rnd': self.rnd})
-		url = "http://www.random.org/integers/?" + params
-		data = urllib.urlopen(url).read().rstrip()
-		return(re.findall("\d+",data))
-
-class SequenceGenerator():
-
-	def __init__(self, min = 1, max = 10, col = 1, format = 'plain', rnd = 'new'):
-		self.min = min
-		self.max = max
-		self.col = col
-		self.format = format#html, plain
-		self.rnd = rnd#new, id.identifier, date.isodate(YYYY-MM-DD, today, yesterday)
+	def makeParams(self):
+		params = urllib.parse.urlencode({'min': self.min, 'max': self.max, 'col': self.col, 'format': self.format, 'rnd': self.rnd})
+		return(params)
 
 	@property
 	def getRez(self):
 		#http://www.random.org/sequences/?min=1&max=52&col=1&format=plain&rnd=new 
-		params = urllib.urlencode({'min': self.min, 'max': self.max, 'col': self.col, 'format': self.format, 'rnd': self.rnd})
-		url = "http://www.random.org/sequences/?" + params
-		data = urllib.urlopen(url).read().rstrip()
-		return(re.findall("\d+",data))
+		#http://www.random.org/integers/?num=10&min=1&max=6&col=1&base=10&format=plain&rnd=new
+		#http://www.random.org/strings/?num=10&len=8&digits=on&upperalpha=on&loweralpha=on&unique=on&format=html&rnd=new
+		#http://www.random.org/quota/?format=plain
+		#http://www.random.org/quota/?ip=134.226.36.80&format=plain
+		url = self.base_url + self.makeParams()
+		print("URL: " + url)
+		data = urllib.request.urlopen(url).read().decode('utf-8').rstrip()
+		return(re.findall(self.regex, data))
 
-class StringGenerator():
+class IntegerGenerator(SequenceGenerator):
+
+	base_url = "http://www.random.org/integers/?"
+
+	def __init__(self, num = 1, min = 1, max = 10, col = 1, base = 10, format = 'plain', rnd = 'new'):
+		super().__init__(min, max, col, format, rnd)
+		self.num = num
+		self.base = base#2,8,10,16
+
+	def makeParams(self):
+		params = urllib.parse.urlencode({'num': self.num, 'min': self.min, 'max': self.max, 'col': self.col, 'base': self.base, 'format': self.format, 'rnd': self.rnd})
+		return(params)
+
+class StringGenerator(SequenceGenerator):
+
+	base_url = "http://www.random.org/strings/?"
+	regex = ".+"
 
 	def __init__(self, num=1, len=4, digits='off', upperalpha='off', loweralpha='on', unique='on', format = 'plain', rnd = 'new'):
 		self.num = num
@@ -59,21 +67,38 @@ class StringGenerator():
 		self.unique = unique
 		self.format = format
 		self.rnd = rnd
+
+	def makeParams(self):
+		params = urllib.parse.urlencode({'num': self.num, 'len': self.len, 'digits': self.digits, 'upperalpha': self.upperalpha, 'loweralpha': self.loweralpha, 'unique': self.unique, 'format': self.format, 'rnd': self.rnd})
+		return(params)
 	
-	@property
-	def getRez(self):
-		#http://www.random.org/strings/?num=10&len=8&digits=on&upperalpha=on&loweralpha=on&unique=on&format=html&rnd=new
-		params = urllib.urlencode({'num': self.num, 'len': self.len, 'digits': self.digits, 'upperalpha': self.upperalpha, 'loweralpha': self.loweralpha, 'unique': self.unique, 'format': self.format, 'rnd': self.rnd})
-		url = "http://www.random.org/strings/?" + params
-		data = urllib.urlopen(url).read().rstrip()
-		return(re.findall(".+",data))
+class QuotaChecker(SequenceGenerator):
 
-intFact = IntegerGenerator(num=10, max=100)
-print(intFact.getRez)
+	base_url = "http://www.random.org/quota/?"
+	regex = "\d+"
 
-seqFact = SequenceGenerator()
-print(seqFact.getRez)
+	def __init__(self, ip='', format = 'plain'):
+		self.ip = ip
+		self.format = format
 
-strFact = StringGenerator(num=10, len=6, digits='on')
-print(strFact.getRez)
+	def makeParams(self):
+		params = urllib.parse.urlencode({'ip': self.ip, 'format': self.format})
+		return(params)
+
+if (__name__ == '__main__'):
+
+	intFact = IntegerGenerator(num=10, max=100)
+	print(intFact.getRez)
+
+	seqFact = SequenceGenerator()
+	print(seqFact.getRez)
+
+	seqFact.setMax(max = 100)
+	print(seqFact.getRez)
+
+	strFact = StringGenerator(num=10, len=6, digits='on')
+	print(strFact.getRez)
+
+	qCheck = QuotaChecker()
+	print(qCheck.getRez)
 
