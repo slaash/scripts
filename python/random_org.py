@@ -1,12 +1,14 @@
 #!/usr/bin/python3
 
-import urllib, urllib.parse, urllib.request
+import urllib, urllib.parse, urllib.request, urllib.error
+from urllib.error import HTTPError
 import re
 
 class SequenceGenerator():
 
 	base_url = "http://www.random.org/sequences/?"
 	regex = "\d+"
+	data=""
 
 	def __init__(self, min = 1, max = 10, col = 1, format = 'plain', rnd = 'new'):
 		self.min = int(min)
@@ -28,6 +30,17 @@ class SequenceGenerator():
 		params = urllib.parse.urlencode({'min': self.min, 'max': self.max, 'col': self.col, 'format': self.format, 'rnd': self.rnd})
 		return(params)
 
+	def makeRequest(self):
+		url = self.base_url + self.makeParams()
+		print("URL: " + url)
+		try:
+			data = urllib.request.urlopen(url).read().decode('utf-8').rstrip()
+		#that's python3, bitch!
+		except HTTPError as err:
+			print("You shit youself: ", err)
+		else:
+			self.data=data
+
 	@property
 	def getRez(self):
 		#http://www.random.org/sequences/?min=1&max=52&col=1&format=plain&rnd=new 
@@ -35,15 +48,8 @@ class SequenceGenerator():
 		#http://www.random.org/strings/?num=10&len=8&digits=on&upperalpha=on&loweralpha=on&unique=on&format=html&rnd=new
 		#http://www.random.org/quota/?format=plain
 		#http://www.random.org/quota/?ip=134.226.36.80&format=plain
-		url = self.base_url + self.makeParams()
-		print("URL: " + url)
-		try:
-			pass
-		except urllib.error.HTTPError, err:
-			print("You shit youself: ", err)
-		else:
-			data = urllib.request.urlopen(url).read().decode('utf-8').rstrip()
-			return(list(map(int,re.findall(self.regex, data))))
+		self.makeRequest()
+		return(list(map(int,re.findall(self.regex, self.data))))
 
 class IntegerGenerator(SequenceGenerator):
 
@@ -76,6 +82,11 @@ class StringGenerator(SequenceGenerator):
 	def makeParams(self):
 		params = urllib.parse.urlencode({'num': self.num, 'len': self.len, 'digits': self.digits, 'upperalpha': self.upperalpha, 'loweralpha': self.loweralpha, 'unique': self.unique, 'format': self.format, 'rnd': self.rnd})
 		return(params)
+
+	@property
+	def getRez(self):
+		self.makeRequest()
+		return(list(re.findall(self.regex, self.data)))
 	
 class QuotaChecker(SequenceGenerator):
 
