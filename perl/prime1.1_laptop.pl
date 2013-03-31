@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-my $min=1000000000000;
-my $max=1000000000100;
+my $min=$ARGV[0];
+my $max=$ARGV[1];
 
 for my $i ($min..$max){
 	my $prim=1;
