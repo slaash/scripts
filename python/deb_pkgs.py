@@ -3,6 +3,7 @@
 import urllib, urllib.parse, urllib.request, urllib.error
 from urllib.error import HTTPError
 import re
+import sys
 
 class QueryGenerator():
 
@@ -58,11 +59,16 @@ class QueryGenerator():
 		self.makeRequest()
 		pattern=re.compile(r'<div id="psearchres">(.+)</div>', re.MULTILINE|re.DOTALL)
 		m=pattern.match(self.data)
-		return(m.group())
+		return(self.data)
 
 if (__name__ == '__main__'):
 
-	qGen = QueryGenerator(keywords='aircrack')
-	qGen.setDistro('ubuntu')
+	if len(sys.argv) > 1:
+		k=sys.argv[1]
+	else:
+		k='nmap'
+
+	qGen = QueryGenerator(keywords=k)
+#	qGen.setDistro('ubuntu')
 	print(qGen.getRez)
 
