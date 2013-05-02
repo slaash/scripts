@@ -4,6 +4,7 @@ import urllib, urllib.parse, urllib.request, urllib.error
 from urllib.error import HTTPError
 import re
 import sys
+from html.parser import HTMLParser
 
 class QueryGenerator():
 
@@ -57,9 +58,20 @@ class QueryGenerator():
 	def getRez(self):
 		#http://packages.debian.org/search?suite=all&arch=armel&searchon=names&keywords=aircrack
 		self.makeRequest()
-		pattern=re.compile(r'<div id="psearchres">(.+)</div>', re.MULTILINE|re.DOTALL)
-		m=pattern.match(self.data)
+#		pattern=re.compile(r'<div id="psearch(\w+)">(.+)</div>', re.MULTILINE|re.DOTALL)
+#		pattern=re.compile(r'(.+)', re.MULTILINE|re.DOTALL)
+#		m=pattern.match(self.data)
 		return(self.data)
+#		return(m.group())
+
+class MyHTMLParser(HTMLParser):
+
+	def handle_data(self, data):
+#		data = data.lstrip()
+		data = data.rstrip()
+#		if (re.match(".+", data)):
+#			print("aaa{}aaa".format(data))
+		print(data)
 
 if (__name__ == '__main__'):
 
@@ -70,5 +82,6 @@ if (__name__ == '__main__'):
 
 	qGen = QueryGenerator(keywords=k)
 #	qGen.setDistro('ubuntu')
-	print(qGen.getRez)
+	parser = MyHTMLParser(strict = False)
+	parser.feed(qGen.getRez)
 
