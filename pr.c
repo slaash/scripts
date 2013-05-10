@@ -4,8 +4,8 @@
 
 int main(int argc,char* argv[])
 {
-unsigned long long i,j,from,to;
-char prim;
+long double i,j,from,to;
+int prim;
 printf("calculam de la %s la %s\n\n",argv[1],argv[2]);
 from=atoll(argv[1]);
 to=atoll(argv[2]);
@@ -18,7 +18,7 @@ for (i=from;i<=to;i++){
                 }
         }
         if (prim==1){
-                printf("%lld\n",i);
+                printf("%.0Lf \n",i);
         }
 }
 return 0;

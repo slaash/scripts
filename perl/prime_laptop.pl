@@ -2,9 +2,10 @@
 
 use strict;
 use warnings;
+use bignum;
 
-my $min=1000000000000;
-my $max=1000000000100;
+my $min=$ARGV[0];
+my $max=$ARGV[1];
 
 for (my $i=$min;$i<=$max;$i++){
 	my $prim=1;
