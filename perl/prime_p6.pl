@@ -9,7 +9,7 @@ our $VERSION = 1;
 #my $min = $ARGS[0];
 #my $max = $ARGS[1];
 
-sub MAIN ($min, $max){
+sub MAIN ($min=1, $max=10){
 
 loop (my $i = $min;$i<= $max;$i++ ) {
 	my $prim = 1;
