@@ -4,11 +4,17 @@ import "fmt"
 import "os"
 import "strconv"
 import "math"
+import "sync"
+//import "time"
+
+var done sync.WaitGroup
 
 func is_prime(i float64){
 	var j float64
 	prim:=true
-
+//	if (i==13){
+//		time.Sleep(100 * time.Millisecond)
+//	}
 	for j=2;j<=math.Sqrt(i);j++{
 		if math.Mod(i,j)==0{
 			prim=false
@@ -17,6 +23,7 @@ func is_prime(i float64){
 	if prim==true{
 		fmt.Println(i)
 	}
+	done.Done()
 }
 
 func main() {
@@ -27,8 +34,10 @@ func main() {
 	fmt.Println(err)
 	var i float64
 	for i=min;i<=max;i++{
-		is_prime(i)
+		done.Add(1)
+		go is_prime(i)
 	}
+	done.Wait()
 	fmt.Println(i)
 }
 
