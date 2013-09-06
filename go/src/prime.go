@@ -15,20 +15,17 @@ func is_prime(i float64){
 		}
 	}
 	if prim==true{
-		fmt.Println(i)
+		fmt.Println(strconv.FormatFloat(i,'g',100,64))
 	}
 }
 
 func main() {
-	var err error
 	var min, max float64
-	min, err = strconv.ParseFloat(os.Args[1],64)
-	max, err = strconv.ParseFloat(os.Args[2],64)
-	fmt.Println(err)
+	min, _ = strconv.ParseFloat(os.Args[1],64)
+	max, _ = strconv.ParseFloat(os.Args[2],64)
 	var i float64
 	for i=min;i<=max;i++{
 		is_prime(i)
 	}
-	fmt.Println(i)
 }
 

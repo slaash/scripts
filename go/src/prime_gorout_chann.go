@@ -4,6 +4,7 @@ import "fmt"
 import "os"
 import "strconv"
 import "math"
+import "time"
 
 func is_prime(i float64, c chan float64){
 	var j float64
@@ -16,33 +17,31 @@ func is_prime(i float64, c chan float64){
 	if prim==true{
 		c <- i	
 	}
-	close(c)
 }
 
-func checkErr(err error){
-	if err!=nil{
-		fmt.Println(err)
-	}
-}
-
-func printer(c chan float64){
-	for i := range c{
-		fmt.Println(i)
+func receiver(c chan float64){
+//	for i:= range c{
+//		fmt.Println(i)
+//	}
+	for {
+		select {
+			case i:= <- c:
+				fmt.Println(strconv.FormatFloat(i,'g',100,64))
+		}
 	}
 }
 
 func main() {
 	c := make(chan float64)
-	var err error
 	var min, max float64
-	min, err = strconv.ParseFloat(os.Args[1],64)
-	checkErr(err)
-	max, err = strconv.ParseFloat(os.Args[2],64)
-	checkErr(err)	
+	min, _ = strconv.ParseFloat(os.Args[1],64)
+	max, _ = strconv.ParseFloat(os.Args[2],64)
 	var i float64
 	for i=min;i<=max;i++{
 		go is_prime(i, c)
 	}
-	go printer(c)
+	go receiver(c)
+
+	time.Sleep(time.Second*1)
 }
 
