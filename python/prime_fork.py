@@ -4,6 +4,7 @@ import math
 import sys
 import os
 import time
+import resource
 
 min=int(sys.argv[1])
 max=int(sys.argv[2])
@@ -40,3 +41,4 @@ for child in runners:
 #	print("PID "+str(pid)+" exited with code "+str(code))
 #print("...Done\n")
 
+print("Max RSS: "+str(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)+" kB")

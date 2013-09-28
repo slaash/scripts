@@ -2,7 +2,8 @@
 
 import math
 import sys
-import mem_info
+#import mem_info
+import resource
 
 mn = int(sys.argv[1])
 mx = int(sys.argv[2])
@@ -22,5 +23,5 @@ for i in range(mn, mx+1):
 	if prim == 1:
 		print(i)
 
-mem_info.get_status()
-
+#mem_info.get_status()
+print("Max RSS: "+str(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)+" kB")

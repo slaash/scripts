@@ -3,6 +3,7 @@
 import math
 import sys
 import threading
+import resource
 
 min=int(sys.argv[1])
 max=int(sys.argv[2])
@@ -34,3 +35,4 @@ for i in range(min,max+1):
 	if runners>=10:
 		t.join()
 
+print("Max RSS: "+str(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)+" kB")
