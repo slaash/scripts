@@ -31,7 +31,7 @@ sub is_prime{
 my @threads;
 for (my $i=$ARGV[0];$i<=$ARGV[1];$i++){
         my $thr=threads->create(\&is_prime,$i);
-        if (scalar threads->list(threads::running)<8){
+        if (scalar threads->list(threads::running)<=10){
                 push(@threads,$thr);
         }
         else{

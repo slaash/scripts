@@ -22,7 +22,7 @@ sub is_prime{
         }
 }
 
-my $parallel = 5;
+my $parallel = 10;
 my $running = 0;
 my $result;
 

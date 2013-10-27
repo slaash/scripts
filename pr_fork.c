@@ -12,7 +12,7 @@ unsigned long long i,j,from,to;
 char prim;
 from=atoll(argv[1]);
 to=atoll(argv[2]);
-int parallel=5;
+int parallel=10;
 int running=0;
 pid_t pid;
 int status;

@@ -20,7 +20,7 @@ def is_prime(n):
 		print(str(crt_pid)+" returned: "+str(n))
 	return 0
 
-parallel=5
+parallel=10
 runners=[]
 
 for i in range(min,max+1):
