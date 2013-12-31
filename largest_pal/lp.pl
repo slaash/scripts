@@ -14,18 +14,20 @@ sub is_pal{
 		}
 	}
 	if ($is_pal){
-		print "---$orig---\n";
+		print "$$: ---$orig---\n";
+		return 1;
 	}
+	return 0;
 }
 
 while (<>){
 	my $orig=$_;
 	chomp $orig;
-#	print "trying $orig...\n";
 
-	for ($i=length($orig);$i>=2;$i--){
-		for ($j=0;$j<=length($orig)-$i;$j++){
-			is_pal(substr($orig,$j,$i));
+	my $done=0;
+	for ($i=length($orig);$i>=2 && $done==0;$i--){
+		for ($j=0;$j<=length($orig)-$i && $done==0;$j++){
+			$done=is_pal(substr($orig,$j,$i));
 		}
 	}
 }
