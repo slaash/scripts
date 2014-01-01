@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
-#my $orig=$ARGV[0];
-#chomp $orig;
-#print "trying $orig...\n";
+use strict;
+use warnings;
 
 sub is_pal{
 	my $orig=$_[0];
@@ -10,7 +9,7 @@ sub is_pal{
 	for (my $i=0;$i<length($orig)/2;$i++){
 		if (substr($orig,$i,1) ne substr($orig,length($orig)-$i-1,1)){
 			$is_pal=0;
-			break;
+			last;
 		}
 	}
 	if ($is_pal){
@@ -20,15 +19,22 @@ sub is_pal{
 	return 0;
 }
 
-while (<>){
-	my $orig=$_;
+sub parse_string{
+	my $orig=$_[0];
 	chomp $orig;
-
 	my $done=0;
-	for ($i=length($orig);$i>=2 && $done==0;$i--){
-		for ($j=0;$j<=length($orig)-$i && $done==0;$j++){
+	for (my $i=length($orig);$i>=2 && $done==0;$i--){
+		for (my $j=0;$j<=length($orig)-$i && $done==0;$j++){
 			$done=is_pal(substr($orig,$j,$i));
 		}
+	}
+}
+
+if (my $orig = shift){
+	parse_string($orig);
+} else {
+	while (<STDIN>){
+		parse_string($_);
 	}
 }
 
