@@ -2,13 +2,13 @@
 
 ossl=$(which openssl)
 tmpf=$(mktemp)
-echo "${tmpf}"
+#echo "${tmpf}"
 ciphers="blowfish rsa4096"
-runs="1 2 10 100"
+runs="1 2"
 
 for n in ${runs[@]}; do
 	for c in ${ciphers};do
-		echo "${c} - ${n}"
+#		echo "${c} - ${n}"
 		${ossl} speed -multi ${n} ${c} >> ${tmpf} 2>/dev/null
 	done
 done
@@ -25,9 +25,9 @@ while read line; do
 	fi
 done < ${tmpf}
 
-if [[ $1 ]];then
-	cat ${blowf} ${rsaf}>${1}
-fi
+#if [[ $1 ]];then
+#	cat ${blowf} ${rsaf}>${1}
+#fi
 cat ${blowf} ${rsaf}
 
 rm ${tmpf} ${blowf} ${rsaf}
