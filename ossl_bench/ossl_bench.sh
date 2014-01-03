@@ -13,7 +13,7 @@ runs=(1 2 10 100)
 
 if [[ -f /proc/meminfo && -f /proc/cpuinfo ]]; then
         mem=$(sed -En "s/MemTotal:\s+(.+)/\1/p" /proc/meminfo)
-        cpu=$(sed -En "s/model name\s+:\s+(.+)/\1/p" /proc/cpuinfo)
+        cpu=$(sed -En "s/model name\s+:\s+(.+)/\1/p" /proc/cpuinfo | uniq -c)
 fi
 ${ossl} version
 echo "${host} ${os} ${arch} ${cpu} ${mem}"
