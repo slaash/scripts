@@ -1,11 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+export TMPDIR="/tmp"
 ossl=$(which openssl)
-tmpf=$(mktemp)
-blowf=$(mktemp)
-rsaf=$(mktemp)
+tmpf=$(mktemp -t "tmpXXX")
+blowf=$(mktemp -t "tmpXXX")
+rsaf=$(mktemp -t "tmpXXX")
 host=$(uname -n)
-os=$(uname -o)
+os=$(uname -s)
 arch=$(uname -m)
 ciphers="blowfish rsa4096"
 runs="1 2"
