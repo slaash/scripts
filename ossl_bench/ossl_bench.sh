@@ -14,6 +14,10 @@ for n in ${runs[@]}; do
 done
 
 host=$(uname -n)
+if [[ -f /proc/meminfo && -f /proc/cpuinfo ]]; then
+	mem=$(sed -En "s/MemTotal:\s+(.+)/\1/p" /proc/meminfo)
+	cpu=$(sed -En "s/model name\s+:\s+(.+) /proc/cpuinfo)
+fi
 blowf=$(mktemp)
 rsaf=$(mktemp)
 
