@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-export TMPDIR="/tmp"
+#export TMPDIR="/tmp"
+#tmpf=$(mktemp -t "tmpXXX")
 ossl=$(which openssl)
-tmpf=$(mktemp -t "tmpXXX")
-blowf=$(mktemp -t "tmpXXX")
-rsaf=$(mktemp -t "tmpXXX")
+tmpf=()
+blowf=()
+rsaf=()
 host=$(uname -n)
 os=$(uname -s)
 arch=$(uname -m)
@@ -20,23 +21,33 @@ echo "${host} ${os} ${arch} ${cpu} ${mem}"
 
 for n in ${runs[@]}; do
 	for c in ${ciphers[@]};do
-		${ossl} speed -multi ${n} ${c} >> ${tmpf} 2>/dev/null
+		while read line; do
+			tmpf=("${tmpf[@]}" "${line}")
+		done < <(${ossl} speed -multi ${n} ${c} 2>/dev/null)
 	done
 done
 
 cntb=0
 cntr=0
-while read line; do
+for line in "${tmpf[@]}"; do
 	if [[ $line =~ ^blowfish ]]; then
-		echo "${host}	${runs[${cntb}]}	${line}">>${blowf}
+		blowf=("${blowf[@]}" "${host}   ${runs[${cntb}]}        ${line}")
 		(( cntb+=1 ))
 	elif [[ $line =~ ^rsa\ 4096 ]];then
-		echo "${host}	${runs[${cntr}]}	${line}">>${rsaf}
+		rsaf=("${rsaf[@]}" "${host}   ${runs[${cntr}]}        ${line}")
 		(( cntr+=1 ))
 	fi
-done < ${tmpf}
+done
 
-cat ${blowf} ${rsaf}
+for i in "${blowf[@]}"; do
+	echo "${i}"
+done
+for i in "${rsaf[@]}"; do
+        echo "${i}"
+done
 
-rm ${tmpf} ${blowf} ${rsaf}
+if [[ -f /proc/$$/status ]]; then
+	cat /proc/$$/status
+fi
+ps -o user,pid,rss,vsz,args -p $$
 
