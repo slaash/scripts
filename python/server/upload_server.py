@@ -9,9 +9,10 @@
 from os import curdir
 from os.path import join as pjoin
 
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
+import SocketServer
 
-class StoreHandler(BaseHTTPRequestHandler):
+class StoreHandler(SimpleHTTPRequestHandler):
     store_path = pjoin(curdir, 'store.json')
 
     def do_GET(self):
@@ -33,6 +34,7 @@ class StoreHandler(BaseHTTPRequestHandler):
             self.send_response(200)
 
 
-server = HTTPServer(('', 8080), StoreHandler)
+server = SocketServer.TCPServer(("", 8080), StoreHandler)
+print("Server started on port 8080.")
 server.serve_forever()
 
