@@ -11,28 +11,29 @@ from os.path import join as pjoin
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 import SocketServer
+import urlparse
 
 class StoreHandler(SimpleHTTPRequestHandler):
-    store_path = pjoin(curdir, 'store.json')
+	store_path = pjoin(curdir, 'store.json')
+	def do_GET(self):
+		if self.path == '/store.json':
+			with open(self.store_path) as fh:
+				self.send_response(200)
+				self.send_header('Content-type', 'text/json')
+				self.end_headers()
+				self.wfile.write(fh.read().encode())
+	def do_POST(self):
+		if self.path == '/store.json':
+			length = self.headers['content-length']
+			data = self.rfile.read(int(length))
+			print(data)
+			post_data = urlparse.parse_qs(data)
+			print(post_data)
 
-    def do_GET(self):
-        if self.path == '/store.json':
-            with open(self.store_path) as fh:
-                self.send_response(200)
-                self.send_header('Content-type', 'text/json')
-                self.end_headers()
-                self.wfile.write(fh.read().encode())
+#            with open(self.store_path, 'w') as fh:
+#                fh.write(data.decode())
 
-    def do_POST(self):
-        if self.path == '/store.json':
-            length = self.headers['content-length']
-            data = self.rfile.read(int(length))
-
-            with open(self.store_path, 'w') as fh:
-                fh.write(data.decode())
-
-            self.send_response(200)
-
+			self.send_response(200)
 
 server = SocketServer.TCPServer(("", 8080), StoreHandler)
 print("Server started on port 8080.")
