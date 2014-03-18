@@ -35,9 +35,10 @@ logFile = "/home/pi/location_info.txt"
 url = "https://www.dailycred.com/api/info.json"
 useProxy = 1
 logOnly = 0
+showHeaders = 0
 sys.argv.pop(0)
 try:
-	optlist, args = getopt.getopt(sys.argv, 'nu:l:o')
+	optlist, args = getopt.getopt(sys.argv, 'hnu:l:o')
 	for o, a in optlist:
 		if o == '-n':
 			useProxy = 0
@@ -47,6 +48,8 @@ try:
 			logFile = a
 		elif o == '-o':
 			logOnly = 1
+		elif o == '-h':
+			showHeaders=1
 except getopt.GetoptError as err:
 	print(err)
 	sys.exit()
@@ -54,9 +57,16 @@ if (useProxy == 1):
 	proxy = urllib2.ProxyHandler({'http': '127.0.0.1:8118', 'https': '127.0.0.1:8118'})
 	opener = urllib2.build_opener(proxy)
 	urllib2.install_opener(opener)
-with contextlib.closing(urllib2.urlopen(url)) as f:
-	locData = json.load(f)
-iS = infoStruct(locData)
+try:
+	with contextlib.closing(urllib2.urlopen(url)) as f:
+		locData = json.load(f)
+		if showHeaders == 1:
+#			print(f.info().dict)
+			print(f.info())
+	iS = infoStruct(locData)
+except urllib2.URLError as err:
+	print(err)
+	sys.exit()
 if (logOnly == 0):
 	print(iS.local.city, iS.local.countryName)
 	print(iS.local.longitude, iS.local.latitude)
