@@ -51,4 +51,5 @@ p.join()
 time2 = time.time()
 print datetime.timedelta(seconds = time2 - time1)
 print "{} errors".format(codes.qsize())
+print "{:.2f} reqs/s".format(reqsNo / (time2 - time1))
 
