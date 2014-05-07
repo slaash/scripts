@@ -2,6 +2,7 @@
 
 import urllib2
 from multiprocessing import Pool, Queue
+import threading
 import time
 import datetime
 import sys
@@ -13,12 +14,36 @@ url = "/"
 clientsNo = 10
 reqsNo = 10
 
+class thr (threading.Thread):
+	def __init__ (self):
+		threading.Thread.__init__ ( self )
+
+	def run (self):
+		self.statsTimer()
+
+	def statsTimer(self):
+		oC = okCodes.qsize()
+		eC = errCodes.qsize()
+		while (oC + eC < reqsNo):
+			print "{} good reqs, {} errors".format(oC, eC)
+			time.sleep(3)
+			oC = okCodes.qsize()
+			eC = errCodes.qsize()
+		print "Timer finished"
+		return 0
+
 def sendReq(s, pr, u):
 	req = urllib2.Request("http://{}:{}{}".format(s, pr, u))
+	req.add_header('User-agent', 'Mozilla/5.0')
 	try:
-		urllib2.urlopen(req)
+		f = urllib2.urlopen(req, timeout=60)
 	except urllib2.URLError, e:
-		codes.put(e.code)
+		errCodes.put(e.code)
+		return 0
+	else:
+		okCodes.put("200")#use some get code
+		f.close()
+		return 0
 
 sys.argv.pop(0)
 try:
@@ -39,17 +64,21 @@ except getopt.GetoptError as err:
 	sys.exit()
 
 print "{} reqs for http://{}:{}{} from {} clients".format(reqsNo, srv, port, url, clientsNo)
-codes = Queue()
+errCodes = Queue()
+okCodes = Queue()
+t = thr()
+t.start()
 p = Pool(clientsNo)
 time1 = time.time()
 for i in range(reqsNo):
 	p.apply_async(sendReq, [srv, port, url])
 	if i % 100 == 0:
-		print "{}/{} reqs ({} errors) from {} clients".format(i, reqsNo, codes.qsize(), clientsNo)
+		print "{}/{} reqs ({} errors) from {} clients".format(i, reqsNo, errCodes.qsize(), clientsNo)
 p.close()
 p.join()
+t.join()
 time2 = time.time()
 print datetime.timedelta(seconds = time2 - time1)
-print "{} errors".format(codes.qsize())
+print "{} good reqs, {} errors".format(okCodes.qsize(), errCodes.qsize())
 print "{:.2f} reqs/s".format(reqsNo / (time2 - time1))
 
