@@ -69,6 +69,6 @@ done | sort -n -k 3
 echo "--- 100 ---"
 for h in "${!hD100[@]}"; do
 #	echo "${h} ${hD100[${h}]} ${mapping[${hD100[${h}]}]}"
-	echo "${h} $${mapping[${hD100[${h}]}]}"
+	echo "${h} ${mapping[${hD100[${h}]}]}"
 done | sort -n -k 3
 
