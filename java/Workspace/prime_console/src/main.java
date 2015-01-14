@@ -77,8 +77,8 @@ class prime_console{
 		double i;
 		for (i=min;i<=max;i++){
 			MyThread t=new MyThread(MyThGroup,String.valueOf(i));
+			t.start();
 			if (MyThGroup.activeCount()<10){
-				t.start();
 				//we just add tasks that do not get to be immediately joined
 				threads.add(t);
 			}
@@ -96,9 +96,6 @@ class prime_console{
 		//here we join all threads not previously joined
 		Iterator<Thread> itr=threads.iterator();
 		while (itr.hasNext()){
-//			Thread crt_t=itr.next();
-//			crt_t.join();
-//			System.out.println("Joining later:"+crt_t.getName());
 			itr.next().join();
 		}
 				
