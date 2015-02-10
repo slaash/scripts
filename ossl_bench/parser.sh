@@ -60,7 +60,7 @@ for h in "${!hD2[@]}"; do
 done | sort -n -k 3
 echo "--- 10 ---"
 for h in "${!hD10[@]}"; do
-	echo "${h} ${hD10[${h}]}] (${mapping[${hD10[${h}]}]})"
+	echo "${h} ${hD10[${h}]} (${mapping[${hD10[${h}]}]})"
 done | sort -n -k 3
 echo "--- 100 ---"
 for h in "${!hD100[@]}"; do
