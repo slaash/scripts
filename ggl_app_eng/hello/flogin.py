@@ -1,6 +1,6 @@
 from google.appengine.api import users
 from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
+import webapp2
 
 providers = {
     'Google'   : 'https://www.google.com/accounts/o8/id',
@@ -23,11 +23,5 @@ class MainHandler(webapp.RequestHandler):
                 self.response.out.write('[<a href="%s">%s</a>]' % (
                     users.create_login_url(federated_identity=uri), name))
 
-application = webapp.WSGIApplication([('/', MainHandler),], debug=True)
-
-def main():
-    run_wsgi_app(application)
-
-if __name__ == '__main__':
-    main()
+application = webapp2.WSGIApplication([('/', MainHandler),], debug=True)
 
