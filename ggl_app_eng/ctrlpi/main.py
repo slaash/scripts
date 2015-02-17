@@ -3,6 +3,7 @@ from google.appengine.api import users
 from google.appengine.ext import db
 import time
 import cgi
+import json
 
 class RPiCommands(db.Model):
 	date = db.DateTimeProperty(auto_now_add = True)
@@ -74,6 +75,7 @@ class RecordsListHandler(BaseHandler):
 	def get(self):
 		rez = db.GqlQuery("select * from RPiCommands order by date desc")
                 for line in rez:
+			self._print(json.dumps(line.cmd))
                         self._print("{} - {}({}): {} (Status={}) -> {}".format(line.date, line.nick, line.ip, line.cmd, line.done, line.rez ))
                         self._hr()
 
