@@ -11,15 +11,15 @@ class CustomHandler(BaseHTTPRequestHandler):
 
 	def do_GET(self):
 		self.send_response(200)
+		self.send_header('Content-type','text/html')
 		self.end_headers()
+		# Send the html message
+		self.wfile.write(os.uname()[1])
 		self.toCSV()
 		return
 
 	def do_POST(self):
-		self.send_response(200)
-                self.end_headers()
-		self.toCSV()
-		return
+		self.do_GET()
 
 	def toCSV(self):
 		outputCSV.writerow((time.strftime('%d-%m-%Y %H:%M:%S'), self.address_string(), self.client_address[0], self.client_address[1], self.command, self.path, self.request_version))
