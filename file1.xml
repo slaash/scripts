@@ -1,0 +1,21 @@
+<file>
+	<description>
+		<name>Input file</name>
+		<type>Data</type>
+	</description>
+	<supplier>
+		<name>Conti</name>
+		<contact>Radu</contact>
+	</supplier>
+	<issue>
+		<id>1111</id>
+		<description>Something went wrong...</description>
+	</issue>
+	<issue>
+		<id>2222</id>
+		<description>I want you to do something...</description>
+		<attachment>system.log</attachment>
+		<attachment>screenshot.bmp</attachment>
+	</issue>
+</file>
+	

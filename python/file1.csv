@@ -1,0 +1,7 @@
+id,description,date,finder,severity,attachments
+1234,"This is a major problem!Fix it!",11/05/2011 12:45:23,John Doe,A,"http://somelink1
+http://somelink2"
+457,"Now,
+This is a different issue.
+Let's fix it!",01/01/2011 00:00:01,Gigi Kent,"B",http://thesamelink
+2 problems exported

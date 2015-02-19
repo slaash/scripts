@@ -1,0 +1,767 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MSR-ISSUE xmlns="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="msr-issue_2_1_0_rc4.xsd">
+      <SHORT-NAME>bmw</SHORT-NAME>
+      <CATEGORY>problem</CATEGORY>
+      <COMPANIES>
+            <COMPANY ID="bmw" ROLE="manufacturer">
+                  <LONG-NAME>Bayrische Motorenwerke</LONG-NAME>
+                  <SHORT-NAME>bmw</SHORT-NAME>
+                  <TEAM-MEMBERS>
+                        <TEAM-MEMBER ID="team87">
+                              <LONG-NAME>koester udo</LONG-NAME>
+                              <SHORT-NAME>koester udo</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team46">
+                              <LONG-NAME>LabCar</LONG-NAME>
+                              <SHORT-NAME>LabCar</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team53">
+                              <LONG-NAME>doerr alexander</LONG-NAME>
+                              <SHORT-NAME>doerr alexander</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team16">
+                              <LONG-NAME>niedermeier ludwi lm</LONG-NAME>
+                              <SHORT-NAME>niedermeier ludwi lm</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team75">
+                              <LONG-NAME>frias jose lu</LONG-NAME>
+                              <SHORT-NAME>frias jose lu</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team58">
+                              <LONG-NAME>jaekel thorsten</LONG-NAME>
+                              <SHORT-NAME>jaekel thorsten</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team70">
+                              <LONG-NAME>lusser stefan</LONG-NAME>
+                              <SHORT-NAME>lusser stefan</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team45">
+                              <LONG-NAME>cieplinski rafael</LONG-NAME>
+                              <SHORT-NAME>cieplinski rafael</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team41">
+                              <LONG-NAME>negrerie thomas</LONG-NAME>
+                              <SHORT-NAME>negrerie thomas</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team69">
+                              <LONG-NAME>graefe christoph</LONG-NAME>
+                              <SHORT-NAME>graefe christoph</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team63">
+                              <LONG-NAME>georg.wallner@partner.bmw.de</LONG-NAME>
+                              <SHORT-NAME>georg.wallner@partner.bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team48">
+                              <LONG-NAME>brossmann andreas ei</LONG-NAME>
+                              <SHORT-NAME>brossmann andreas ei</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team37">
+                              <LONG-NAME>Diag-Team</LONG-NAME>
+                              <SHORT-NAME>Diag-Team</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team17">
+                              <LONG-NAME>Robert.Fajardy@BMW.De</LONG-NAME>
+                              <SHORT-NAME>Robert.Fajardy@BMW.De</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team28">
+                              <LONG-NAME>musser sebastian</LONG-NAME>
+                              <SHORT-NAME>musser sebastian</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team33">
+                              <LONG-NAME>EMV-Team</LONG-NAME>
+                              <SHORT-NAME>EMV-Team</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team47">
+                              <LONG-NAME>mazzawi hadi</LONG-NAME>
+                              <SHORT-NAME>mazzawi hadi</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team30">
+                              <LONG-NAME>Sandra Steinacher</LONG-NAME>
+                              <SHORT-NAME>Sandra Steinacher</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team39">
+                              <LONG-NAME>danner ulrich</LONG-NAME>
+                              <SHORT-NAME>danner ulrich</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team21">
+                              <LONG-NAME>mohammed khaleel</LONG-NAME>
+                              <SHORT-NAME>mohammed khaleel</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team61">
+                              <LONG-NAME>suess christian</LONG-NAME>
+                              <SHORT-NAME>suess christian</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team8">
+                              <LONG-NAME>kocic dragan</LONG-NAME>
+                              <SHORT-NAME>kocic dragan</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team51">
+                              <LONG-NAME>fuchs andreas j</LONG-NAME>
+                              <SHORT-NAME>fuchs andreas j</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team43">
+                              <LONG-NAME>Hussain Kashif</LONG-NAME>
+                              <SHORT-NAME>Hussain Kashif</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team90">
+                              <LONG-NAME>cupillari patrick</LONG-NAME>
+                              <SHORT-NAME>cupillari patrick</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team50">
+                              <LONG-NAME>bernarto angka</LONG-NAME>
+                              <SHORT-NAME>bernarto angka</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team57">
+                              <LONG-NAME>dirk.lunk@partner.bmw.de</LONG-NAME>
+                              <SHORT-NAME>dirk.lunk@partner.bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team34">
+                              <LONG-NAME>oezcan ugur</LONG-NAME>
+                              <SHORT-NAME>oezcan ugur</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team52">
+                              <LONG-NAME>Sylvia.Weber@partner.bmw.de</LONG-NAME>
+                              <SHORT-NAME>Sylvia.Weber@partner.bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team72">
+                              <LONG-NAME>strasser peter ps</LONG-NAME>
+                              <SHORT-NAME>strasser peter ps</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team64">
+                              <LONG-NAME>maile chris</LONG-NAME>
+                              <SHORT-NAME>maile chris</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team36">
+                              <LONG-NAME>arend martin</LONG-NAME>
+                              <SHORT-NAME>arend martin</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team9">
+                              <LONG-NAME>DTSV_MTV</LONG-NAME>
+                              <SHORT-NAME>DTSV_MTV</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team55">
+                              <LONG-NAME>ostgathe nils</LONG-NAME>
+                              <SHORT-NAME>ostgathe nils</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team74">
+                              <LONG-NAME>Alic Oliver</LONG-NAME>
+                              <SHORT-NAME>Alic Oliver</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team66">
+                              <LONG-NAME>hunkeler valeria</LONG-NAME>
+                              <SHORT-NAME>hunkeler valeria</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team88">
+                              <LONG-NAME>vogel burkhard</LONG-NAME>
+                              <SHORT-NAME>vogel burkhard</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team82">
+                              <LONG-NAME>heimann hannes</LONG-NAME>
+                              <SHORT-NAME>heimann hannes</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team91">
+                              <LONG-NAME>frankl erich</LONG-NAME>
+                              <SHORT-NAME>frankl erich</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team31">
+                              <LONG-NAME>Steinacher Sandra</LONG-NAME>
+                              <SHORT-NAME>Steinacher Sandra</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team25">
+                              <LONG-NAME>W01 FIT</LONG-NAME>
+                              <SHORT-NAME>W01 FIT</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team24">
+                              <LONG-NAME>Obermayr Markus</LONG-NAME>
+                              <SHORT-NAME>Obermayr Markus</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team86">
+                              <LONG-NAME>ivanov teodor</LONG-NAME>
+                              <SHORT-NAME>ivanov teodor</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team38">
+                              <LONG-NAME>fajardy robert</LONG-NAME>
+                              <SHORT-NAME>fajardy robert</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team20">
+                              <LONG-NAME>beer sepp</LONG-NAME>
+                              <SHORT-NAME>beer sepp</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team49">
+                              <LONG-NAME>miller oliver</LONG-NAME>
+                              <SHORT-NAME>miller oliver</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team76">
+                              <LONG-NAME>matthes volker</LONG-NAME>
+                              <SHORT-NAME>matthes volker</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team11">
+                              <LONG-NAME>singer mario</LONG-NAME>
+                              <SHORT-NAME>singer mario</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team42">
+                              <LONG-NAME>kuehn christian ck</LONG-NAME>
+                              <SHORT-NAME>kuehn christian ck</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team15">
+                              <LONG-NAME>CoC</LONG-NAME>
+                              <SHORT-NAME>CoC</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team80">
+                              <LONG-NAME>buechler matthias</LONG-NAME>
+                              <SHORT-NAME>buechler matthias</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team18">
+                              <LONG-NAME>koczur michael</LONG-NAME>
+                              <SHORT-NAME>koczur michael</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team12">
+                              <LONG-NAME>lee meng</LONG-NAME>
+                              <SHORT-NAME>lee meng</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team83">
+                              <LONG-NAME>hoerger florian</LONG-NAME>
+                              <SHORT-NAME>hoerger florian</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team73">
+                              <LONG-NAME>keglmeier florian j</LONG-NAME>
+                              <SHORT-NAME>keglmeier florian j</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team23">
+                              <LONG-NAME>schmid gottfried</LONG-NAME>
+                              <SHORT-NAME>schmid gottfried</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team89">
+                              <LONG-NAME>MSF_TSP_I_K</LONG-NAME>
+                              <SHORT-NAME>MSF_TSP_I_K</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team54">
+                              <LONG-NAME>pfadenhauer thomas</LONG-NAME>
+                              <SHORT-NAME>pfadenhauer thomas</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team22">
+                              <LONG-NAME>MOST System</LONG-NAME>
+                              <SHORT-NAME>MOST System</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team71">
+                              <LONG-NAME>hamza ferid</LONG-NAME>
+                              <SHORT-NAME>hamza ferid</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team32">
+                              <LONG-NAME>derboven claas</LONG-NAME>
+                              <SHORT-NAME>derboven claas</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team85">
+                              <LONG-NAME>siglow klaus</LONG-NAME>
+                              <SHORT-NAME>siglow klaus</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team35">
+                              <LONG-NAME>weber frank wa</LONG-NAME>
+                              <SHORT-NAME>weber frank wa</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team59">
+                              <LONG-NAME>mania markus</LONG-NAME>
+                              <SHORT-NAME>mania markus</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team27">
+                              <LONG-NAME>gloderer michael</LONG-NAME>
+                              <SHORT-NAME>gloderer michael</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team29">
+                              <LONG-NAME>kuhrau heide</LONG-NAME>
+                              <SHORT-NAME>kuhrau heide</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team68">
+                              <LONG-NAME>weiss frank fw</LONG-NAME>
+                              <SHORT-NAME>weiss frank fw</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team81">
+                              <LONG-NAME>Lenz Holger</LONG-NAME>
+                              <SHORT-NAME>Lenz Holger</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team93">
+                              <LONG-NAME>K&amp;S Team</LONG-NAME>
+                              <SHORT-NAME>K&amp;S Team</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team92">
+                              <LONG-NAME>heiko.koenig@bmw.de</LONG-NAME>
+                              <SHORT-NAME>heiko.koenig@bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team60">
+                              <LONG-NAME>kath matthias</LONG-NAME>
+                              <SHORT-NAME>kath matthias</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team78">
+                              <LONG-NAME>mayer stefanie</LONG-NAME>
+                              <SHORT-NAME>mayer stefanie</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team67">
+                              <LONG-NAME>Fritz.Amann@bmw.de</LONG-NAME>
+                              <SHORT-NAME>Fritz.Amann@bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team65">
+                              <LONG-NAME>feichtenschlager kajetan kf</LONG-NAME>
+                              <SHORT-NAME>feichtenschlager kajetan kf</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team26">
+                              <LONG-NAME>hensle sebastian</LONG-NAME>
+                              <SHORT-NAME>hensle sebastian</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team13">
+                              <LONG-NAME>Teilsystem_MTV</LONG-NAME>
+                              <SHORT-NAME>Teilsystem_MTV</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team44">
+                              <LONG-NAME>raab thomas ei</LONG-NAME>
+                              <SHORT-NAME>raab thomas ei</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team7">
+                              <LONG-NAME>bilik piotr</LONG-NAME>
+                              <SHORT-NAME>bilik piotr</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team77">
+                              <LONG-NAME>boettcher iris mb</LONG-NAME>
+                              <SHORT-NAME>boettcher iris mb</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team14">
+                              <LONG-NAME>boenisch andreas</LONG-NAME>
+                              <SHORT-NAME>boenisch andreas</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team79">
+                              <LONG-NAME>Michael.Schabl@partner.bmw.de</LONG-NAME>
+                              <SHORT-NAME>Michael.Schabl@partner.bmw.de</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team56">
+                              <LONG-NAME>Laender-FIT</LONG-NAME>
+                              <SHORT-NAME>Laender-FIT</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team19">
+                              <LONG-NAME>DTSV_MUC</LONG-NAME>
+                              <SHORT-NAME>DTSV_MUC</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team62">
+                              <LONG-NAME>gufler bernhard</LONG-NAME>
+                              <SHORT-NAME>gufler bernhard</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                  </TEAM-MEMBERS>
+            </COMPANY>
+            <COMPANY ID="CONTI_MM" ROLE="supplier">
+                  <LONG-NAME>CONTI_MM</LONG-NAME>
+                  <SHORT-NAME>CONTI_MM</SHORT-NAME>
+                  <TEAM-MEMBERS>
+                        <TEAM-MEMBER ID="team40">
+                              <LONG-NAME>Holger Hilbig</LONG-NAME>
+                              <SHORT-NAME>Holger Hilbig</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team10">
+                              <LONG-NAME>Joerg Articus</LONG-NAME>
+                              <SHORT-NAME>Joerg Articus</SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                        <TEAM-MEMBER ID="team84">
+                              <LONG-NAME></LONG-NAME>
+                              <SHORT-NAME></SHORT-NAME>
+                              <DEPARTMENT></DEPARTMENT>
+                              <PHONE></PHONE>
+                              <EMAIL></EMAIL>
+                        </TEAM-MEMBER>
+                  </TEAM-MEMBERS>
+            </COMPANY>
+      </COMPANIES>
+      <ADMIN-DATA>
+            <DOC-REVISIONS>
+                  <DOC-REVISION>
+                        <TEAM-MEMBER-REF SI="transfer" ID-REF="team87"></TEAM-MEMBER-REF>
+                        <DATE>2010-01-13T18:20:11</DATE>
+                  </DOC-REVISION>
+            </DOC-REVISIONS>
+      </ADMIN-DATA>
+      <ISSUES>
+            <ISSUE ID="ISSUE-130">
+                  <LONG-NAME>(TESTDRIVER CW03) BI = 6: ... RAD2+: HMI: inconsistent behaviour with entertainment details</LONG-NAME>
+                  <SHORT-NAME>300187955</SHORT-NAME>
+                  <ISSUE-DESC>
+                        <P SI="description">Boenisch, 2009-04-01:
+same behaviour with DAB -&gt; detail screen shown
+
+######################################################################################
+Fehler: 3/30/2009 08:33:00, 
+
+listen to iPod, press track softkey (details shown), go to audio menu, back to iPod, main screen is shown.
+
+listen to SDARS, press info softkey (details shown), go to audio menu, back to SDARS, still the details screen is visible
+
+inconsistent behavior
+
+Driver: Mario Singer, Phone: 5183, E-Mail: singer mario
+Trip: From 03/20/2009, 17:00 Uhr, 5102 km, to 03/23/2009, 09:00 Uhr, 5623 km
+Vehicle: Radio2+ E93 (US, Artur Wojcik, ES-5-US-10), Headunit Radio_PL2_CD83_SVDO (SW 99.50.01), Audio: TopAmp, Tel ECU: TCU + SA6FL
+Phone: Sony Ericsson K800i (SW R1CB001), Player:iPod touch (SW 2.2.1)
+&#xD;
+
+Koczur: Nach I-Stufen Prozess Erhöhung der Sichtbarkeit auf 03-System</P>
+                        <P SI="category-1"></P>
+                        <P SI="category-2"></P>
+                        <P SI="category-3">MMI/Graphics</P>
+                        <P SI="error-occurrence">04-reproducable</P>
+                        <P SI="occurrence-milestone">E89x-09-09-500</P>
+                        <P SI="recorded-date">2009-03-30T00:00:00</P>
+                        <P SI="bmw-comments"></P>
+                        <P SI="supplierTracking"></P>
+                        <P SI="attachmentlist">
+                              <TT SI="attachment" TYPE="OTHER">BUG_300187955_trace3.zip:fb949b47049f35ff4249c2d5008cdcdc</TT>
+                        </P>
+                        <P SI="attachment"></P>
+                  </ISSUE-DESC>
+                  <COMPANY-ISSUE-INFOS>
+                        <COMPANY-ISSUE-INFO SI="database id">
+                              <COMPANY-REF ID-REF="bmw">bmw</COMPANY-REF>
+                              <ISSUE-ID SI="E_E_EI">300187955</ISSUE-ID>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="role">
+                              <COMPANY-REF ID-REF="bmw">bmw</COMPANY-REF>
+                              <TEAM-MEMBER-REF SI="finder" ID-REF="team11">team11</TEAM-MEMBER-REF>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="role">
+                              <COMPANY-REF ID-REF="bmw">bmw</COMPANY-REF>
+                              <TEAM-MEMBER-REF SI="recorder" ID-REF="team12">team12</TEAM-MEMBER-REF>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="role">
+                              <COMPANY-REF ID-REF="bmw">bmw</COMPANY-REF>
+                              <TEAM-MEMBER-REF SI="analysis" ID-REF="team13">team13</TEAM-MEMBER-REF>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="role">
+                              <COMPANY-REF ID-REF="bmw">bmw</COMPANY-REF>
+                              <TEAM-MEMBER-REF SI="responsible" ID-REF="team8">team8</TEAM-MEMBER-REF>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="database id">
+                              <COMPANY-REF ID-REF="CONTI_MM">CONTI_MM</COMPANY-REF>
+                              <ISSUE-ID SI="CONTI_MM">BMWextWZ_2438</ISSUE-ID>
+                        </COMPANY-ISSUE-INFO>
+                        <COMPANY-ISSUE-INFO SI="role">
+                              <COMPANY-REF ID-REF="CONTI_MM">CONTI_MM</COMPANY-REF>
+                              <TEAM-MEMBER-REF SI="responsible" ID-REF="team10">team10</TEAM-MEMBER-REF>
+                        </COMPANY-ISSUE-INFO>
+                  </COMPANY-ISSUE-INFOS>
+                  <ISSUE-PLANNING-INFOS>
+                        <ISSUE-CURRENT-STATE>
+                              <DATE SI="last update">2010-01-13T15:36:50</DATE>
+                              <ISSUE-STATE SI="status-bmw">03-Submitted</ISSUE-STATE>
+                        </ISSUE-CURRENT-STATE>
+                        <ISSUE-SEVERITY SI="">06-customer irritated</ISSUE-SEVERITY>
+                        <DELIVERY-DATE></DELIVERY-DATE>
+                        <DELIVERY-MILESTONE></DELIVERY-MILESTONE>
+                  </ISSUE-PLANNING-INFOS>
+                  <ISSUE-ENVIRONMENT>
+                        <PROJECT-IDS>
+                              <PROJECT-ID SI="model involved">E90</PROJECT-ID>
+                        </PROJECT-IDS>
+                        <ENGINEERING-OBJECTS>
+                              <ENGINEERING-OBJECT>
+                                    <SHORT-LABEL>Radio_PL2_CD83_SVDO</SHORT-LABEL>
+                                    <CATEGORY>assigned ecu</CATEGORY>
+                                    <SDGS>
+                                          <SDG GID="versioning">
+                                                <SD GID="hw version"></SD>
+                                                <SD GID="sw version">99.50.01</SD>
+                                          </SDG>
+                                          <SDG GID="variants">
+                                                <SD GID="ECU variant">-</SD>
+                                          </SDG>
+                                    </SDGS>
+                              </ENGINEERING-OBJECT>
+                              <ENGINEERING-OBJECT>
+                                    <SHORT-LABEL></SHORT-LABEL>
+                                    <CATEGORY>affected ecu</CATEGORY>
+                                    <SDGS>
+                                          <SDG GID="versioning">
+                                                <SD GID="hw version"></SD>
+                                                <SD GID="sw version"></SD>
+                                          </SDG>
+                                    </SDGS>
+                              </ENGINEERING-OBJECT>
+                        </ENGINEERING-OBJECTS>
+                  </ISSUE-ENVIRONMENT>
+                  <ISSUE-SOLUTIONS>
+                        <ISSUE-SOLUTION>
+                              <ISSUE-SOLUTION-DESC>
+                                    <P SI="feedback">Modifiable in BMW db
+Preview result:
+17.07.2009 DGR: 2analyse: Achtung: IPOD mit MMulf ist hier gemeint!
+Analysis result:
+09.11.2009 STL: The specifications are: after pressing AUDIO keys, the HMI should return to the previous list view, if the audio source has not been changed. So the SDARS behavior is correct (the same it&amp;#39;s done for IBOC INFO or MP3 INFO). The change should be done for IPOD.
+Review result:
+11.01.2010 DGR: Solved by STL with task R2D2Tsr#5447 =&gt; system verification requested 
+Implement result:
+2010-01-12, Stefan Ebertz: Tested with GW A9.45.01, Rad A9.45.00: Behaviour is consistent now: Activating track info screen for iPOD, switching to AUDIO main screen and back to iPOD, leads to track info screen again. Set to TEST.
+Test result:
+2010-01-12, Stefan Ebertz: Tested with GW A9.45.01, Rad A9.45.00: Behaviour is consistent now: Activating track info screen for iPOD, switching to AUDIO main screen and back to iPOD, leads to track info screen again. Set to SOLVED.</P>
+                                    <P SI="committed-date">2010-01-27T00:00:00</P>
+                                    <P SI="planned-closing-version">G A9.45.01, R A9.45.00</P>
+                                    <P SI="closed-in-version"></P>
+                                    <P SI="status">solved</P>
+                                    <P SI="attachment"></P>
+                              </ISSUE-SOLUTION-DESC>
+                        </ISSUE-SOLUTION>
+                  </ISSUE-SOLUTIONS>
+            </ISSUE>
+	</ISSUES>
+</MSR-ISSUE>
+

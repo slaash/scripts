@@ -1,0 +1,78 @@
+Tabele:
+
+- questions
+
+id	question	type(yesno/scale/freetext)
+
+- answers
+
+id	timestamp	question_id	answer
+
+timestamp is unique, based on Submit date
+
+Question types:
+
+yesno:
+
+O YEs
+X NO
+
+scale
+1 2 3 4 5
+O X O O O
+
+freetext
+This is the answer...
+
+CREATE TABLE `answers` (
+  `id` int(11) NOT NULL auto_increment,
+  `timestamp` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `answer` text collate latin1_general_ci NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci AUTO_INCREMENT=1 ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `questions`
+--
+
+CREATE TABLE `questions` (
+  `id` int(11) NOT NULL auto_increment,
+  `question` text collate latin1_general_ci NOT NULL,
+  `type` varchar(20) collate latin1_general_ci NOT NULL,
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci AUTO_INCREMENT=1 ;
+
+Forms:
+
+- view all questions (qadmin.php)
+	question	type	Update button
+
+	- qnew.php
+	- qdel.php
+
+Add question
+
+question	type(lisbox)
+
+- respond (chestionar.php)
+
+list of questions, options list based on question type, answer (yes/no,1-5,text)
+
+- statistics (qstats.php)
+
+number of respondents (select count(distinct timestamp) from answers)
+
+list of: question, based on type:
+			- number of yes
+			- number of no
+			- number of grade 1..5
+What to do with text answers?
+
+- results (qresults.php)
+list of links with timestamps as dates
+on clink:
+question	answer
+

@@ -1,0 +1,26 @@
+<?php 
+header("Content-type: text/vnd.wap.wml"); 
+echo "<?xml version=\"1.0\"?>";
+echo "<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\"" 
+   . " \"http://www.wapforum.org/DTD/wml_1.1.xml\">";
+?>
+
+<wml>
+    <card id="email1" title="Email Example">
+        <p>
+            <do type="accept" label="tpe">    
+            <go href="email2.wml" method="post">
+            <postfield name="Email" value="$email"/> 
+            <postfield name="Message" value="$message"/> 
+            <postfield name="Subject" value="$subject"/> 
+            </go>
+        </do>
+        Recipient:
+        <input title="Email" name="email"/> <br/>
+        Subject:
+        <input title="Subject" name="subject"/> <br/>
+        Message:
+        <input title="Message" name="message"/> <br/>
+    </p>
+    </card>
+</wml>

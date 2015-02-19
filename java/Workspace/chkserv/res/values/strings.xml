@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, ChkservActivity!</string>
+    <string name="app_name">Chkserv</string>
+    <string name="labelCheckbox">Service running</string>
+    <string name="labelReset">Reset SharedPrefs</string>
+    <string name="labelStore">Store value</string>
+    <string name="labelSave">Save/Clear</string>
+    <string name="labelSpawn">Spawn</string>
+    <string name="hintEdit">Enter value</string>
+    <string name="labelShowServ">Show</string>
+    <string name="textEmpty"></string>
+    <string name="entryServices">Services</string>
+    <string name="entryApplications">Applications</string>
+    <string name="entryTasks">Tasks</string>
+    <string name="labelSpinner">Srvs/Apps/Tasks</string>
+    <string-array name="spinnerValues">
+        <item >Services</item>
+        <item >Applications</item>
+        <item >Tasks</item>
+        <item >Recent tasks</item>
+    </string-array>
+        <string name="labelAsyncRun">Async Run</string>
+
+</resources>

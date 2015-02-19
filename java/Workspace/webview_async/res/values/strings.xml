@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, Webview_asyncActivity!</string>
+    <string name="app_name">Webview_async</string>
+    <string name="hintAddressBar">URL here</string>
+    <string name="labelStatus">Status bar here</string>
+
+</resources>

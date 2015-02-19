@@ -1,0 +1,9 @@
+Acesta este un fisier.
+
+El este plain text.
+
+test
+	test
+		test
+
+End.

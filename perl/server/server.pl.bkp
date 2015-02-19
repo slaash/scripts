@@ -1,0 +1,28 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use IO::Socket::INET;
+
+my $rcv;
+my $sock = IO::Socket::INET->new(Listen    => 5,
+                                 LocalAddr => '163.242.224.14',
+                                 LocalPort => 65001,
+                                 Proto     => 'tcp');
+while (my $new_sock=$sock->accept()){
+	$new_sock->autoflush(1);
+	my $pid=fork();
+	if ($pid==0){
+		close($sock);
+		while ($rcv=<$new_sock>){
+			my $rmt_host=$new_sock->peerhost();
+			my $rmt_port=$new_sock->peerport();
+			print "CLIENT ($rmt_host:$rmt_port): $rcv";
+			print $new_sock "SERVER: OK";
+		}
+		exit;
+	}
+	close($new_sock);
+}
+

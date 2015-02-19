@@ -1,0 +1,26 @@
+#!/usr/bin/bc
+
+define is_prime(n){
+	prim=1
+	for (j=2;j<=sqrt(n);j++){
+		if (n%j==0){
+			prim=0
+			break
+		}
+	}
+	if (prim==1){
+		return(n)
+	}
+	return (-1)
+}
+
+min=1000000000000
+max=1000000000100
+
+for (i=min;i<max;i++){
+	if (is_prime(i)!=-1){
+		print i,"\n"
+	}
+}
+	
+quit

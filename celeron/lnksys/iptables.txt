@@ -1,0 +1,150 @@
+/> /garbage/iptables -L
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+DROP       all  --  anywhere             anywhere           state INVALID
+ACCEPT     all  --  anywhere             anywhere           state NEW
+ACCEPT     all  --  anywhere             anywhere           state RELATED,ESTABLISHED
+ACCEPT     all  --  anywhere             anywhere           state NEW
+ACCEPT     all  --  anywhere             anywhere           state NEW
+DROP       all  --  anywhere             anywhere
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+DROP       tcp  --  pc35.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc19.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc09.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc31.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc51.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc48.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  pc03.pim.iasi.rdsnet.ro  anywhere           udp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc33.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc48.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc58.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc51.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc46.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc45.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc44.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc43.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc31.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc30.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc29.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc20.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc19.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc18.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc16.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc13.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc09.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc08.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc07.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  pc03.pim.iasi.rdsnet.ro  anywhere           tcp dpts:tcpmux:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       all  --  anywhere             anywhere           state INVALID
+ACCEPT     all  --  anywhere             anywhere           state NEW
+ACCEPT     all  --  anywhere             anywhere           state RELATED,ESTABLISHED
+ACCEPT     all  --  anywhere             anywhere           state NEW
+ACCEPT     all  --  anywhere             anywhere           state NEW
+DROP       all  --  anywhere             anywhere
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain logaccept (0 references)
+target     prot opt source               destination
+LOG        all  --  anywhere             anywhere           state NEW LOG level warning tcp-sequence tcp-options ip-options unknown-flags prefix `ACCEPT '
+ACCEPT     all  --  anywhere             anywhere
+
+Chain logdrop (0 references)
+target     prot opt source               destination
+LOG        all  --  anywhere             anywhere           state NEW LOG level warning tcp-sequence tcp-options ip-options unknown-flags prefix `DROP '
+DROP       all  --  anywhere             anywhere
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/> /garbage/iptables -t nat -L
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+MASQUERADE  all  --  pc01.pim.iasi.rdsnet.ro/26  anywhere
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/> /garbage/iptables -t nat -L -n
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+
+Chain POSTROUTING (policy ACCEPT)
+target     prot opt source               destination
+MASQUERADE  all  --  82.77.239.192/26     0.0.0.0/0
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/> /garbage/iptables -L -n
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+DROP       all  --  0.0.0.0/0            0.0.0.0/0          state INVALID
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state RELATED,ESTABLISHED
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+DROP       all  --  0.0.0.0/0            0.0.0.0/0
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+DROP       tcp  --  82.77.239.226        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.210        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.200        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.222        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.242        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.239        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       udp  --  82.77.239.194        0.0.0.0/0          udp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.224        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.239        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.249        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.242        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.237        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.236        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.235        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.234        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.222        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.221        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.220        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.211        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.210        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.209        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.207        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.204        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.200        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.199        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.198        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       tcp  --  82.77.239.194        0.0.0.0/0          tcp dpts:1:65535  TIME from 00:00:00 to 23:59:59 on Sun,Mon,Tue,Wed,Thu,Fri,Sat
+DROP       all  --  0.0.0.0/0            0.0.0.0/0          state INVALID
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state RELATED,ESTABLISHED
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0          state NEW
+DROP       all  --  0.0.0.0/0            0.0.0.0/0
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain logaccept (0 references)
+target     prot opt source               destination
+LOG        all  --  0.0.0.0/0            0.0.0.0/0          state NEW LOG flags 15 level 4 prefix `ACCEPT '
+ACCEPT     all  --  0.0.0.0/0            0.0.0.0/0
+
+Chain logdrop (0 references)
+target     prot opt source               destination
+LOG        all  --  0.0.0.0/0            0.0.0.0/0          state NEW LOG flags 15 level 4 prefix `DROP '
+DROP       all  --  0.0.0.0/0            0.0.0.0/0
+
+
+
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+

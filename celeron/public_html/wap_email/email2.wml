@@ -1,0 +1,27 @@
+<?php 
+// email2.wml
+// send wml headers
+header("Content-type: text/vnd.wap.wml"); 
+print "<?xml version=\"1.0\"?>"; 
+echo "<!DOCTYPE wml PUBLIC \"-//WAPFORUM//DTD WML 1.1//EN\"" 
+   . " \"http://www.wapforum.org/DTD/wml_1.1.xml\">";
+?>
+<wml>    
+<card id="email2" title="Send Email">
+        <p>
+        <?php
+
+        if (mail($Email,$Subject,$Message, "From:PHP-enabled WAP site")) :
+
+            print "Message has been sent to $Email";
+        
+        else :
+
+            print "Could not send message to $Email";
+
+        endif;
+
+        ?>
+        </p>
+    </card>
+</wml>

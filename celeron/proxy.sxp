@@ -1,0 +1,7 @@
+name="proxy"
+kernel="/boot/vmlinuz-2.6.16.29-xen"
+root="/dev/hda1 ro"
+memory=64
+disk=['file:/vmachines/proxy.img,hda1,w','file:/vmachines/swapfile1.img,hda2,w']
+vif=['','']
+

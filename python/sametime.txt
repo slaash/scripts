@@ -1,0 +1,9 @@
+import re
+import subprocess
+auth_stats = subprocess.check_output('auth_stats')
+hosts = set(re.findall("rhost=(\S+)\s", auth_stats, re.M))
+for host in hosts:
+    whois = subprocess.check_output(['whois', host])
+    print('\n'.join(re.findall("\n(Country.*?)\n", s, re.M)))
+
+

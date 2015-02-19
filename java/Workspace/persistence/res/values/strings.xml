@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, PersistenceActivity!</string>
+    <string name="app_name">Persistence</string>
+    <string name="labelStart">Start</string>
+    <string name="labelEnd">End</string>
+    <string name="labelZero">0</string>
+    <string name="labelRun">Run</string>
+    <string name="labelSave">Save</string>
+    <string name="labelLoad">Load</string>
+    <string name="labelChecked">Persistent data</string>
+
+</resources>

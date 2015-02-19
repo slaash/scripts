@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, NetdroidActivity!</string>
+    <string name="app_name">Netdroid</string>
+    <string name="labelEmpty"></string>
+    <string name="labelStart">Start</string>
+    <string name="labelEdit">Enter port here</string>
+
+</resources>

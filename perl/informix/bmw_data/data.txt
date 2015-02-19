@@ -1,0 +1,412 @@
+MM1_TEN#1044@@@BMW@@@Application Phone@@@03/15/2010
+MM1_TEN#1052@@@BMW@@@Application Drive@@@03/15/2010
+MM1_TEN#1065@@@BMW@@@Audio, Audiomanagement@@@05/13/2010
+MM1_TEN#1067@@@BMW@@@Application SW Update@@@03/15/2010
+MM1_TEN#1081@@@BMW@@@Application Online@@@03/15/2010
+MM1_TEN#1082@@@BMW@@@Application Phone@@@03/15/2010
+MM1_TEN#1146@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1147@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1148@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1153@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1158@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1159@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1160@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1161@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1162@@@BMW@@@Application TeleServices@@@06/24/2010
+MM1_TEN#1163@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1164@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1165@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1166@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1167@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1168@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1169@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1170@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1172@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1173@@@BMW@@@Application TeleServices@@@08/05/2010
+MM1_TEN#1174@@@BMW@@@Application Drive@@@08/05/2010
+MM1_TEN#1175@@@BMW@@@Application SW Update@@@08/05/2010
+MM1_TEN#1177@@@BMW@@@Application Online@@@06/24/2010
+MM1_TEN#1178@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1179@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1182@@@BMW@@@Application Tuner IBOC@@@08/05/2010
+MM1_TEN#1183@@@BMW@@@Application Tuner IBOC@@@08/05/2010
+MM1_TEN#1184@@@BMW@@@Application Tuner IBOC@@@08/05/2010
+MM1_TEN#1185@@@BMW@@@Application Phone@@@06/24/2010
+MM1_TEN#379@@@BMW@@@Application Tuner AM_FM@@@03/15/2010
+MM1_TEN#432@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_TEN#549@@@BMW@@@Application Audio Player@@@05/27/2010
+MM1_TEN#761@@@BMW@@@Application Tuner IBOC@@@03/15/2010
+MM1_TEN#797@@@BMW@@@Settings, Car Key Memory@@@03/15/2010
+MM1_TEN#825@@@BMW@@@Application Audio Player@@@05/27/2010
+MM1_TEN#993@@@BMW@@@Application Drive@@@05/13/2010
+MM1_WZ#2722@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_WZ#3376@@@BMW@@@Application Phone@@@05/27/2010
+MM1_WZ#3473@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#3635@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_WZ#3712@@@BMW@@@Audio, Audiomanagement@@@03/15/2010
+MM1_WZ#3890@@@BMW@@@Audio, Audiomanagement@@@03/15/2010
+MM1_WZ#3989@@@BMW@@@Application Tuner IBOC@@@05/27/2010
+MM1_WZ#4043@@@BMW@@@Application Phone@@@03/15/2010
+MM1_WZ#4044@@@BMW@@@Application iSpeech@@@05/27/2010
+MM1_WZ#4214@@@BMW@@@Application Phone@@@05/27/2010
+MM1_WZ#4241@@@BMW@@@Application Audio Player@@@03/15/2010
+MM1_WZ#4262@@@BMW@@@Application Phone@@@05/27/2010
+MM1_WZ#4353@@@BMW@@@Application Drive@@@03/15/2010
+MM1_WZ#4358@@@BMW@@@Application Audio Player@@@05/27/2010
+MM1_WZ#4363@@@BMW@@@Application Drive@@@05/27/2010
+MM1_WZ#4419@@@BMW@@@Application iSpeech@@@03/15/2010
+MM1_WZ#4529@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_WZ#4530@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_WZ#4687@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4688@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4699@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4709@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4769@@@BMW@@@Audio, Audiomanagement@@@05/27/2010
+MM1_WZ#4784@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_WZ#4795@@@BMW@@@Application TeleServices@@@05/13/2010
+MM1_WZ#4797@@@BMW@@@Application Phone@@@03/15/2010
+MM1_WZ#4828@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#4876@@@BMW@@@Audio, Audiomanagement@@@05/13/2010
+MM1_WZ#4884@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4896@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_WZ#4898@@@BMW@@@Audio, Audiomanagement@@@05/27/2010
+MM1_WZ#4908@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4917@@@BMW@@@Application Phone@@@05/27/2010
+MM1_WZ#4918@@@BMW@@@Application Phone@@@03/15/2010
+MM1_WZ#4923@@@BMW@@@Application Video@@@05/13/2010
+MM1_WZ#4929@@@BMW@@@Application Drive@@@03/15/2010
+MM1_WZ#5017@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#5019@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#5021@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5022@@@BMW@@@MMI/Graphics@@@06/24/2010
+MM1_WZ#5023@@@BMW@@@Audio, Audiomanagement@@@06/24/2010
+MM1_WZ#5024@@@BMW@@@Application Audio Player@@@06/24/2010
+MM1_WZ#5027@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5033@@@BMW@@@MMI/Graphics@@@08/05/2010
+MM1_WZ#5035@@@BMW@@@Application Audio Player@@@06/24/2010
+MM1_WZ#5036@@@BMW@@@Application Audio Player@@@06/24/2010
+MM1_WZ#5037@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5038@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5039@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5043@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#5053@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#5055@@@BMW@@@Performance@@@05/13/2010
+MM1_WZ#5062@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5064@@@BMW@@@Housekeeping@@@06/24/2010
+MM1_WZ#5067@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5068@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5069@@@BMW@@@Audio, Audiomanagement@@@06/24/2010
+MM1_WZ#5071@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5073@@@BMW@@@Audio, Audiomanagement@@@05/27/2010
+MM1_WZ#5081@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5082@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5083@@@BMW@@@Application Phone@@@06/24/2010
+MM1_WZ#5107@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#5113@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5127@@@BMW@@@Audio, Audiomanagement@@@06/24/2010
+MM1_WZ#5137@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5140@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5149@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5153@@@BMW@@@Application Audio Player@@@06/24/2010
+MM1_WZ#5154@@@BMW@@@Application Audio Player@@@06/24/2010
+MM1_WZ#5158@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5159@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5160@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5161@@@BMW@@@Application Tuner DAB@@@06/24/2010
+MM1_WZ#5173@@@BMW@@@Application Video@@@06/24/2010
+MM1_WZ#5175@@@BMW@@@Application Video@@@05/13/2010
+MM1_WZ#5176@@@BMW@@@Application Video@@@06/24/2010
+MM1_WZ#5177@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_WZ#5179@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5180@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5181@@@BMW@@@Stability@@@08/05/2010
+MM1_WZ#5183@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5185@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5188@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5189@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#5195@@@BMW@@@Application Tuner AM_FM@@@06/24/2010
+MM1_WZ#5196@@@BMW@@@Application Tuner AM_FM@@@08/05/2010
+MM1_WZ#5197@@@BMW@@@Application iSpeech@@@08/05/2010
+MM1_WZ#5198@@@BMW@@@Application Audio Player@@@08/05/2010
+MM1_WZ#5199@@@BMW@@@MMI/Graphics@@@08/05/2010
+MM1_WZ#5206@@@BMW@@@Housekeeping@@@06/24/2010
+MM1_WZ#5210@@@BMW@@@Systemfunktionen@@@08/05/2010
+MMP_WZ#6738@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_TEN#1148@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1153@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1158@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1161@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1167@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1168@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1169@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1172@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1178@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1184@@@BMW@@@Application Tuner IBOC@@@07/08/2010
+MM1_TEN#1185@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1192@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1202@@@BMW@@@Application Player@@@07/08/2010
+MM1_TEN#1204@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1207@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1211@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1212@@@BMW@@@Application Online@@@07/08/2010
+MM1_TEN#1223@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1228@@@BMW@@@Application Online@@@05/13/2010
+MM1_WZ#5021@@@BMW@@@Application Tuner AM_FM@@@07/08/2010
+MM1_WZ#5023@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5024@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5030@@@BMW@@@Stability@@@07/08/2010
+MM1_WZ#5035@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5036@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5038@@@BMW@@@Application Tuner DAB@@@07/08/2010
+MM1_WZ#5046@@@BMW@@@Network@@@07/08/2010
+MM1_WZ#5056@@@BMW@@@Hardware@@@07/08/2010
+MM1_WZ#5057@@@BMW@@@Housekeeping@@@07/08/2010
+MM1_WZ#5066@@@BMW@@@Application Phone@@@07/08/2010
+MM1_WZ#5068@@@BMW@@@Application Contactbook@@@07/08/2010
+MM1_WZ#5074@@@BMW@@@Systemfunktionen@@@07/08/2010
+MM1_WZ#5081@@@BMW@@@Application Tuner DAB@@@07/08/2010
+MM1_WZ#5141@@@BMW@@@Application Tuner IBOC@@@07/08/2010
+MM1_WZ#5153@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5154@@@BMW@@@Application Player@@@07/08/2010
+MM1_WZ#5158@@@BMW@@@Application Tuner DAB@@@07/08/2010
+MM1_WZ#5264@@@BMW@@@Stability@@@05/13/2010
+MM1_WZ#5287@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_WZ#5303@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5325@@@BMW@@@Settings, Car Key Memory@@@05/13/2010
+MM1_WZ#5336@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5356@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5365@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#5368@@@BMW@@@Lifecycle@@@05/13/2010
+MM1_WZ#5369@@@BMW@@@Network@@@05/13/2010
+MM1_WZ#5371@@@BMW@@@Lifecycle@@@05/13/2010
+MM1_WZ#5377@@@BMW@@@Audio, Audiomanagement@@@05/13/2010
+MM1_TEN#1026@@@BMW@@@Application Contactbook@@@05/13/2010
+MM1_TEN#1056@@@BMW@@@Application Contactbook@@@05/13/2010
+MM1_TEN#1057@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1072@@@BMW@@@Application Contactbook@@@05/13/2010
+MM1_TEN#1086@@@BMW@@@Application Phone@@@05/13/2010
+MM1_TEN#329@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#432@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#725@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#966@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#2193@@@BMW@@@Network@@@05/13/2010
+MM1_WZ#4197@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#4471@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#4793@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#4794@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#4807@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#4819@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#4870@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_WZ#4921@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#4961@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#4979@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5000@@@BMW@@@Performance@@@05/13/2010
+MM1_WZ#5125@@@BMW@@@Network@@@05/13/2010
+MMP_WZ#6246@@@BMW@@@Hardware@@@05/13/2010
+MM1_WZ#4277@@@BMW@@@Hardware@@@05/13/2010
+MM1_WZ#5047@@@BMW@@@Lifecycle@@@05/13/2010
+MM1_WZ#5048@@@BMW@@@Lifecycle@@@05/13/2010
+MM1_WZ#5178@@@BMW@@@Application iSpeech@@@05/13/2010
+MM1_TEN#897@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#4855@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#5045@@@BMW@@@Systemfunktionen@@@05/13/2010
+MM1_WZ#5094@@@BMW@@@Settings, Car Key Memory@@@05/13/2010
+MM1_WZ#5095@@@BMW@@@Application Tuner DAB@@@05/13/2010
+MM1_TEN#1064@@@BMW@@@Application Tuner SDARS@@@05/13/2010
+MM1_WZ#5246@@@BMW@@@Application Video@@@07/22/2010
+MM1_WZ#5280@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5293@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5323@@@BMW@@@Application Audio Player@@@07/22/2010
+MM1_WZ#5341@@@BMW@@@Application Tuner AM_FM@@@07/22/2010
+MM1_WZ#5344@@@BMW@@@MMI/Graphics@@@07/22/2010
+MM1_WZ#5350@@@BMW@@@Application iSpeech@@@06/24/2010
+MM1_WZ#5353@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5360@@@BMW@@@Application iSpeech@@@06/24/2010
+MM1_WZ#5361@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5362@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5370@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5397@@@BMW@@@Stability@@@05/13/2010
+MM1_WZ#5400@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5405@@@BMW@@@Application Drive@@@07/22/2010
+MM1_WZ#5406@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5412@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5418@@@BMW@@@Application Drive@@@07/22/2010
+MM1_WZ#5420@@@BMW@@@Application Tuner DAB@@@07/22/2010
+MM1_WZ#5433@@@BMW@@@Application Audio Player@@@07/22/2010
+MM1_WZ#5436@@@BMW@@@Application Drive@@@07/22/2010
+MM1_WZ#5437@@@BMW@@@Application Tuner DAB@@@07/22/2010
+MM1_WZ#5444@@@BMW@@@Application iSpeech@@@07/22/2010
+MM1_WZ#5447@@@BMW@@@Application iSpeech@@@07/22/2010
+MM1_WZ#5457@@@BMW@@@Application Online@@@07/22/2010
+MM1_WZ#5459@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5461@@@BMW@@@Stability@@@07/22/2010
+MM1_WZ#5462@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5463@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5464@@@BMW@@@Stability@@@07/22/2010
+MM1_WZ#5465@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5466@@@BMW@@@Application Phone@@@07/22/2010
+MM1_WZ#5468@@@BMW@@@Application Drive@@@07/22/2010
+MM1_WZ#5475@@@BMW@@@Application Drive@@@07/22/2010
+MM1_TEN#1050@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1092@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#1134@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1140@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#1168@@@BMW@@@Application Online@@@05/13/2010
+MM1_TEN#276@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#277@@@BMW@@@Application Tuner AM_FM@@@05/13/2010
+MM1_TEN#278@@@BMW@@@Application Tuner SDARS@@@05/13/2010
+MM1_TEN#385@@@BMW@@@Application Tuner SDARS@@@05/13/2010
+MM1_TEN#786@@@BMW@@@Application SW Update@@@05/13/2010
+MM1_WZ#3911@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#3914@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#4394@@@BMW@@@Audio, Audiomanagement@@@05/13/2010
+MM1_WZ#4484@@@BMW@@@Application Audio Player@@@05/13/2010
+MM1_WZ#4712@@@BMW@@@Application SW Update@@@05/13/2010
+MM1_TEN#1047@@@BMW@@@Application Online@@@05/13/2010
+MM1_WZ#4403@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_TEN#1071@@@BMW@@@Application Tuner SDARS@@@05/13/2010
+MM1_TEN#1119@@@BMW@@@Application Phone@@@05/13/2010
+MM1_WZ#4198@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5237@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5238@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5263@@@BMW@@@Application Tuner DAB@@@05/13/2010
+MM1_WZ#5273@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_WZ#5397@@@BMW@@@Housekeeping@@@05/13/2010
+MM1_TEN#1064@@@BMW@@@Application Tuner SDARS@@@05/13/2010
+MM1_TEN#957@@@BMW@@@Application Drive@@@07/22/2010
+MM1_WZ#5246@@@BMW@@@Application Video@@@07/22/2010
+MM1_WZ#5385@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5402@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5409@@@BMW@@@Audio, Audiomanagement@@@07/22/2010
+MM1_WZ#5452@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5474@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5480@@@BMW@@@Systemfunktionen@@@05/27/2010
+MM1_WZ#5502@@@BMW@@@Performance@@@05/27/2010
+MM1_WZ#5517@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_TEN#1027@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_TEN#1051@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1255@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1264@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1265@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1266@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1267@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#1273@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#577@@@BMW@@@Application Tuner SDARS@@@05/27/2010
+MM1_TEN#604@@@BMW@@@Application Audio Player@@@05/27/2010
+MM1_WZ#3983@@@BMW@@@Application Tuner AM_FM@@@05/27/2010
+MM1_WZ#4686@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#4963@@@BMW@@@Performance@@@05/27/2010
+MM1_WZ#5002@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5216@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#5217@@@BMW@@@Application Tuner DAB@@@05/27/2010
+MM1_WZ#5285@@@BMW@@@Application iSpeech@@@05/27/2010
+MM1_WZ#5474@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#3831@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#4993@@@BMW@@@Network@@@05/27/2010
+MM1_TEN#714@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#884@@@BMW@@@Application Online@@@05/27/2010
+MM1_TEN#895@@@BMW@@@Application Online@@@05/27/2010
+MM1_WZ#5337@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5430@@@BMW@@@Audio, Audiomanagement@@@05/27/2010
+MM1_WZ#5452@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_TEN#1369@@@BMW@@@Application Online@@@05/27/2010
+MM1_WZ#5626@@@BMW@@@Settings, Car Key Memory@@@05/27/2010
+MM1_WZ#5627@@@BMW@@@Settings, Car Key Memory@@@05/27/2010
+MM1_WZ#5636@@@BMW@@@Settings, Car Key Memory@@@05/27/2010
+MM1_WZ#5638@@@BMW@@@Stability@@@05/27/2010
+MM1_WZ#5639@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5644@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5649@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5662@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5679@@@BMW@@@Housekeeping@@@05/27/2010
+MM1_WZ#5688@@@BMW@@@Application SW Update@@@05/27/2010
+MM1_WZ#5714@@@BMW@@@Application iSpeech@@@05/27/2010
+MM1_WZ#5761@@@BMW@@@Application Online@@@05/27/2010
+MM1_WZ#5792@@@BMW@@@Systemfunktionen@@@05/27/2010
+MM1_TEN#1430@@@BMW@@@Application SW Update@@@08/05/2010
+MM1_TEN#1431@@@BMW@@@Application Phone@@@08/05/2010
+MM1_TEN#1433@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_TEN#1434@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_TEN#1435@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_TEN#1436@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_TEN#1437@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_TEN#1438@@@BMW@@@Application Online@@@08/05/2010
+MM1_TEN#1441@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_WZ#5777@@@BMW@@@Audio, Audiomanagement@@@06/24/2010
+MM1_WZ#5778@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5809@@@BMW@@@Application Tuner AM_FM@@@08/05/2010
+MM1_WZ#5814@@@BMW@@@Application Tuner AM_FM@@@08/05/2010
+MM1_WZ#5822@@@BMW@@@Housekeeping@@@06/24/2010
+MM1_WZ#5825@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5826@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5827@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5828@@@BMW@@@Architektur@@@08/05/2010
+MM1_WZ#5833@@@BMW@@@Application SW Update@@@06/24/2010
+MM1_WZ#5834@@@BMW@@@Application SW Update@@@08/05/2010
+MM1_WZ#5836@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5838@@@BMW@@@Application SW Update@@@08/05/2010
+MM1_WZ#5839@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5843@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5846@@@BMW@@@Application Phone@@@08/05/2010
+MM1_WZ#5857@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5862@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_WZ#5863@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_WZ#5865@@@BMW@@@Application Video@@@08/05/2010
+MM1_WZ#5867@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_WZ#5868@@@BMW@@@Application Contactbook@@@08/05/2010
+MM1_WZ#5881@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5884@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_WZ#5887@@@BMW@@@MMI/Graphics@@@08/05/2010
+MM1_WZ#5888@@@BMW@@@Application Tuner AM_FM@@@08/05/2010
+MM1_WZ#5889@@@BMW@@@Audio, Audiomanagement@@@08/05/2010
+MM1_TEN#1031@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_TEN#1200@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_TEN#1314@@@BMW@@@Application Phone@@@06/10/2010
+MM1_TEN#1340@@@BMW@@@Application Phone@@@06/10/2010
+MM1_TEN#1357@@@BMW@@@Application Tuner AM_FM@@@06/10/2010
+MM1_TEN#1359@@@BMW@@@Application Tuner AM_FM@@@06/10/2010
+MM1_TEN#344@@@BMW@@@Application Tuner AM_FM@@@06/10/2010
+MM1_TEN#473@@@BMW@@@Application Phone@@@06/10/2010
+MM1_TEN#981@@@BMW@@@Application Tuner SDARS@@@06/10/2010
+MM1_WZ#1837@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2057@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2060@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2108@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2109@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2110@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2112@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2113@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2203@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2526@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2800@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#2866@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#3204@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#3642@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#3651@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#3663@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#4455@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_WZ#4543@@@BMW@@@Application iSpeech@@@06/10/2010
+MM1_WZ#4766@@@BMW@@@Application iSpeech@@@06/10/2010
+MM1_WZ#4772@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_WZ#4776@@@BMW@@@Application Tuner AM_FM@@@06/10/2010
+MM1_WZ#4845@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_WZ#4854@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#4894@@@BMW@@@Audio, Audiomanagement@@@06/10/2010
+MM1_WZ#4912@@@BMW@@@Application iSpeech@@@06/10/2010
+MM1_WZ#4916@@@BMW@@@Application Phone@@@06/10/2010
+MM1_WZ#5429@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5435@@@BMW@@@Application Tuner DAB@@@06/10/2010
+MM1_WZ#5478@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5485@@@BMW@@@Application Tuner AM_FM@@@06/10/2010
+MM1_WZ#5570@@@BMW@@@Application iSpeech@@@06/10/2010
+MM1_WZ#5590@@@BMW@@@Application Tuner DAB@@@06/10/2010
+MM1_WZ#5619@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5685@@@BMW@@@Application SW Update@@@06/10/2010
+MM1_WZ#5689@@@BMW@@@Application SW Update@@@06/10/2010
+MM1_WZ#5748@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_TEN#1295@@@BMW@@@Application Online@@@06/10/2010
+MM1_TEN#1307@@@BMW@@@Application Online@@@06/10/2010
+MM1_WZ#5822@@@BMW@@@Housekeeping@@@06/10/2010
+MM1_WZ#5833@@@BMW@@@Application SW Update@@@06/10/2010
+MM1_WZ#5544@@@BMW@@@Systemfunktionen@@@06/10/2010
+MM1_WZ#5607@@@BMW@@@Application Tuner DAB@@@06/10/2010

@@ -1,0 +1,371 @@
+/etc> cat hosts
+127.0.0.1 localhost.localdomain localhost
+82.77.239.193   my.router
+WL530g          my.
+
+/etc> cat hostapd.accept
+00:15:f2:f2:49:0d
+
+/etc> cat hostapd.conf
+manuf_file=/dev/mtd3
+interface=wlan0
+logger_syslog=-1
+logger_syslog_level=4
+logger_stdout=-1
+logger_stdout_level=4
+debug=0
+dump_file=/tmp/hostapd.dump
+daemonize=1
+basic_rate=1000,2000,5500,11000
+oper_rate=1000,2000,5500,11000,6000,9000,12000,18000,24000,36000,48000,54000
+g_protect=0
+iw_mode=3
+fixed_tx_data_rate=0
+ap_mode=2
+ssid=PIM
+beacon_interval=100
+dtim_period=1
+rts_threshold=2347
+fragment_threshold=2346
+short_retry_limit=7
+long_retry_limit=4
+current_tx_power_level=1
+short_preamble=1
+channel=1
+hide_ssid=1
+minimal_eap=0
+auth_algs=3
+privacy_invoked=0
+exclude_unencrypted=0
+wpa_mode=0
+macaddr_acl=1
+accept_mac_file=/tmp/hostapd.accept
+wlan_tx_gpio=0
+wlan_rx_gpio=0
+antenna=1
+
+
+/> ls -l /bin
+-rw-r--r--    1 0        0               2 Sep 27 10:41 1
+-rwxr--r--    1 0        0           71392 Jan  1  1970 bpalogin
+-rwxr--r--    1 0        0           51444 Jan  1  1970 brctl
+-rwxr--r--    1 0        0          185112 Jan  1  1970 busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 cat -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 cp -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 date -> busybox
+-rwxr-xr-x    1 0        0           63056 Jan  1  1970 dproxy
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 du -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 echo -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 env -> busybox
+-rwxr--r--    1 0        0          141868 Jan  1  1970 ez-ipupdate
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 false -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 grep -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 hostname -> busybox
+-rwxr--r--    1 0        0          190608 Jan  1  1970 httpd
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 ifconfig -> busybox
+-rwxr--r--    1 0        0           39584 Jan  1  1970 inetd
+-rwxr--r--    1 0        0           44740 Jan  1  1970 infosvr
+-rwxr--r--    1 0        0          178728 Jan  1  1970 insmod
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 kill -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 killall -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 klogd -> busybox
+lrwxrwxrwx    1 0        0               7 Sep 27 10:40 ls -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 lsmod -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 mkdir -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 mount -> busybox
+-rwxr--r--    1 0        0          151756 Jan  1  1970 mvapd
+-rwxr--r--    1 0        0           56888 Jan  1  1970 mvmfgd
+-rwxr--r--    1 0        0           65692 Jan  1  1970 ntpclient
+-rwxr--r--    1 0        0           33816 Jan  1  1970 nvram
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 ping -> busybox
+-rwxr-xr-x    1 0        0          289876 Jan  1  1970 pppd
+-rwxr-xr-x    1 0        0           75728 Jan  1  1970 pppoe
+-rwxr-xr-x    1 0        0           66824 Jan  1  1970 pppoe-relay
+-rwxr--r--    1 0        0           81112 Jan  1  1970 pptp
+-rwxr--r--    1 0        0           61596 Jan  1  1970 pptp_callmgr
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 ps -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 rm -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 rmmod -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 route -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 sed -> busybox
+-rwxr--r--    1 0        0           83912 Jan  1  1970 sh
+-rwxr--r--    1 0        0           74652 Jan  1  1970 snmpd
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 syslogd -> busybox
+-rwxr--r--    1 0        0           54820 Sep 15 15:45 telnetd
+-rwxr-xr-x    1 0        0           37524 Jan  1  1970 test
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 traceroute -> busybox
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 true -> busybox
+lrwxrwxrwx    1 0        0               6 Jan  1  1970 udhcpc -> udhcpd
+-rwxr--r--    1 0        0           72700 Jan  1  1970 udhcpd
+lrwxrwxrwx    1 0        0               7 Jan  1  1970 umount -> busybox
+-rwxr--r--    1 0        0          197144 Jan  1  1970 upnp
+
+
+/> ls -l /sbin
+lrwxrwxrwx    1 0        0               8 Sep 27 13:11 ddns_updated -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Sep 27 13:08 erase -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 init -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 ntp -> /sbin/rc
+-rwxr--r--    1 0        0          234356 Jan  1  1970 rc
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 rgcfg -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Sep 27 13:05 stopservice -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 watchdog -> /sbin/rc
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 write -> /sbin/rc
+
+
+-rwxr--r--    1 0        0          157208 Sep 27 13:11 iptables
+-rwxr-xr-x    1 0        0          531244 Jan  1  1970 zImage
+
+
+/proc> cat cpuinfo
+Processor : ARM Arm946id(wb) rev 1 (v4l)
+BogoMIPS : 87.85
+Hardware : MV88W85x0
+Revision : 0000
+Serial  : 0000000000000000
+
+
+
+/proc> cat version
+Linux version 2.4.22-uc0 (root@localhost.localdomain) (gcc version 2.95.3 20010315 (release)(ColdFire patches - 20010318 from http://fiddes.net/coldfire/)(uClinux XIP and shared lib patches from http://www.snapgear.com/)) #1369 Wed Aug 18 21:32:58 CDT 2004
+
+
+/proc> cat interrupts
+  4:  125828344   timer
+  9:   46417634   mvFF_Eth
+ 10:    1980612   wlan0
+ 11:         94   serial
+ 15:          0   wlan0
+ 16:          0   wlan0
+Err:          0
+
+
+>cat cmdline
+console=ttyS0,38400 root=/dev/mtdblock1 ro rootfstype=cramfs
+
+
+
+/proc> cat meminfo
+        total:    used:    free:  shared: buffers:  cached:
+Mem:  15015936 11046912  3969024        0  1396736  2859008
+Swap:        0        0        0
+MemTotal:        14664 kB
+MemFree:          3876 kB
+MemShared:           0 kB
+Buffers:          1364 kB
+Active:           2328 kB
+Inactive:         1828 kB
+HighTotal:           0 kB
+HighFree:            0 kB
+LowTotal:        14664 kB
+LowFree:          3876 kB
+SwapTotal:           0 kB
+SwapFree:            0 kB
+
+
+
+
+
+/proc/net> cat ip_conntrack
+tcp      6 51 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3574 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3574 [ASSURED] use=1
+tcp      6 431999 ESTABLISHED src=86.124.68.134 dst=86.124.41.146 sport=65219 dport=23 src=86.124.41.146 dst=86.124.68.134 sport=23 dport=65219 [ASSURED] use=1
+tcp      6 24652 ESTABLISHED src=194.208.217.52 dst=82.77.239.218 sport=2747 dport=25 src=82.77.239.218 dst=194.208.217.52 sport=25 dport=2747 [ASSURED] use=1
+tcp      6 431949 ESTABLISHED src=82.77.239.218 dst=216.155.193.142 sport=58852 dport=5050 src=216.155.193.142 dst=86.124.41.146 sport=5050 dport=58852 [ASSURED] use=1
+tcp      6 351884 ESTABLISHED src=82.253.24.200 dst=82.77.239.218 sport=1839 dport=80 src=82.77.239.218 dst=82.253.24.200 sport=80 dport=1839 [ASSURED] use=1
+tcp      6 43765 ESTABLISHED src=82.77.239.218 dst=62.23.30.170 sport=51378 dport=80 src=62.23.30.170 dst=86.124.41.146 sport=80 dport=51378 [ASSURED] use=1
+tcp      6 350172 ESTABLISHED src=82.77.239.218 dst=69.88.158.9 sport=52013 dport=443 src=69.88.158.9 dst=86.124.41.146 sport=443 dport=52013 [ASSURED] use=1
+tcp      6 431947 ESTABLISHED src=82.77.239.218 dst=216.155.193.166 sport=54158 dport=5050 src=216.155.193.166 dst=86.124.41.146 sport=5050 dport=54158 [ASSURED] use=1
+tcp      6 277965 ESTABLISHED src=82.77.239.218 dst=85.204.103.98 sport=50976 dport=80 src=85.204.103.98 dst=86.124.41.146 sport=80 dport=50976 [ASSURED] use=1
+tcp      6 45484 ESTABLISHED src=82.77.107.130 dst=82.77.239.218 sport=3554 dport=21 src=82.77.239.218 dst=82.77.107.130 sport=21 dport=3554 [ASSURED] use=1
+udp      17 19 src=192.168.168.99 dst=255.255.255.255 sport=1763 dport=24654 [UNREPLIED] src=255.255.255.255 dst=192.168.168.99 sport=24654 dport=1763 use=1
+tcp      6 23031 ESTABLISHED src=194.55.169.145 dst=82.77.239.218 sport=1047 dport=21 src=82.77.239.218 dst=194.55.169.145 sport=21 dport=1047 [ASSURED] use=1
+tcp      6 66 TIME_WAIT src=81.215.58.112 dst=82.77.239.218 sport=2094 dport=25 src=82.77.239.218 dst=81.215.58.112 sport=25 dport=2094 [ASSURED] use=1
+udp      17 22 src=0.0.0.0 dst=255.255.255.255 sport=68 dport=67 [UNREPLIED] src=255.255.255.255 dst=0.0.0.0 sport=67 dport=68 use=1
+tcp      6 94308 ESTABLISHED src=82.21.167.126 dst=82.77.239.218 sport=2162 dport=25 src=82.77.239.218 dst=82.21.167.126 sport=25 dport=2162 [ASSURED] use=1
+udp      17 7 src=192.168.168.95 dst=255.255.255.255 sport=1190 dport=24654 [UNREPLIED] src=255.255.255.255 dst=192.168.168.95 sport=24654 dport=1190 use=1
+tcp      6 288095 ESTABLISHED src=82.77.54.29 dst=82.77.239.218 sport=4046 dport=80 src=82.77.239.218 dst=82.77.54.29 sport=80 dport=4046 [ASSURED] use=1
+tcp      6 29426 ESTABLISHED src=82.77.239.218 dst=216.148.223.71 sport=52971 dport=80 src=216.148.223.71 dst=86.124.41.146 sport=80 dport=52971 [ASSURED] use=1
+tcp      6 28544 ESTABLISHED src=82.77.239.218 dst=38.116.139.254 sport=50330 dport=80 src=38.116.139.254 dst=86.124.41.146 sport=80 dport=50330 [ASSURED] use=1
+tcp      6 21 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3571 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3571 [ASSURED] use=1
+tcp      6 431780 ESTABLISHED src=82.77.239.218 dst=68.142.233.139 sport=54162 dport=443 src=68.142.233.139 dst=86.124.41.146 sport=443 dport=54162 [ASSURED] use=1
+tcp      6 91 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3578 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3578 [ASSURED] use=1
+tcp      6 431692 ESTABLISHED src=82.77.239.218 dst=68.142.233.142 sport=54121 dport=443 src=68.142.233.142 dst=86.124.41.146 sport=443 dport=54121 [ASSURED] use=1
+tcp      6 279517 ESTABLISHED src=82.77.239.218 dst=68.142.233.157 sport=53755 dport=443 src=68.142.233.157 dst=86.124.41.146 sport=443 dport=53755 [ASSURED] use=1
+tcp      6 178689 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=52019 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=52019 [ASSURED] use=1
+tcp      6 202356 ESTABLISHED src=82.77.239.218 dst=200.124.133.131 sport=65461 dport=1111 src=200.124.133.131 dst=86.124.41.146 sport=1111 dport=65461 [ASSURED] use=1
+tcp      6 357185 ESTABLISHED src=86.35.255.100 dst=82.77.239.218 sport=11817 dport=21 src=82.77.239.218 dst=86.35.255.100 sport=21 dport=11817 [ASSURED] use=1
+tcp      6 190780 ESTABLISHED src=82.77.239.218 dst=200.124.133.131 sport=59929 dport=1111 src=200.124.133.131 dst=86.124.41.146 sport=1111 dport=59929 [ASSURED] use=1
+tcp      6 178680 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=51998 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=51998 [ASSURED] use=1
+tcp      6 111 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3580 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3580 [ASSURED] use=1
+tcp      6 348132 ESTABLISHED src=82.77.239.218 dst=207.46.24.94 sport=58991 dport=1863 src=207.46.24.94 dst=86.124.41.146 sport=1863 dport=58991 [ASSURED] use=1
+tcp      6 41312 ESTABLISHED src=82.77.239.218 dst=66.11.48.69 sport=50043 dport=80 src=66.11.48.69 dst=86.124.41.146 sport=80 dport=50043 [ASSURED] use=1
+tcp      6 61 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3575 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3575 [ASSURED] use=1
+tcp      6 1 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3569 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3569 [ASSURED] use=1
+tcp      6 266735 ESTABLISHED src=89.136.144.6 dst=82.77.239.218 sport=2517 dport=21 src=82.77.239.218 dst=89.136.144.6 sport=21 dport=2517 [ASSURED] use=1
+tcp      6 81 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3577 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3577 [ASSURED] use=1
+udp      17 7 src=192.168.168.93 dst=255.255.255.255 sport=1629 dport=24654 [UNREPLIED] src=255.255.255.255 dst=192.168.168.93 sport=24654 dport=1629 use=1
+tcp      6 242315 ESTABLISHED src=68.78.181.143 dst=82.77.239.218 sport=56260 dport=25 src=82.77.239.218 dst=68.78.181.143 sport=25 dport=56260 [ASSURED] use=1
+tcp      6 71 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3576 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3576 [ASSURED] use=1
+tcp      6 403635 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=61284 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=61284 [ASSURED] use=1
+tcp      6 431967 ESTABLISHED src=82.77.239.218 dst=216.155.193.166 sport=54115 dport=5050 src=216.155.193.166 dst=86.124.41.146 sport=5050 dport=54115 [ASSURED] use=1
+tcp      6 333562 ESTABLISHED src=82.77.239.218 dst=66.11.48.136 sport=62080 dport=80 src=66.11.48.136 dst=86.124.41.146 sport=80 dport=62080 [ASSURED] use=1
+tcp      6 241833 ESTABLISHED src=68.78.181.143 dst=82.77.239.218 sport=48001 dport=25 src=82.77.239.218 dst=68.78.181.143 sport=25 dport=48001 [ASSURED] use=1
+tcp      6 270652 ESTABLISHED src=82.77.239.218 dst=64.92.212.67 sport=57100 dport=80 src=64.92.212.67 dst=86.124.41.146 sport=80 dport=57100 [ASSURED] use=1
+tcp      6 43776 ESTABLISHED src=82.77.239.218 dst=69.90.45.106 sport=51388 dport=80 src=69.90.45.106 dst=86.124.41.146 sport=80 dport=51388 [ASSURED] use=1
+tcp      6 11 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3570 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3570 [ASSURED] use=1
+tcp      6 106737 ESTABLISHED src=82.77.239.218 dst=64.4.23.190 sport=51186 dport=443 src=64.4.23.190 dst=86.124.41.146 sport=443 dport=51186 [ASSURED] use=1
+tcp      6 185270 ESTABLISHED src=59.105.7.28 dst=82.77.239.218 sport=4935 dport=80 src=82.77.239.218 dst=59.105.7.28 sport=80 dport=4935 [ASSURED] use=1
+udp      17 5 src=204.16.208.74 dst=82.77.239.218 sport=36916 dport=1027 [UNREPLIED] src=82.77.239.218 dst=204.16.208.74 sport=1027 dport=36916 use=1
+tcp      6 28124 ESTABLISHED src=82.77.239.218 dst=217.67.22.106 sport=65498 dport=80 src=217.67.22.106 dst=86.124.41.146 sport=80 dport=65498 [ASSURED] use=1
+tcp      6 423062 ESTABLISHED src=192.168.168.13 dst=192.168.168.45 sport=515 dport=3652 [UNREPLIED] src=192.168.168.45 dst=192.168.168.13 sport=3652 dport=515 use=1
+tcp      6 22 TIME_WAIT src=82.77.148.72 dst=82.77.239.218 sport=1445 dport=80 src=82.77.239.218 dst=82.77.148.72 sport=80 dport=1445 [ASSURED] use=1
+udp      17 13 src=192.168.168.92 dst=192.168.168.255 sport=138 dport=138 [UNREPLIED] src=192.168.168.255 dst=192.168.168.92 sport=138 dport=138 use=1
+udp      17 5 src=204.16.208.74 dst=82.77.239.196 sport=36860 dport=1027 [UNREPLIED] src=82.77.239.196 dst=204.16.208.74 sport=1027 dport=36860 use=1
+tcp      6 241738 ESTABLISHED src=68.78.181.143 dst=82.77.239.218 sport=36975 dport=25 src=82.77.239.218 dst=68.78.181.143 sport=25 dport=36975 [ASSURED] use=1
+unknown  2 557 src=86.124.124.1 dst=224.0.0.1 [UNREPLIED] src=224.0.0.1 dst=86.124.124.1 use=1
+tcp      6 101 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3579 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3579 [ASSURED] use=1
+tcp      6 22 TIME_WAIT src=82.77.148.72 dst=82.77.239.218 sport=1458 dport=80 src=82.77.239.218 dst=82.77.148.72 sport=80 dport=1458 [ASSURED] use=1
+tcp      6 431949 ESTABLISHED src=82.77.239.218 dst=216.155.193.181 sport=52911 dport=5050 src=216.155.193.181 dst=86.124.41.146 sport=5050 dport=52911 [ASSURED] use=1
+tcp      6 431871 ESTABLISHED src=82.77.239.218 dst=68.142.233.138 sport=52921 dport=443 src=68.142.233.138 dst=86.124.41.146 sport=443 dport=52921 [ASSURED] use=1
+tcp      6 178688 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=52009 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=52009 [ASSURED] use=1
+tcp      6 46392 ESTABLISHED src=82.77.239.218 dst=35.8.2.159 sport=52239 dport=80 src=35.8.2.159 dst=86.124.41.146 sport=80 dport=52239 [ASSURED] use=1
+tcp      6 431913 ESTABLISHED src=82.77.239.218 dst=68.142.233.147 sport=58859 dport=443 src=68.142.233.147 dst=86.124.41.146 sport=443 dport=58859 [ASSURED] use=1
+tcp      6 178739 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=51993 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=51993 [ASSURED] use=1
+tcp      6 403265 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=60552 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=60552 [ASSURED] use=1
+tcp      6 354975 ESTABLISHED src=82.77.239.218 dst=66.11.48.100 sport=53718 dport=80 src=66.11.48.100 dst=86.124.41.146 sport=80 dport=53718 [ASSURED] use=1
+tcp      6 31 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3572 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3572 [ASSURED] use=1
+tcp      6 24545 ESTABLISHED src=194.208.217.52 dst=82.77.239.218 sport=1972 dport=25 src=82.77.239.218 dst=194.208.217.52 sport=25 dport=1972 [ASSURED] use=1
+tcp      6 41 TIME_WAIT src=127.0.0.1 dst=127.0.0.1 sport=3573 dport=80 src=127.0.0.1 dst=127.0.0.1 sport=80 dport=3573 [ASSURED] use=1
+tcp      6 403500 ESTABLISHED src=82.77.239.218 dst=86.35.0.226 sport=60994 dport=80 src=86.35.0.226 dst=86.124.41.146 sport=80 dport=60994 [ASSURED] use=1
+tcp      6 47387 ESTABLISHED src=82.77.239.218 dst=66.135.202.24 sport=52650 dport=80 src=66.135.202.24 dst=86.124.41.146 sport=80 dport=52650 [ASSURED] use=1
+tcp      6 398928 ESTABLISHED src=60.48.24.78 dst=82.77.239.218 sport=62447 dport=25 src=82.77.239.218 dst=60.48.24.78 sport=25 dport=62447 [ASSURED] use=1
+
+
+
+
+
+/tmp> cat dproxy.conf
+name_server=140.113.1.1
+ppp_detect=no
+purge_time=1200
+deny_file=/tmp/dproxy.deny
+cache_file=/tmp/dproxy.cache
+hosts_file=/tmp/hosts
+dhcp_lease_file=
+ppp_dev=/var/run/ppp0.pid
+
+
+
+/tmp> cat dproxy.cache
+localhost.localdomain 127.0.0.1
+localhost 127.0.0.1
+my.router 82.77.239.193
+my. WL530g
+
+
+
+/> ls -l
+drwxr-xr-x    1 0        0            1000 Jan  1  1970 bin
+drwxr-xr-x    1 0        0            1632 Jan  1  1970 dev
+drwxr-xr-x    1 0        0             236 Jan  1  1970 etc
+drwxr-xr-x    1 0        0              40 Jan  1  1970 garbage
+drwxr-xr-x    1 0        0              20 Jan  1  1970 lib
+dr-xr-xr-x   88 0        0               0 Jan  1  1970 proc
+drwxr-xr-x    1 0        0             176 Jan  1  1970 sbin
+drwxr-xr-x    1 0        0               0 Jan  1  1970 tmp
+drwxr-xr-x    1 0        0              16 Jan  1  1970 usr
+lrwxrwxrwx    1 0        0               8 Jan  1  1970 var -> /tmp/var
+drwxr-xr-x    1 0        0            4104 Jan  1  1970 www
+
+
+
+
+
+/tmp/var/run> ps
+  PID TTY     Uid        Size State Command
+    1         0              0   S   init
+    2         0              0   S   [keventd]
+    3         0              0   S   [ksoftirqd_CPU0]
+    4         0              0   S   [kswapd]
+    5         0              0   S   [bdflush]
+    6         0              0   S   [kupdated]
+    7         0              0   S   [mtdblockd]
+   17         0              0   S   mvapd /tmp/hostapd.conf
+   25         0              0   S   syslogd -m 0 -t UCT11 -O /tmp/syslog.log
+   26         0              0   S   klogd
+   27         0              0   S   inetd
+   29         0              0   S   dproxy -d -c /tmp/dproxy.conf
+   30         0              0   S   infosvr br0
+   31         0              0   S   watchdog
+   32         0              0   S   ntp
+   39         0              0   Z   [httpd]
+   47         0              0   Z   [httpd]
+   81         0              0   Z   [httpd]
+  105         0              0   Z   [httpd]
+  111         0              0   Z   [httpd]
+  113         0              0   Z   [httpd]
+  117         0              0   Z   [httpd]
+  119         0              0   Z   [httpd]
+  125         0              0   Z   [httpd]
+  127         0              0   Z   [httpd]
+  131         0              0   Z   [httpd]
+  135         0              0   Z   [httpd]
+  143         0              0   Z   [httpd]
+  145         0              0   Z   [httpd]
+  149         0              0   Z   [httpd]
+  153         0              0   Z   [httpd]
+  157         0              0   Z   [httpd]
+  161         0              0   Z   [httpd]
+  163         0              0   Z   [httpd]
+  167         0              0   Z   [httpd]
+  170         0              0   Z   [httpd]
+  172         0              0   Z   [httpd]
+  176         0              0   Z   [httpd]
+  188         0              0   Z   [httpd]
+  192         0              0   Z   [httpd]
+  196         0              0   Z   [httpd]
+  214         0              0   Z   [httpd]
+  222         0              0   Z   [httpd]
+  246         0              0   Z   [httpd]
+  248         0              0   Z   [httpd]
+  252         0              0   Z   [httpd]
+  260         0              0   Z   [httpd]
+  300         0              0   Z   [httpd]
+  328         0              0   Z   [httpd]
+  332         0              0   Z   [httpd]
+  354         0              0   Z   [httpd]
+  376         0              0   Z   [httpd]
+  382         0              0   Z   [httpd]
+  400         0              0   Z   [httpd]
+  406         0              0   Z   [httpd]
+  418         0              0   Z   [httpd]
+  422         0              0   Z   [httpd]
+  426         0              0   Z   [httpd]
+  432         0              0   Z   [httpd]
+  434         0              0   Z   [httpd]
+  438         0              0   Z   [httpd]
+  440         0              0   Z   [httpd]
+  442         0              0   Z   [httpd]
+  460         0              0   Z   [httpd]
+  464         0              0   Z   [httpd]
+  466         0              0   Z   [httpd]
+  468         0              0   Z   [httpd]
+  472         0              0   Z   [httpd]
+  476         0              0   Z   [httpd]
+  492         0              0   Z   [httpd]
+  494         0              0   Z   [httpd]
+  496         0              0   Z   [httpd]
+  500         0              0   Z   [httpd]
+  535         0              0   Z   [httpd]
+  537         0              0   Z   [httpd]
+  539         0              0   Z   [httpd]
+  541         0              0   Z   [httpd]
+  543         0              0   S   httpd WAN
+  693         0              0   S   /bin/telnetd
+  694 ttyp0   0              0   S   sh
+  706 ttyp0   0              0   R   ps
+
+
+
+
+

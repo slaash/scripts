@@ -1,0 +1,48 @@
+LAN       Link encap:Ethernet  HWaddr 00:11:D8:45:B9:45
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:8668513 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:10075326 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100
+          RX bytes:1836515029 (1751.4 MiB)  TX bytes:4005206078 (3819.6 MiB)
+          Base address:0x8000
+
+WAN       Link encap:Ethernet  HWaddr 00:11:D8:45:B9:45
+          inet addr:86.124.41.146  Bcast:86.124.41.191  Mask:255.255.255.192
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:23140847 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:8130009 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100
+          RX bytes:199590613 (190.3 MiB)  TX bytes:1906666387 (1818.3 MiB)
+          Base address:0x8000
+
+br0       Link encap:Ethernet  HWaddr 00:11:D8:45:B9:45
+          inet addr:82.77.239.193  Bcast:82.77.239.255  Mask:255.255.255.192
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:8655998 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:10075395 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:1808383216 (1724.6 MiB)  TX bytes:3981653704 (3797.2 MiB)
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING MULTICAST  MTU:16436  Metric:1
+          RX packets:1492400 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1492400 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:127835240 (121.9 MiB)  TX bytes:127835240 (121.9 MiB)
+
+wlan0     Link encap:Ethernet  HWaddr 00:11:D8:45:B9:45
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:60645 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1938781 errors:39889 dropped:11905 overruns:0 carrier:0
+          collisions:0 txqueuelen:100
+          RX bytes:0 (0.0 iB)  TX bytes:173463762 (165.4 MiB)
+          Interrupt:10 Base address:0xa000 Memory:d0fda000-d1000000
+
+wlan0ap   Link encap:UNSPEC  HWaddr 00-11-D8-45-B9-45-00-00-00-00-00-00-00-00-00-00
+          UP BROADCAST RUNNING MULTICAST  MTU:2290  Metric:1
+          RX packets:2 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100
+          RX bytes:60 (60.0 iB)  TX bytes:86 (86.0 iB)
+          Interrupt:10 Base address:0xa000 Memory:d0fda000-d1000000

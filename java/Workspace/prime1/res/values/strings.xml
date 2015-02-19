@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, Prime1Activity!</string>
+    <string name="app_name">Prime1</string>
+    <string name="labelStartAt">De la</string>
+    <string name="labelStopAt">Pana la</string>
+    <string name="labelEmpty"></string>
+    <string name="labelStart">Start</string>
+    <string name="labelMin">100000000000</string>
+    <string name="labelMax">100000000100</string>
+
+</resources>

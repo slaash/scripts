@@ -1,0 +1,68 @@
+Projects=CSP;Fiat-VP1;Fiat-VP2;MIBE;BMWL7
+Roles=Architect;Developer;Integrator
+[CSP]
+begin_CSP_Architect
+Rhapsody@@@70~~~Tools_share=%TOOLS_ROOT%\Rhapsody\rhapsody.bat;70~~~Terminal_server= %SystemRoot%\system32\mstsc.exe /v:wetp00ta;70~~~Local_installation=C:\Win16App\Rhapsody\7.0;73~~~Tools_share=start \\iasp351x\didl9505\SCC\Rhapsody\RhapsodyVersion.bat Rhapsody73MR1;75~~~Terminal_server= %SystemRoot%\system32\mstsc.exe /v:wetp00ta;75~~~Tools_share=start %TOOLS_ROOT%\Rhapsody\RhapsodyVersion.bat Rhapsody752MR1
+Doors@@@9.2~~~Terminal_server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+end_CSP_Architect
+begin_CSP_Designer
+Rhapsody@@@Local_Designer=cale1;Local_Developer=cale2 
+Doors@@@9.2~~~Terminal_server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+SiTemppo@@@Terminal_Server1=%SystemRoot%\system32\mstsc.exe /v:SiTemppo:3390
+ChangeSynergy@@@Change=C:\Program Files\Internet Explorer\iexplore.exe http://wetp5fex.we.de.conti.de:8603/
+end_CSP_Designer
+begin_CSP_Developer
+Rhapsody@@@Tools_Share~~~Iasi=%SystemRoot%\explorer.exe \\iasp351x\didl9505\SCC\Rhapsody\links;Tools_Share~~~Wetzlar=%SystemRoot%\explorer.exe \\wetp003a\did65022\SCC\Rhapsody\links;Tools_Share~~~Regensburg=%SystemRoot%\explorer.exe \\rbgs392x\did01524\SCC\Rhapsody\links;Terminal_server~~~= %SystemRoot%\system32\mstsc.exe /v:wetp00ta
+Doors@@@9.2~~~Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a;8.1~~~terminal_server2=asdasd
+end_CSP_Developer
+SiTemppo@@@Terminal_Server1=%SystemRoot%\system32\mstsc.exe /v:SiTemppo:3390
+end_CSP_Designer
+[Fiat-VP1]
+begin_Fiat-VP1_Architect
+Rhapsody@@@Local_Architect=cale1;
+Doors@@@Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+end_Fiat-VP1_Architect
+begin_Fiat-VP1_Designer
+Synergy@@@vers1=path1
+end_Fiat-VP1_Designer
+SiTemppo@@@Terminal_Server1=%SystemRoot%\system32\mstsc.exe /v:SiTemppo:3390
+end_Fiat-VP1_Designer
+begin_Fiat-VP1_Developer
+SiTemppo@@@Terminal_Server1=%SystemRoot%\system32\mstsc.exe /v:SiTemppo:3390
+CMSynergy@@@65~~~Iasi=\\iasp351x\didl9520\cm_syn\CM_Synergy_V6.5_IAS\bin\util\ccm_gui.exe;65~~~WZ=\\fasdgs;71~~~WZ=\\\khhnkj
+ChangeSynergy@@@Change=%ProgramFiles%\Internet Explorer\iexplore http://wetp5fex.we.de.conti.de:8603/
+end_Fiat-VP1_Developer
+[Fiat-VP2]
+begin_Fiat-VP2_Architect
+Rhapsody@@@Local_Architect=cale1;Local_Developer=cale2 
+Doors@@@Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+ChangeSynergy@@@Change="C:\Program Files\Internet Explorer\iexplore" http://wetp5fex.we.de.conti.de:8603/
+end_Fiat-VP2_Architect
+begin_Fiat-VP2_Designer
+ChangeSynergy@@@Change=C:\Program Files\Internet Explorer\iexplore http://wetp5fex.we.de.conti.de:8603/
+end_Fiat-VP2_Designer
+begin_Fiat-VP2_Developer
+ChangeSynergy@@@Change=C:\Program Files\Internet Explorer\iexplore http://wetp5fex.we.de.conti.de:8603/
+end_Fiat-VP2_Developer
+[MIBE]
+begin_MIBE_Architect
+Rhapsody@@@Local_Architect=cale1;Local_Developer=cale2 
+Doors@@@Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+end_MIBE_Architect
+begin_MIBE_Designer
+Rhapsody
+end_MIBE_Designer
+begin_MIBE_Developer
+Doors@@@Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+end_MIBE_Developer
+[BMWL7]
+begin_BMWL7_Architect
+Rhapsody@@@Local_Architect=cale1;Local_Developer=cale2 
+Doors@@@Terminal_Server=%SystemRoot%\system32\mstsc.exe /v:rbgs016a
+end_BMWL7_Architect
+begin_BMWL7_Designer
+Change Synergy
+end_BMWL7_Designer
+begin_BMWL7_Developer
+ChangeSynergy@@@Change=C:\Program Files\Internet Explorer\iexplore http://wetp5fex.we.de.conti.de:8603/
+end_BMWL7_Developer
