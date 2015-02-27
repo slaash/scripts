@@ -17,10 +17,16 @@ class S3Manager():
 		self.bkt = self.conn.get_bucket(bkt)
 
 	def list_files(self):
-		filez=[]
+		filez={}
 		for k in self.bkt.get_all_keys():
-			filez.append(k.name)
+			filez[k.name]=k.size
 		return(filez)
+
+	def bucket_size(self):
+		size=0.00
+		for k in self.bkt.get_all_keys():
+			size+=k.size
+		return(size)
 
 	def get_file(self, down_file_src, down_file_dst):
 		key = Key(self.bkt)
@@ -36,12 +42,25 @@ class S3Manager():
 		else:
 			raise Exception(upload_file_dst + " already exists!")
 
+	def cat_file(self, cat_file):
+		key = Key(self.bkt)
+		key.key = cat_file
+		return(key.get_contents_as_string())
+
+	def del_file(self, del_file):
+		key = Key(self.bkt)
+		key.key = del_file
+		if (self.bkt.get_key(del_file) != None):
+			self.bkt.delete_key(key)
+			print("Deleted file " + del_file)
+
 src = ''
 dst = ''
+del_file = ''
 mode = ''
  
 sys.argv.pop(0)
-optlist, args = getopt.getopt(sys.argv, 'b:lpghe:s:d:')
+optlist, args = getopt.getopt(sys.argv, 'b:lpghe:c:s:d:')
 for o, a in optlist:
         if o == '-b':
                 bkt = a
@@ -57,6 +76,10 @@ for o, a in optlist:
 		mode = 'list'
 	if o == '-e':
 		mode = 'del'
+		del_file = a
+	if o == '-c':
+		mode = 'cat'
+		cat_file = a
 	if o == '-h':
 		print("usage: " + __file__ + " <option(s)> <parameter(s)>" +
 """
@@ -72,8 +95,13 @@ for o, a in optlist:
 mys3m = S3Manager(bkt)
 
 if (mode == 'list'):
-	for f in  mys3m.list_files():
-		print(f)
+	filez=mys3m.list_files()
+	keys=list(filez)
+	keys.sort()
+	for f in keys:
+		print("{} {} bytes".format(f, filez[f]))
+	print("")
+	print("Bucket size: {0:.2f} MB".format(mys3m.bucket_size()/1024/1024))
 elif (mode == 'put'):
 	if (src != '' and dst != ''):
 		mys3m.put_file(src, dst)
@@ -85,7 +113,9 @@ elif (mode == 'get'):
 	else:
 		print("We need source and destination!")
 elif (mode == 'del'):
-	pass
+	mys3m.del_file(del_file)
+elif (mode == 'cat'):
+	print(mys3m.cat_file(cat_file))
 else:
 	print ("Mode not specified!")
 
