@@ -124,7 +124,7 @@ if (mode == 'list'):
 		print("{} {} bytes".format(f, filez[f]))
 	print("")
 	print("Bucket size: {0:.2f} MB".format(mys3m.bucket_size()/1024/1024))
-if (mode == 'short_list'):
+elif (mode == 'short_list'):
 	filez=mys3m.list_files()
 	keys=list(filez)
 	keys.sort()
