@@ -5,7 +5,6 @@ from boto.s3.key import Key
 import sys
 import os.path
 import getopt
-from string import split
 
 class S3Manager():
 
@@ -28,19 +27,26 @@ class S3Manager():
 			size+=k.size
 		return(size)
 
-	def get_file(self, down_file_src, down_file_dst):
-		key = Key(self.bkt)
-		key.key = down_file_src
-		fullpath=split(down_file_dst, '/')
-		path=fullpath[:-1]
-		realpath=os.path.join('/',*path)
-		if (os.path.isdir(realpath) == False):
-			os.makedirs(realpath)
-		try:
-			key.get_contents_to_filename(down_file_dst)
-			print("Created file " + down_file_dst)
-		except boto.exception.S3ResponseError, err:
-			print(err)
+	def split_path(self, fullpath):
+		fullpath = os.path.split(fullpath)
+		path = os.path.join(*fullpath[:-1])
+		name = fullpath[-1]
+		return(path, name)
+
+	def get_files(self, dst_prefix, files):
+		for f in files:
+			key = Key(self.bkt)
+			key.key = f
+			new_file = os.path.join(dst_prefix, f)
+			new_path = self.split_path(new_file)[0]
+			if (os.path.isdir(new_path) == False):
+				os.makedirs(new_path)
+				print("Created dir " + new_path)
+			try:
+				key.get_contents_to_filename(new_file)
+				print("Created file " + new_file)
+			except boto.exception.S3ResponseError, err:
+				print(err)
 
 	def put_file(self, upload_file_src, upload_file_dst):
 		new_key = Key(self.bkt)
@@ -94,13 +100,13 @@ for o, a in optlist:
 		mode = 'cat'
 		cat_file = a
 	if o == '-h':
-		print("usage: " + __file__ + " <option(s)> <parameter(s)>" +
+		print("usage: " + __file__ + " <option(s)> <parameter(s)>|<file(s)>" +
 """
 -h: help
 -b <bucket>: use specified S3 bucket
 -1 -l -p -g: operation mode <short list of files|long list of files|put local source file to S3 destination file|get S3 file to local file>
     -s <file>: source file
-    -d <file>: destination file
+    -d <path>: destination path
 -e <file>: delete file
 -c <file>: cat file
 """)
@@ -128,8 +134,8 @@ elif (mode == 'put'):
 	else:
 		print("We need source and destination!")
 elif (mode == 'get'):
-	if (src != '' and dst != ''):
-		mys3m.get_file(src, dst)
+	if (len(args) != 0 and dst != ''):
+		mys3m.get_files(dst, args)
 	else:
 		print("We need source and destination!")
 elif (mode == 'del'):
