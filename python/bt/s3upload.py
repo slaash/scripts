@@ -35,27 +35,33 @@ class S3Manager():
 
 	def get_files(self, dst_prefix, files):
 		for f in files:
-			key = Key(self.bkt)
-			key.key = f
 			new_file = os.path.join(dst_prefix, f)
 			new_path = self.split_path(new_file)[0]
 			if (os.path.isdir(new_path) == False):
 				os.makedirs(new_path)
 				print("Created dir " + new_path)
 			try:
+				key = Key(self.bkt)
+				key.key = f
 				key.get_contents_to_filename(new_file)
 				print("Created file " + new_file)
 			except boto.exception.S3ResponseError, err:
 				print(err)
 
-	def put_file(self, upload_file_src, upload_file_dst):
-		new_key = Key(self.bkt)
-		if (self.bkt.get_key(upload_file_dst) == None):
-			new_key.key = upload_file_dst
-			new_key.set_contents_from_filename(upload_file_src)
-			print("Created file " + upload_file_dst)
-		else:
-			raise Exception(upload_file_dst + " already exists!")
+	def put_files(self, dst_prefix, files):
+		for f in files:
+			orig_f = f
+			if f.startswith('/'):
+				print("Removing leading / from " + f)
+				f = f[1:]
+			upload_file_dst = os.path.join(dst_prefix, f)
+			if (self.bkt.get_key(upload_file_dst) == None):
+				new_key = Key(self.bkt)
+				new_key.key = upload_file_dst
+				new_key.set_contents_from_filename(orig_f)
+				print("Created file " + upload_file_dst)
+			else:
+				raise Exception(upload_file_dst + " already exists!")
 
 	def cat_file(self, cat_file):
 		key = Key(self.bkt)
@@ -71,7 +77,6 @@ class S3Manager():
 		else:
 			print("File not found: " + del_file)
 
-src = ''
 dst = ''
 del_file = ''
 mode = ''
@@ -81,8 +86,6 @@ optlist, args = getopt.getopt(sys.argv, 'b:1lpghe:c:s:d:')
 for o, a in optlist:
         if o == '-b':
                 bkt = a
-	if o == '-s':
-		src = a
 	if o == '-d':
 		dst = a
 	if o == '-p':
@@ -105,7 +108,6 @@ for o, a in optlist:
 -h: help
 -b <bucket>: use specified S3 bucket
 -1 -l -p -g: operation mode <short list of files|long list of files|put local source file to S3 destination file|get S3 file to local file>
-    -s <file>: source file
     -d <path>: destination path
 -e <file>: delete file
 -c <file>: cat file
@@ -129,8 +131,8 @@ if (mode == 'short_list'):
 	for f in keys:
 		print(f)
 elif (mode == 'put'):
-	if (src != '' and dst != ''):
-		mys3m.put_file(src, dst)
+	if (len(args) != 0 and dst != ''):
+		mys3m.put_files(dst, args)
 	else:
 		print("We need source and destination!")
 elif (mode == 'get'):
