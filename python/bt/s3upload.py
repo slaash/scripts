@@ -31,7 +31,16 @@ class S3Manager():
 	def get_file(self, down_file_src, down_file_dst):
 		key = Key(self.bkt)
 		key.key = down_file_src
-		key.get_contents_to_filename(down_file_dst)
+		fullpath=split(down_file_dst, '/')
+		path=fullpath[:-1]
+		realpath=os.path.join('/',*path)
+		if (os.path.isdir(realpath) == False):
+			os.makedirs(realpath)
+		try:
+			key.get_contents_to_filename(down_file_dst)
+			print("Created file " + down_file_dst)
+		except boto.exception.S3ResponseError, err:
+			print(err)
 
 	def put_file(self, upload_file_src, upload_file_dst):
 		new_key = Key(self.bkt)
@@ -53,6 +62,8 @@ class S3Manager():
 		if (self.bkt.get_key(del_file) != None):
 			self.bkt.delete_key(key)
 			print("Deleted file " + del_file)
+		else:
+			print("File not found: " + del_file)
 
 src = ''
 dst = ''
@@ -60,7 +71,7 @@ del_file = ''
 mode = ''
  
 sys.argv.pop(0)
-optlist, args = getopt.getopt(sys.argv, 'b:lpghe:c:s:d:')
+optlist, args = getopt.getopt(sys.argv, 'b:1lpghe:c:s:d:')
 for o, a in optlist:
         if o == '-b':
                 bkt = a
@@ -72,6 +83,8 @@ for o, a in optlist:
 		mode = 'put'
 	if o == '-g':
 		mode = 'get'
+	if o == '-1':
+		mode = 'short_list'
 	if o == '-l':
 		mode = 'list'
 	if o == '-e':
@@ -85,10 +98,11 @@ for o, a in optlist:
 """
 -h: help
 -b <bucket>: use specified S3 bucket
--l -p -g: operation mode <list files|put local source file to S3 destination file|get S3 file to local file>
+-1 -l -p -g: operation mode <short list of files|long list of files|put local source file to S3 destination file|get S3 file to local file>
     -s <file>: source file
     -d <file>: destination file
 -e <file>: delete file
+-c <file>: cat file
 """)
 		sys.exit(0)
 
@@ -102,6 +116,12 @@ if (mode == 'list'):
 		print("{} {} bytes".format(f, filez[f]))
 	print("")
 	print("Bucket size: {0:.2f} MB".format(mys3m.bucket_size()/1024/1024))
+if (mode == 'short_list'):
+	filez=mys3m.list_files()
+	keys=list(filez)
+	keys.sort()
+	for f in keys:
+		print(f)
 elif (mode == 'put'):
 	if (src != '' and dst != ''):
 		mys3m.put_file(src, dst)
