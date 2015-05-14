@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-trap ctrl_c INT
-
-function ctrl_c() {
-	echo "Goodbye!"
-	pkill -f scan_ports.sh
-}
-
 dbf=~/ports.sqlite3
 
 if [[ $# == 1 ]]; then
