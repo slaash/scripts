@@ -29,7 +29,7 @@ for name in $(sudo find ${dir} -type f 2>/dev/null); do
         exit
     fi
     if [[ -e "${name}" ]]; then
-        echo "${name}: ${host} ${size} ${type} ${mode} ${user} ${group}"
+#        echo "${name}: ${host} ${size} ${type} ${mode} ${user} ${group}"
         curl -s -X POST "http://${srv}:9200/files/file/${id}" -d "
 {
     \"host\": \"${host}\",

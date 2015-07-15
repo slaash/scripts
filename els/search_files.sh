@@ -1,14 +1,17 @@
 #!/bin/bash
 
 query="${1}"
+host="${2}"
+size=100
+srv="192.168.172.200"
 
-curl -s -X POST "http://localhost:9200/files/_search?pretty=true&size=10000" -d "
+curl -s -X GET "http://${srv}:9200/files/_search?pretty=true&size=${size}" -d '
 {
-    \"query\": {
-        \"query_string\": {
-            \"query\": \"*${query}*\",
-            \"fields\": [\"name\"]
+    "query": {
+        "multi_match": {
+            "query": "/etc/passwd raspberry-pi",
+            "fields": [ "name", "host" ]
         }
     }
-}"
+}'
 echo ""
