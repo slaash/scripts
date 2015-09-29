@@ -5,5 +5,5 @@ RUN apt-get update -qq && apt-get -qy install ca-certificates subversion g++ lib
 WORKDIR /opt
 RUN svn --non-interactive co https://svn.nmap.org/nmap
 WORKDIR /opt/nmap
-RUN svn --non-interactive up && ./configure --prefix=/usr --without-ncat && make && make install && make clean
+RUN svn --non-interactive up && ./configure --prefix=/usr --without-ncat --without-zenmap && make && make install && make clean
 WORKDIR /
