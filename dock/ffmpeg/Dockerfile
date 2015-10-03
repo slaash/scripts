@@ -33,4 +33,6 @@ RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/p
   --enable-libx265 \
   --enable-nonfree
 RUN PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean && hash -r
-#
+VOLUME ["/share"]
+ENTRYPOINT ["/opt/ffmpeg/bin/ffmpeg"]
+
