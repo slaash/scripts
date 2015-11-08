@@ -7,3 +7,4 @@ RUN svn --non-interactive co https://svn.nmap.org/nmap
 WORKDIR /opt/nmap
 RUN svn --non-interactive up && ./configure --prefix=/usr --without-ncat --without-zenmap && make && make install && make clean
 WORKDIR /
+RUN nmap --script-updatedb
