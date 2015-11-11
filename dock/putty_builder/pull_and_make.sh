@@ -2,6 +2,8 @@
 
 cd /opt/putty
 git pull
+git fetch --tags
+git checkout $(git tag|sort -rn|head -1)
 sed -i 's/-mno-cygwin//g' ./mkfiles.pl
 perl mkfiles.pl
 make -C windows -f Makefile.cyg clean
