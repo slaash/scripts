@@ -1,7 +1,7 @@
 #!/bin/bash
 
 for file in *; do
-    new_file=${file// /_}
+    new_file=${file//[ ()]/_}
     if ! [[ "${file}" == "${new_file}" ]]; then
         mv "${file}" "${new_file}"
         if [[ $? == 0 ]]; then
