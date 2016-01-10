@@ -1,13 +1,13 @@
 #!/bin/bash
 
-DEST="/media/radu/7293-4524/$(hostname)"
+DEST="/media/radu/7293-4524"
 OPTS="--modify-window=1 -rtv --delete"
 
 for dir in /etc; do
     echo ${dir}
-    sudo rsync ${OPTS} "${DEST}"
+    sudo rsync ${OPTS} "${DEST}/$(hostname)"
     sudo sync
 done
 
-sudo rsync ${OPTS} --exclude-from 'exclude-list.txt' /home/radu "${DEST}"
+sudo rsync ${OPTS} --exclude-from 'exclude-list.txt' /home/radu "${DEST}/$(hostname)"
 sudo sync
