@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEST="/media/radu/7293-4524"
-OPTS="--modify-window=1 -rtv --delete"
+OPTS="--modify-window=1 -rt --delete"
 
 for dir in /etc; do
     echo ${dir}
