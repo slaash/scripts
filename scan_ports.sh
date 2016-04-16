@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+#sqlite> .schema
+#CREATE TABLE ports(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, folder TEXT);
 
 trap ctrl_c INT
 
