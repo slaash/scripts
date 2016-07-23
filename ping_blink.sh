@@ -30,7 +30,7 @@ old_t=$(set_trigger)
 dark
 
 while true ; do
-    ret=$(ping_host 192.168.172.1)
+    ret=$(ping_host 192.168.0.100)
     if [[ $ret == 0 ]]; then
         light
         sleep 1
