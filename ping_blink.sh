@@ -21,10 +21,27 @@ function dark {
     sudo sh -c 'echo "0">/sys/class/leds/led0/brightness'
 }
 
+function ping_host {
+    ping -c 1 "${1}" >/dev/null 2>&1
+    echo $?
+}
+
 old_t=$(set_trigger)
-for i in {1..3}; do
-    light
-    sleep 1
+dark
+
+while true ; do
+    ret=$(ping_host 192.168.172.1)
+    if [[ $ret == 0 ]]; then
+        light
+        sleep 1
+    else
+        light
+        sleep 0.1
+        dark
+        sleep 0.1
+        light
+        sleep 0.1
+    fi
     dark
     sleep 1
 done
