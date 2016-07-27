@@ -19,7 +19,6 @@ if ! [[ -d ${DEST}/$(hostname) ]]; then
     fi
 fi
 
-#DEST="/media/radu/7293-4524"
 OPTS="--modify-window=1 -rt --delete"
 
 for dir in /etc; do
