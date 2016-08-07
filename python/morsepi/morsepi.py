@@ -61,6 +61,9 @@ def light():
 def dark():
     os.system('sudo sh -c \'echo "0">/sys/class/leds/led0/brightness\'')
 
+def power_off():
+    os.system('sudo poweroff')
+
 def show_letter(l):
     for c in letters[l]:
         if c == '.':
@@ -72,6 +75,11 @@ def show_letter(l):
         dark()
         sleep(UNIT)
 
+def show_word(w):
+    for l in w:
+        show_letter(l)
+        sleep(3*UNIT)
+
 dev = InputDevice('/dev/input/event0')
 print(dev)
 
@@ -82,11 +90,20 @@ dark()
 #    print(key)
 #    show_letter(key)
 
+secv = ""
 for event in dev.read_loop():
     if event.type == ecodes.EV_KEY:
         c = categorize(event)
         if c.keystate == c.key_down:
             for k in ecodez.keys():
                 if event.code ==  ecodes.ecodes[k]:
-                    show_letter(ecodez[k])
+                    letter = ecodez[k]
+                    show_letter(letter)
+                    secv = secv + letter
+                    if secv == 'bye':
+                        power_off()
+                    elif secv == 'ok':
+                        print('ok')
+                        show_word('ok')
+                        secv = ""
 
