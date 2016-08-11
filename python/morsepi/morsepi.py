@@ -95,15 +95,16 @@ for event in dev.read_loop():
     if event.type == ecodes.EV_KEY:
         c = categorize(event)
         if c.keystate == c.key_down:
-            for k in ecodez.keys():
-                if event.code == ecodes.ecodes[k]:
-                    letter = ecodez[k]
-                    show_letter(letter)
-                    secv = secv + letter
-                    if secv[-3:] == 'bye':
-                        power_off()
-                    elif secv[-2:] == 'ok':
-                        print('ok')
-                        show_word('ok')
-                        secv = ""
+            if event.code == ecodes.ecodes['KEY_ENTER']:
+                if secv == 'bye':
+                    power_off()
+                else:
+                    show_word(secv)
+                secv = ""
+            else:
+                for k in ecodez.keys():
+                    if event.code == ecodes.ecodes[k]:
+                        letter = ecodez[k]
+                        show_letter(letter)
+                        secv = secv + letter
 
