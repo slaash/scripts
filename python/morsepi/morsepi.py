@@ -42,7 +42,9 @@ letters = {'a': ['.', '-'],
             '6': ['-', '.', '.', '.', '.'],
             '7': ['-', '-', '.', '.', '.'],
             '8': ['-', '-', '-', '.', ','],
-            '9': ['-', '-', '-', '-', '.']}
+            '9': ['-', '-', '-', '-', '.'],
+            '-': ['-', '.', '.', '.', '.', '-'],
+            '+': ['.', '-', '.', '-', '.']}
 
 ecodez = {'KEY_A': 'a', 'KEY_B': 'b', 'KEY_C': 'c', 'KEY_D': 'd', 'KEY_E': 'e', 'KEY_F': 'f',
            'KEY_G': 'g', 'KEY_H': 'h', 'KEY_I': 'i', 'KEY_J': 'j', 'KEY_K': 'k', 'KEY_L': 'l',
@@ -65,6 +67,7 @@ def power_off():
     subprocess.call(['sudo', 'poweroff'])
 
 def show_letter(l):
+    print(l)
     for c in letters[l]:
         if c == '.':
             light()
@@ -76,6 +79,7 @@ def show_letter(l):
         sleep(UNIT)
 
 def show_word(w):
+    print(w)
     for l in w:
         show_letter(l)
         sleep(3*UNIT)
