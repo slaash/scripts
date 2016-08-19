@@ -4,8 +4,11 @@ import readchar
 import subprocess
 from time import sleep
 from evdev import InputDevice, categorize, ecodes
+import sys
 
 UNIT = .5
+MODE = "local"
+DEBUG = True
 
 letters = {'a': ['.', '-'],
             'b': ['-', '.', '.', '.'],
@@ -67,7 +70,9 @@ def power_off():
     subprocess.call(['sudo', 'poweroff'])
 
 def show_letter(l):
-    print(l)
+    if DEBUG:
+        sys.stdout.write("{} ( {} ) ... ".format(l, " ".join(letters[l])))
+        sys.stdout.flush()
     for c in letters[l]:
         if c == '.':
             light()
@@ -77,38 +82,47 @@ def show_letter(l):
             sleep(3*UNIT)
         dark()
         sleep(UNIT)
+    if DEBUG:
+        print("done.")
 
 def show_word(w):
-    print(w)
+    if DEBUG:
+        print(w)
     for l in w:
         show_letter(l)
         sleep(3*UNIT)
 
-dev = InputDevice('/dev/input/event0')
-print(dev)
-
 set_trigger()
 dark()
-#while True:
-#    key = readchar.readkey()
-#    print(key)
-#    show_letter(key)
-
 secv = ""
-for event in dev.read_loop():
-    if event.type == ecodes.EV_KEY:
-        c = categorize(event)
-        if c.keystate == c.key_down:
-            if event.code == ecodes.ecodes['KEY_ENTER']:
-                if secv == 'bye':
-                    power_off()
+print("Started")
+if MODE == "local":
+    while True:
+        key = readchar.readkey()
+        if ord(key) == 13:
+            show_word(secv)
+            secv = ""
+        else:
+            show_letter(key)
+            secv = secv + key
+else:
+    dev = InputDevice('/dev/input/event0')
+    if DEBUG:
+        print(dev)
+    for event in dev.read_loop():
+        if event.type == ecodes.EV_KEY:
+            c = categorize(event)
+            if c.keystate == c.key_down:
+                if event.code == ecodes.ecodes['KEY_ENTER']:
+                    if secv == 'bye':
+                        power_off()
+                    else:
+                        show_word(secv)
+                    secv = ""
                 else:
-                    show_word(secv)
-                secv = ""
-            else:
-                for k in ecodez.keys():
-                    if event.code == ecodes.ecodes[k]:
-                        letter = ecodez[k]
-                        show_letter(letter)
-                        secv = secv + letter
+                    for k in ecodez.keys():
+                        if event.code == ecodes.ecodes[k]:
+                            letter = ecodez[k]
+                            show_letter(letter)
+                            secv = secv + letter
 
