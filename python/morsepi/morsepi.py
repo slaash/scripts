@@ -4,7 +4,7 @@ from readchar import readkey
 from subprocess import call
 from time import sleep, strftime, localtime
 from evdev import InputDevice, categorize, ecodes
-import sys
+from sys import stdout
 
 UNIT = .5
 MODE = "local"
@@ -59,6 +59,7 @@ ecodez = {'KEY_A': 'a', 'KEY_B': 'b', 'KEY_C': 'c', 'KEY_D': 'd', 'KEY_E': 'e', 
 
 def set_trigger():
     call(['sudo', 'sh', '-c', "echo \"none\">\"/sys/class/leds/led0/trigger\""])
+    dark()
 
 def light():
     call(['sudo', 'sh', '-c', "echo \"255\">\"/sys/class/leds/led0/brightness\""])
@@ -84,8 +85,8 @@ def show_letter(l):
     l = l.lower()
     if l in letters:
         if DEBUG:
-            sys.stdout.write("{} ( {} ) ... ".format(l, " ".join(letters[l])))
-            sys.stdout.flush()
+            stdout.write("{} ( {} ) ... ".format(l, " ".join(letters[l])))
+            stdout.flush()
         c = 0
         while c < len(letters[l]):
             if letters[l][c] == '.':
@@ -124,7 +125,6 @@ def process_secv(s):
 
 if __name__ == "__main__":
     set_trigger()
-    dark()
     secv = ""
     print("Started")
     if MODE == "local":
