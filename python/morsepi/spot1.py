@@ -7,13 +7,11 @@ from multiprocessing import Process, Pipe
 dev = InputDevice('/dev/input/event2')
 print(dev)
 
-DELAY = .05
+DELAY = .1
 
-def led_action(conn):
+def led_action(t):
+    print("led_action: {}".format(t))
     while True:
-        if conn.poll():
-            t = conn.recv()
-            print("led_action: {}".format(t))
         blink(t)
 
 my_x = int(uniform(-1000, 1000))
@@ -23,19 +21,18 @@ set_trigger()
 x = 0
 y = 0
 p_conn, c_conn = Pipe()
-led_proc = Process(target=led_action, args=(c_conn,))
+led_proc = Process(target=led_action, args=(DELAY,))
 led_proc.start()
-p_conn.send(DELAY)
 for event in dev.read_loop():
     if event.type == ecodes.EV_REL:
         if event.code == ecodes.ecodes['REL_X']:
             x = x + event.value
         elif event.code == ecodes.ecodes['REL_Y']:
             y = y - event.value
-        ab = abs(x) - abs(my_x)
-        ac = abs(y) - abs(my_y)
+        ab = abs(x - my_x)
+        ac = abs(y - my_y)
         bc = int(sqrt(pow(ab, 2) + pow(ac, 2)))
-        print("x: {} y: {}, dist: {}".format(x, y, bc))
+        print("x: {}({}) y: {}({}), dist: {}".format(x, my_x, y, my_y, bc))
         if bc == 0:
             t = 0
         elif 0 < bc <= 10:
@@ -50,6 +47,8 @@ for event in dev.read_loop():
             t = DELAY * 5
         elif bc > 1000:
             t = DELAY * 6
-        print(type(p_conn))
-        p_conn.send(t)
+        led_proc.terminate()
+        led_proc = Process(target=led_action, args=(t,))
+        led_proc.start()
+
 

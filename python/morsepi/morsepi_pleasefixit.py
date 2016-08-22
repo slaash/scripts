@@ -5,11 +5,11 @@ from subprocess import call
 from time import sleep, strftime, localtime
 from evdev import InputDevice, categorize, ecodes
 from sys import stdout
+from os import geteuid, seteuid
 
 UNIT = .5
 MODE = "local"
 DEBUG = True
-LED="led1"
 
 letters = {'a': ['.', '-'],
            'b': ['-', '.', '.', '.'],
@@ -59,14 +59,25 @@ ecodez = {'KEY_A': 'a', 'KEY_B': 'b', 'KEY_C': 'c', 'KEY_D': 'd', 'KEY_E': 'e', 
           'KEY_6': '6', 'KEY_7': '7', 'KEY_8': '8', 'KEY_9': '9'}
 
 def set_trigger():
-    call(['sudo', 'sh', '-c', "echo \"none\">\"/sys/class/leds/{}/trigger\"".format(LED)])
-    dark()
+    uid = geteuid()
+    seteuid(0)
+    with open('/sys/class/leds/led0/trigger', 'w') as f:
+        f.write('none')
+    seteuid(uid)
 
 def light():
-    call(['sudo', 'sh', '-c', "echo \"255\">\"/sys/class/leds/{}/brightness\"".format(LED)])
+    uid = geteuid()
+    seteuid(0)
+    with open('/sys/class/leds/led0/brightness', 'w') as f:
+        f.write('255')
+    seteuid(uid)
 
 def dark():
-    call(['sudo', 'sh', '-c', "echo \"0\">\"/sys/class/leds/{}/brightness\"".format(LED)])
+    uid = geteuid()
+    seteuid(0)
+    with open('/sys/class/leds/led0/brightness', 'w') as f:
+        f.write('0')
+    seteuid(uid)
 
 def blink(t):
     light()
