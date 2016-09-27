@@ -1,3 +1,4 @@
+#docker run -v /share/putty:/build -ti slaash/putty_builder
 FROM sdhibit/rpi-raspbian:latest
 MAINTAINER Radu Moisa <rmoisa@yahoo.com>
 
