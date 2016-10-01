@@ -1,6 +1,9 @@
 from pyramid.view import view_config
 from pyramid.response import Response
-import json
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @view_config(route_name='home', renderer='templates/mytemplate.pt')
 def my_view(request):
@@ -8,5 +11,5 @@ def my_view(request):
 
 @view_config(route_name='event')
 def getDockerEvent(request):
-    print(request.body.decode("utf-8"))
+    logger.info(request.body.decode("utf-8"))
     return Response(status=200)
