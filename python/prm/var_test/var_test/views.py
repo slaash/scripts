@@ -4,23 +4,31 @@ import logging
 import json
 from smtplib import SMTP
 from email.mime.text import MIMEText
-from queue import Queue
-from multiprocessing import Process
+from multiprocessing import Process, Queue
+from time import sleep
+from subprocess import check_output
+from os import environ
 
 def _queWatcher():
     logging.info("Queue watcher started")
+    clair = environ.get('CLAIR_HOST', 'clair')
     while True:
         while imageQueue.qsize() > 0:
             item = imageQueue.get()
-            logging.info("Watcher got: {} {} {}".format(item))
+            logging.info("Watcher got: {} {} {} ({} items in queue)".format(item[0], item[1], item[2], imageQueue.qsize()))
+            print(environ.get('PATH'))
+            result = check_output(['analyze-local-images', '-minimum-severity', 'High', '-endpoint', 'http://{}:6060'.format(clair), 'docker.uberresearch.com/{}:{}'.format(item[0], item[1])])
+            _sendmail('[CLAIR SCAN]: docker.uberresearch.com/{}:{}'.format(item[0], item[1]), 'root@uberresearch.com', 'radu@uberresearch.com', result.decode("utf-8"))
+        sleep(1)
     logging.info("Bye bye watcher")
 
-def _sendmail(subject,src,dest,content):
+def _sendmail(subject, src, dest, content):
     message = MIMEText(content)
     message['Subject'], message['From'], message['To'] = subject, src, dest
+    mailServer = environ.get('SMTP_HOST', 'mail')
     try:
-        sm = smtplib.SMTP('mail')
-        sm.sendmail(args.src, args.dest, message.as_string())
+        sm = SMTP(mailServer)
+        sm.sendmail(src, dest, message.as_string())
         sm.quit()
     except Exception as err:
         logger.info(err)
