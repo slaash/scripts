@@ -14,6 +14,7 @@ RUN pip install -U pip && pip install uwsgi
 RUN mkdir /opt/go
 ENV GOPATH /opt/go
 ENV PATH $GOPATH/bin:$PATH
+ENV TERM=linux
 RUN go get -u github.com/coreos/clair/contrib/analyze-local-images
 
 # Set working directory
