@@ -46,13 +46,10 @@ def getDockerEvent(request):
     except ValueError as err:
         logger.info(err)
         return Response(status='404')
-    if data['events'][0]['action'] == 'push':
+    if data['events'][0]['action'] == 'push' and data['events'][0]['request']['method'] == 'PUT' and 'tag' in data['events'][0]['target']:
         time = data['events'][0]['timestamp']
         repo = data['events'][0]['target']['repository']
-        if 'tag' in data['events'][0]['target']:
-            tag = data['events'][0]['target']['tag']
-        else:
-            tag = 'latest'
+        tag = data['events'][0]['target']['tag']
         name = data['events'][0]['actor']['name']
         logger.info("{}: {} pushed {}:{}".format(time, name, repo, tag))
     return Response(status=200)
