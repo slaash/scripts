@@ -7,4 +7,5 @@ WORKDIR /opt
 RUN git clone https://github.com/letsencrypt/letsencrypt
 WORKDIR /opt/letsencrypt
 #RUN ./letsencrypt-auto certonly --webroot -w /var/www/html/example -d example.com
-RUN ./letsencrypt-auto --help
+#RUN ./letsencrypt-auto --help
+#RUN letsencrypt --apache -d example.com
