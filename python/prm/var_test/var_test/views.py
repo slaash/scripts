@@ -16,9 +16,12 @@ def _queWatcher():
         while imageQueue.qsize() > 0:
             item = imageQueue.get()
             logging.info("Watcher got: {} {} {} ({} items in queue)".format(item[0], item[1], item[2], imageQueue.qsize()))
-            print(environ.get('PATH'))
-            result = check_output(['analyze-local-images', '-minimum-severity', 'High', '-endpoint', 'http://{}:6060'.format(clair), 'docker.uberresearch.com/{}:{}'.format(item[0], item[1])])
-            _sendmail('[CLAIR SCAN]: docker.uberresearch.com/{}:{}'.format(item[0], item[1]), 'root@uberresearch.com', 'radu@uberresearch.com', result.decode("utf-8"))
+#            print(environ.get('PATH'))
+            try:
+                result = check_output(['analyze-local-images', '-minimum-severity', 'High', '-endpoint', 'http://{}:6060'.format(clair), 'docker.uberresearch.com/{}:{}'.format(item[0], item[1])])
+                _sendmail('[CLAIR SCAN]: docker.uberresearch.com/{}:{}'.format(item[0], item[1]), 'root@uberresearch.com', 'radu@uberresearch.com', result.decode("utf-8"))
+            except Exception as err:
+                logger.info(err)
         sleep(1)
     logging.info("Bye bye watcher")
 
@@ -40,7 +43,7 @@ def my_view(request):
 @view_config(route_name='event')
 def getDockerEvent(request):
     body = request.body.decode("utf-8")
-    logger.info(body)
+#    logger.info(body)
     try:
         data = json.loads(body)
     except ValueError as err:
@@ -52,6 +55,8 @@ def getDockerEvent(request):
         tag = data['events'][0]['target']['tag']
         name = data['events'][0]['actor']['name']
         logger.info("{}: {} pushed {}:{}".format(time, name, repo, tag))
+        imageQueue.put([repo, tag, name])
+        logging.info("getDockerEvent: image queue size: {}".format(imageQueue.qsize()))
     return Response(status=200)
 
 @view_config(route_name='scan', request_method='GET')
@@ -64,7 +69,7 @@ def scanImage(request):
         return Response(status='404')
     else:
         imageQueue.put([repo, tag, user])
-        logging.info("Image queue size: {}".format(imageQueue.qsize()))
+        logging.info("scanImage: image queue size: {}".format(imageQueue.qsize()))
         return Response(status=200)
 
 logging.basicConfig(level=logging.INFO)

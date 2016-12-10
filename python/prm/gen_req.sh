@@ -38,4 +38,4 @@
 #   "events": []}'
 
 #curl -i -X GET 'http://localhost:6543/scan/ubuntu/latest/gigi@yahoo.com'
-curl -i -X GET 'http://coreos-clair.vpn:8080/scan/ubuntu/latest/gigi@yahoo.com'
+curl -i -X GET 'http://coreos-clair.vpn/scan/registry_notifications/latest/gigi@yahoo.com'
