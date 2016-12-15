@@ -8,10 +8,13 @@ from multiprocessing import Process, Queue
 from time import sleep
 from subprocess import check_output
 from os import environ
+import re
 
 def _queWatcher():
     logging.info("Queue watcher started")
     clair = environ.get('CLAIR_HOST', 'clair')
+    pattern = re.compile(r'.+@(uberresearch|digital-science)\.com')
+    cc = 'radu@uberresearch.com'
     while True:
         while imageQueue.qsize() > 0:
             item = imageQueue.get()
@@ -20,7 +23,12 @@ def _queWatcher():
                 docker_pull = check_output(['docker', 'pull', 'docker.uberresearch.com/{}:{}'.format(item[0], item[1])])
                 logging.info("docker pull:\n{}".format(docker_pull.decode("utf-8")))
                 result = check_output(['analyze-local-images', '-minimum-severity', 'High', 'docker.uberresearch.com/{}:{}'.format(item[0], item[1])])
-                _sendmail('[CLAIR SCAN]: docker.uberresearch.com/{}:{}'.format(item[0], item[1]), 'root@uberresearch.com', 'radu@uberresearch.com', result.decode("utf-8"))
+                user = item[2]
+                result = result.decode("utf-8") + "\n\nImage pushed by " + user
+                if not pattern.match(user):
+                    user = ''
+                logging.info("Sending email(s) to [{}, {}]".format(user, cc))
+                _sendmail('[CLAIR SCAN]: docker.uberresearch.com/{}:{}'.format(item[0], item[1]), 'root@uberresearch.com', [user, cc], result)
             except Exception as err:
                 logger.info(err)
         sleep(1)
@@ -28,7 +36,7 @@ def _queWatcher():
 
 def _sendmail(subject, src, dest, content):
     message = MIMEText(content)
-    message['Subject'], message['From'], message['To'] = subject, src, dest
+    message['Subject'], message['From'], message['To'] = subject, src, ", ".join(dest)
     mailServer = environ.get('SMTP_HOST', 'mail')
     try:
         sm = SMTP(mailServer)
