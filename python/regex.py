@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import re
+import re, sys
 
 m=re.search("ama","mama")
 print(m.group())
@@ -86,4 +86,12 @@ pattern=re.compile(r'<div id="psearchres">(.+)</div>', re.MULTILINE|re.DOTALL)
 #pattern=re.compile(r'(.+)')
 m=re.match(pattern, htext)
 print(m.group())
+
+mail=sys.argv[1]
+pattern=re.compile(r'.+@(uberresearch|digital-science)\.com')
+print(mail, pattern)
+if pattern.match(mail):
+    print('Matched!')
+else:
+    print('Mumul')
 
