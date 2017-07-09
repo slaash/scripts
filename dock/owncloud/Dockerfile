@@ -1,7 +1,9 @@
 FROM sdhibit/rpi-raspbian:latest
 MAINTAINER Radu Moisa <rmoisa@yahoo.com>
 
-RUN apt-get update -qq && apt-get -qy install apache2 git php5 php5-json php5-intl php5-mcrypt php5-imagick php5-gd php5-sqlite php5-mysql php5-curl php5-memcached curl libcurl3 libcurl4-openssl-dev php5-curl php5-gd php5-cgi php-pear php5-dev build-essential libpcre3-dev php5 libapache2-mod-php5 php5-apcu wget less nano sudo
+ENV TERM linux
+
+RUN apt-get update -qq && apt-get -qy install apache2 git php5 php5-json php5-intl php5-mcrypt php5-imagick php5-gd php5-sqlite php5-mysql php5-curl php5-memcached curl libcurl3 libcurl4-openssl-dev php5-curl php5-gd php5-cgi php-pear php5-dev build-essential libpcre3-dev php5 libapache2-mod-php5 php5-apcu wget less nano python-pip
 
 WORKDIR /opt
 RUN git clone https://github.com/letsencrypt/letsencrypt
@@ -17,8 +19,8 @@ RUN a2enmod rewrite
 RUN a2enmod headers
 RUN a2enmod ssl && a2ensite default-ssl
 WORKDIR /opt
-RUN wget --quiet https://download.owncloud.org/community/owncloud-9.1.2.tar.bz2
-RUN tar -C /var/www/html -xjf owncloud-9.1.2.tar.bz2
+RUN wget --quiet https://download.owncloud.org/community/owncloud-9.1.4.tar.bz2
+RUN tar -C /var/www/html -xjf owncloud-9.1.4.tar.bz2
 RUN chown -R www-data:www-data /var/www/html/owncloud
 
 EXPOSE 80 443
