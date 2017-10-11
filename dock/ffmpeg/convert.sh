@@ -11,5 +11,5 @@ do
 	dst="./mp3/${dir}/${mp3}"
 	mkdir -p "./mp3/${dir}"
 	echo "${dst}"
-	/opt/ffmpeg/bin/ffmpeg -y -i "${flac}" -c:a libmp3lame -b:a 128k "${dst}" < /dev/null
+	/opt/ffmpeg/bin/ffmpeg -y -i "${flac}" -c:a libmp3lame -b:a 128k -id3v2_version 3 "${dst}" < /dev/null
 done
