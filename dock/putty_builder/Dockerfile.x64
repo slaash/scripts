@@ -1,0 +1,9 @@
+#docker run -v /share/putty:/build -ti slaash/putty_builder
+FROM debian:testing
+MAINTAINER Radu Moisa <rmoisa@yahoo.com>
+
+RUN apt-get update -qq && apt-get -qy install wget autoconf build-essential make && apt-get -qy clean
+WORKDIR /opt
+RUN wget -q https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz && tar -xzf putty-0.70.tar.gz
+WORKDIR /opt/putty-0.70
+RUN ./mkauto.sh && cd ./unix && ./configure && make -f Makefile.ux LDFLAGS="-Wl,--no-as-needed,-ldl" && make install
