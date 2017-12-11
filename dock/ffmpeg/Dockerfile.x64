@@ -12,8 +12,8 @@ RUN wget -q https://download.videolan.org/pub/x264/snapshots/last_x264.tar.bz2 &
 
 RUN hg clone https://bitbucket.org/multicoreware/x265 && cd x265/build/linux && PATH="/opt/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/opt/ffmpeg/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && make && make install && make clean
 
-RUN wget -qO fdk-aac.tar.gz https://github.com/mstorsjo/fdk-aac/tarball/master && tar -xzf fdk-aac.tar.gz
-RUN cd mstorsjo-fdk-aac* && autoreconf -fiv && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --disable-shared && make && make install && make distclean
+RUN wget -q https://github.com/mstorsjo/fdk-aac/archive/v0.1.5.tar.gz && tar -xzf v0.1.5.tar.gz
+RUN cd fdk-aac-0.1.5 && autoreconf -fiv && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --disable-shared && make && make install && make distclean
 
 RUN wget -q https://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz && tar xzvf lame-3.99.5.tar.gz && cd lame-3.99.5 && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --enable-nasm --disable-shared && make && make install && make distclean
 
