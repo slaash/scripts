@@ -8,7 +8,7 @@ do
     echo "${origFile}"
     dir=$(dirname "${origFile}"|sed -e 's/.*\///g')
     name=$(echo "${origFile}"|sed -e 's/.*\///g')
-    m4a=$(echo $name|sed -r 's/\..+$/.m4a/')
+    m4a=$(echo $name|sed -r 's/\.[^\.]+$/.m4a/')
     dst="${DSTDIR}/${dir}/${m4a}"
     mkdir -p "${DSTDIR}/${dir}"
     echo "${dst}"
