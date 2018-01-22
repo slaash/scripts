@@ -8,21 +8,21 @@ RUN apt-get -q update && apt-get -qy install autoconf automake build-essential l
 
 WORKDIR /opt/ffmpeg_sources
 
-RUN wget -q https://download.videolan.org/pub/x264/snapshots/last_x264.tar.bz2 && tar -xjf last_x264.tar.bz2 && cd x264-snapshot* && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --enable-static --disable-opencl --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
+RUN wget -q https://download.videolan.org/pub/x264/snapshots/last_stable_x264.tar.bz2 && tar -xjf last_stable_x264.tar.bz2 && cd x264-snapshot* && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --enable-static --disable-opencl --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
 
 RUN hg clone https://bitbucket.org/multicoreware/x265 && cd x265/build/linux && PATH="/opt/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/opt/ffmpeg/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && make && make install && make clean
 
 RUN wget -q https://github.com/mstorsjo/fdk-aac/archive/v0.1.5.tar.gz && tar -xzf v0.1.5.tar.gz
 RUN cd fdk-aac-0.1.5 && autoreconf -fiv && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --disable-shared && make && make install && make distclean
 
-RUN wget -q https://downloads.sourceforge.net/project/lame/lame/3.99/lame-3.99.5.tar.gz && tar xzvf lame-3.99.5.tar.gz && cd lame-3.99.5 && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --enable-nasm --disable-shared && make && make install && make distclean
+RUN wget -q https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz && tar xzvf lame-3.100.tar.gz && cd lame-3.100 && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --enable-nasm --disable-shared && make && make install && make distclean
 
 RUN wget -q https://archive.mozilla.org/pub/opus/opus-1.2.1.tar.gz && tar xzvf opus-1.2.1.tar.gz && cd opus-1.2.1 && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --disable-shared && make && make install && make distclean
 
 RUN wget -q http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.6.1.tar.bz2 && tar -xjf libvpx-1.6.1.tar.bz2 && cd libvpx-1.6.1 && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
 
-RUN wget -q https://ffmpeg.org/releases/ffmpeg-3.4.tar.bz2 && tar -xjf ffmpeg-3.4.tar.bz2
-WORKDIR /opt/ffmpeg_sources/ffmpeg-3.4
+RUN wget -q https://ffmpeg.org/releases/ffmpeg-3.4.1.tar.bz2 && tar -xjf ffmpeg-3.4.1.tar.bz2
+WORKDIR /opt/ffmpeg_sources/ffmpeg-3.4.1
 RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
   --prefix="/opt/ffmpeg/ffmpeg_build" \
   --pkg-config-flags="--static" \
@@ -45,10 +45,10 @@ RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/p
   --enable-nonfree
 RUN PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean && hash -r
 
-RUN wget -q https://mediaarea.net/download/binary/mediainfo/17.10/MediaInfo_CLI_17.10_GNU_FromSource.tar.gz && tar -xzf MediaInfo_CLI_17.10_GNU_FromSource.tar.gz && cd MediaInfo_CLI_GNU_FromSource && ./CLI_Compile.sh --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" && cd MediaInfo/Project/GNU/CLI && make install && make distclean
+RUN wget -q https://mediaarea.net/download/binary/mediainfo/17.12/MediaInfo_CLI_17.12_GNU_FromSource.tar.gz && tar -xzf MediaInfo_CLI_17.12_GNU_FromSource.tar.gz && cd MediaInfo_CLI_GNU_FromSource && ./CLI_Compile.sh --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" && cd MediaInfo/Project/GNU/CLI && make install && make distclean
 
 RUN wget -q https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && chmod a+rx /usr/local/bin/youtube-dl
 
 COPY ./convert*.sh /opt/
-ENTRYPOINT ["/opt/ffmpeg/bin/ffmpeg"]
+#ENTRYPOINT ["/opt/ffmpeg/bin/ffmpeg"]
 
