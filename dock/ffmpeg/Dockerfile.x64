@@ -19,10 +19,10 @@ RUN wget -q https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100
 
 RUN wget -q https://archive.mozilla.org/pub/opus/opus-1.2.1.tar.gz && tar xzvf opus-1.2.1.tar.gz && cd opus-1.2.1 && ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" --disable-shared && make && make install && make distclean
 
-RUN wget -q http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-1.6.1.tar.bz2 && tar -xjf libvpx-1.6.1.tar.bz2 && cd libvpx-1.6.1 && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
+RUN mkdir ./libvpx && cd ./libvpx && wget -q https://chromium.googlesource.com/webm/libvpx/+archive/v1.7.0.tar.gz && tar -xzf v1.7.0.tar.gz && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
 
-RUN wget -q https://ffmpeg.org/releases/ffmpeg-3.4.1.tar.bz2 && tar -xjf ffmpeg-3.4.1.tar.bz2
-WORKDIR /opt/ffmpeg_sources/ffmpeg-3.4.1
+RUN wget -q https://ffmpeg.org/releases/ffmpeg-3.4.2.tar.bz2 && tar -xjf ffmpeg-3.4.2.tar.bz2
+WORKDIR /opt/ffmpeg_sources/ffmpeg-3.4.2
 RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
   --prefix="/opt/ffmpeg/ffmpeg_build" \
   --pkg-config-flags="--static" \
