@@ -47,6 +47,24 @@ def forecast():
         records.append('{}: Temp {}/{} C, Wind {}(max {}) km/h from {}, Humidity {} %, {}'.format(colored(time, attrs=['bold']), colored(low, 'blue'), colored(high, 'red'), colored(avewind, 'yellow'), colored(maxwind, 'red'), maxwind_dir, colored(avehumidity, 'magenta'), colored(cond, 'cyan')))
     return records
 
+def hourly():
+    req = requests.get('https://api.wunderground.com/api/c7862614119770b4/hourly/lang:RO/q/{}.json'.format(station))
+    req.raise_for_status()
+    if DEBUG:
+        print(req.request.path_url)
+    data = json.loads(req.text)
+    records = []
+    for record in data['hourly_forecast']:
+        time = '{}, {}:{} {}'.format(record['FCTTIME']['weekday_name'], record['FCTTIME']['hour'], record['FCTTIME']['min'], record['FCTTIME']['ampm'])
+        cond = record['condition']
+        temp = record['temp']['metric']
+        wind_spd = record['wspd']['metric']
+        wind_dir = record['wdir']['dir']
+        pressure = record['mslp']['metric']
+        humidity = record['humidity']
+        records.append('{} - Temp {} C, Wind {} km/h from {}, Humidity {} %, Pressure {} hPa, {}'.format(colored(time, attrs=['bold']), colored(temp, 'blue'), colored(wind_spd, 'yellow'), wind_dir, colored(humidity, 'magenta'), colored(pressure, 'blue'), colored(cond, 'cyan')))
+    return records
+
 def conditions():
     req = requests.get('https://api.wunderground.com/api/c7862614119770b4/conditions/lang:RO/q/{}.json'.format(station))
     req.raise_for_status()
@@ -91,6 +109,8 @@ if __name__ == "__main__":
                         help='Shows historical weather data')
     parser.add_argument('--forecast', '-f', action="store_true",
                         help='Shows a weather summary for the next 3 days')
+    parser.add_argument('--hourly', '-g', action="store_true",
+                        help='Shows a weather summary for the next hours')
     parser.add_argument('--station', '-s', default=stationList[0],
                         help='The weather station (one of {})'.format(stationList))
     parser.add_argument('--debug', '-D', action="store_true",
@@ -105,6 +125,9 @@ if __name__ == "__main__":
             print(rec)
     elif ns.forecast:
         for rec in forecast():
+            print(rec)
+    elif ns.hourly:
+        for rec in hourly():
             print(rec)
     else:
         print(conditions())
