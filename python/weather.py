@@ -5,7 +5,7 @@ from termcolor import colored
 import requests
 
 DEBUG = False
-stationList = ['zmw:00000.133.15090', 'RO/LRIA', 'RO/pws:IIAI8', 'RO/pws:IIASIIAS4', 'zmw:00000.1.15300']
+stationList = ['zmw:00000.133.15090', 'RO/LRIA', 'RO/pws:IIAI8', 'RO/pws:IIASIIAS4', 'zmw:00000.1.15300', 'zmw:00000.1.15480']
 station = stationList[0]
 
 def history(day):
