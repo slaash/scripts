@@ -6,7 +6,7 @@ import requests
 
 DEBUG = False
 stationList = ['zmw:00000.133.15090', 'RO/LRIA', 'RO/pws:IIAI8', 'RO/pws:IIASIIAS4', 'zmw:00000.1.15300', 'zmw:00000.1.15480']
-station = stationList[0]
+station = stationList[1]
 
 def history(day):
     req = requests.get('https://api.wunderground.com/api/c7862614119770b4/history_{}/lang:RO/q/{}.json'.format(day, station))
@@ -84,7 +84,7 @@ def conditions():
     return '{}: Temp {}(feels like {}) C, Wind {} km/h from {} ({}), Pressure {} hPa, Humidity {},  {}'.format(colored(time, attrs=['bold']), colored(round(float(temp_c)), 'green'), colored(round(float(feelslike_c)), 'red'), colored(wind_kph, 'yellow'), wind_dir, colored(wind_string, 'blue'), colored(pressure_mb, 'blue'), colored(relative_humidity, 'magenta'), colored(weather, 'cyan'))
 
 def astronomy():
-    req = requests.get('https://api.wunderground.com/api/c7862614119770b4/astronomy/q/zmw:00000.133.15090.json')
+    req = requests.get('https://api.wunderground.com/api/c7862614119770b4/astronomy/q/{}.json'.format(station))
     req.raise_for_status()
     if DEBUG:
         print(req.request.path_url)
@@ -101,6 +101,17 @@ def astronomy():
     ageOfMoon = data['moon_phase']['ageOfMoon']
     return 'Sunrise {}:{}, sunset {}:{}, moonrise {}:{}, moonset {}:{}, Moon illuminated {}%, Moon age {} days'.format(sunrise_h, sunrise_m, sunset_h, sunset_m, moonrise_h, moonrise_m, moonset_h, moonset_m, percentIlluminated, ageOfMoon)
 
+def info():
+    req = requests.get('http://api.wunderground.com/api/c7862614119770b4/geolookup/q/{}.json'.format(station))
+    req.raise_for_status()
+    if DEBUG:
+        print(req.request.path_url)
+    data = json.loads(req.text)
+    city = data['location']['city']
+    lat = data['location']['lat']
+    lon = data['location']['lon']
+    return '{} City: {}, Coordinates: {}, {}'.format(station, city, lat, lon)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--date', '-d', default=date.today().strftime("%Y%m%d"),
@@ -113,12 +124,17 @@ if __name__ == "__main__":
                         help='Shows a weather summary for the next hours')
     parser.add_argument('--station', '-s', default=stationList[0],
                         help='The weather station (one of {})'.format(stationList))
+    parser.add_argument('--info', '-i', action="store_true",
+                        help='Weather station info')
     parser.add_argument('--debug', '-D', action="store_true",
                         help='Turns on debug info')
     ns = parser.parse_args()
 
     DEBUG = ns.debug
     station = ns.station
+
+    if ns.info:
+        print(info())
 
     if ns.history:
         for rec in history(ns.date):
