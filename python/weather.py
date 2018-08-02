@@ -17,8 +17,6 @@ def history(day):
     records = []
     for record in data['history']['observations']:
         conds = record.get('conds', '')
-#        if len(conds) == 0:
-#            continue
         time = '{}-{}-{} {}:{}'.format(record['date']['mday'], record['date']['mon'], record['date']['year'], record['date']['hour'], record['date']['min'])
         tempm = record['tempm']
         wspdm = record['wspdm']
