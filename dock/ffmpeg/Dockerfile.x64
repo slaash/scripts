@@ -21,8 +21,8 @@ RUN wget -q https://archive.mozilla.org/pub/opus/opus-1.2.1.tar.gz && tar xzvf o
 
 RUN mkdir ./libvpx && cd ./libvpx && wget -q https://chromium.googlesource.com/webm/libvpx/+archive/v1.7.0.tar.gz && tar -xzf v1.7.0.tar.gz && PATH="/opt/ffmpeg/bin:$PATH" ./configure --prefix="/opt/ffmpeg/ffmpeg_build" --disable-examples --disable-unit-tests --enable-vp9-highbitdepth --enable-pic && PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean
 
-RUN wget -q https://ffmpeg.org/releases/ffmpeg-4.0.tar.bz2 && tar -xjf ffmpeg-4.0.tar.bz2
-WORKDIR /opt/ffmpeg_sources/ffmpeg-4.0
+RUN wget -q https://ffmpeg.org/releases/ffmpeg-4.0.2.tar.bz2 && tar -xjf ffmpeg-4.0.2.tar.bz2
+WORKDIR /opt/ffmpeg_sources/ffmpeg-4.0.2
 RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
   --prefix="/opt/ffmpeg/ffmpeg_build" \
   --pkg-config-flags="--static" \
@@ -45,7 +45,7 @@ RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/p
   --enable-nonfree
 RUN PATH="/opt/ffmpeg/bin:$PATH" make && make install && make distclean && hash -r
 
-RUN wget -q https://mediaarea.net/download/binary/mediainfo/18.03.1/MediaInfo_CLI_18.03.1_GNU_FromSource.tar.gz && tar -xzf MediaInfo_CLI_18.03.1_GNU_FromSource.tar.gz && cd MediaInfo_CLI_GNU_FromSource && ./CLI_Compile.sh --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" && cd MediaInfo/Project/GNU/CLI && make install && make distclean
+RUN wget -q https://mediaarea.net/download/binary/mediainfo/18.05/MediaInfo_CLI_18.05_GNU_FromSource.tar.gz && tar -xzf MediaInfo_CLI_18.05_GNU_FromSource.tar.gz && cd MediaInfo_CLI_GNU_FromSource && ./CLI_Compile.sh --prefix="/opt/ffmpeg/ffmpeg_build" --bindir="/opt/ffmpeg/bin" && cd MediaInfo/Project/GNU/CLI && make install && make distclean
 
 RUN wget -q https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl && chmod a+rx /usr/local/bin/youtube-dl
 
