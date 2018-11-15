@@ -5,8 +5,8 @@ from termcolor import colored
 import requests
 
 DEBUG = False
-stationList = ['/q/zmw:00000.133.15090', '/q/RO/LRIA', '/q/RO/pws:IIAI8', '/q/RO/pws:IIASIIAS4', '/q/zmw:00000.1.15300', '/q/zmw:00000.1.15480']
-station = stationList[1]
+stationList = ['/q/zmw:00000.139.15090', '/q/zmw:00000.133.15090', '/q/RO/LRIA', '/q/RO/pws:IIAI8', '/q/RO/pws:IIASIIAS4', '/q/zmw:00000.1.15300', '/q/zmw:00000.1.15480']
+station = stationList[0]
 
 def history(day):
     req = requests.get('https://api.wunderground.com/api/c7862614119770b4/history_{}/lang:RO{}.json'.format(day, station))
@@ -100,7 +100,7 @@ def astronomy():
     return 'Sunrise {}:{}, sunset {}:{}, moonrise {}:{}, moonset {}:{}, Moon illuminated {}%, Moon age {} days'.format(sunrise_h, sunrise_m, sunset_h, sunset_m, moonrise_h, moonrise_m, moonset_h, moonset_m, percentIlluminated, ageOfMoon)
 
 def info():
-    req = requests.get('http://api.wunderground.com/api/c7862614119770b4/geolookup{}.json'.format(station))
+    req = requests.get('https://api.wunderground.com/api/c7862614119770b4/geolookup{}.json'.format(station))
     req.raise_for_status()
     if DEBUG:
         print(req.request.path_url)
@@ -113,7 +113,7 @@ def info():
     return '{} Location: {}, {} Coordinates: {}, {}'.format(name, city, country_name, lat, lon)
 
 def query(name):
-    req = requests.get('http://api.wunderground.com/api/c7862614119770b4/geolookup/q/{}.json'.format(name))
+    req = requests.get('https://api.wunderground.com/api/c7862614119770b4/geolookup/q/{}.json'.format(name))
     req.raise_for_status()
     if DEBUG:
         print(req.request.path_url)
