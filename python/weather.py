@@ -124,6 +124,8 @@ def query(name):
         for res in data['response']['results']:
             print(res)
         exit()
+    else:
+        exit()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
