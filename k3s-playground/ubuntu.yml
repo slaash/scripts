@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu
+  labels:
+    app: ubuntu
+spec:
+  containers:
+  - name: myapp-container
+    image: ubuntu
+    command: ["/bin/bash", "-ec", "apt -q update && apt -qqy install net-tools nmap iputils-ping dnsutils mtr-tiny nano curl && apt -q clean && sleep infinity"]
+  restartPolicy: Never
