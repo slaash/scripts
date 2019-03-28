@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service2
+  labels:
+    run: nginx-service2
+  namespace: default
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8183
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    run: nginx2
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx2
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: nginx2
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: nginx2
+        image: library/nginx
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always

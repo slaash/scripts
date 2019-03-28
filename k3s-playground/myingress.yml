@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: my-ingress
+spec:
+  rules:
+  - host: radu-test.vpn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-service
+          servicePort: 8182
+  - host: radu-test1.vpn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx-service2
+          servicePort: 8183
