@@ -18,3 +18,11 @@ spec:
         backend:
           serviceName: nginx-service2
           servicePort: 8183
+  - host: radu-test2.vpn
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: nginx3-service
+          servicePort: 80
+
