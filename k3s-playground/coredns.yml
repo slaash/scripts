@@ -1,0 +1,36 @@
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+          pods insecure
+          upstream
+          fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        proxy . 172.29.0.2 8.8.8.8
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+kind: ConfigMap
+metadata:
+  annotations:
+    objectset.rio.cattle.io/applied: '{"apiVersion":"v1","data":{"Corefile":".:53
+      {\n    errors\n    health\n    kubernetes cluster.local in-addr.arpa ip6.arpa
+      {\n      pods insecure\n      upstream\n      fallthrough in-addr.arpa ip6.arpa\n    }\n    prometheus
+      :9153\n    proxy . 1.1.1.1\n    cache 30\n    loop\n    reload\n    loadbalance\n}\n"},"kind":"ConfigMap","metadata":{"annotations":{"objectset.rio.cattle.io/id":"coredns"},"labels":{"objectset.rio.cattle.io/hash":"10cb005ad0b66e97820b1672811ea7a1ff926b47"},"name":"coredns","namespace":"kube-system"}}'
+    objectset.rio.cattle.io/id: coredns
+    objectset.rio.cattle.io/inputid: 6adfe94b01767f3dec91f15e76e47355d896357c
+  creationTimestamp: "2019-03-27T13:16:15Z"
+  labels:
+    cattle.io/creator: norman
+    objectset.rio.cattle.io/hash: 10cb005ad0b66e97820b1672811ea7a1ff926b47
+  name: coredns
+  namespace: kube-system
+  resourceVersion: "32988"
+  selfLink: /api/v1/namespaces/kube-system/configmaps/coredns
+  uid: 803d96c6-5092-11e9-9b11-0e53ae3c889e
