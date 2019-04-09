@@ -7,22 +7,35 @@ spec:
   - host: radu-test.vpn
     http:
       paths:
-      - path: /
+      - path: /nginx
         backend:
           serviceName: nginx-service
           servicePort: 8182
-  - host: radu-test1.vpn
+  - host: radu-test.vpn
     http:
       paths:
-      - path: /
+      - path: /nginx2
         backend:
           serviceName: nginx-service2
           servicePort: 8183
-  - host: radu-test2.vpn
+  - host: radu-test.vpn
+    http:
+      paths:
+      - path: /nginx3
+        backend:
+          serviceName: nginx3-service
+          servicePort: 80
+  - host: radu-test.vpn
     http:
       paths:
       - path: /
         backend:
-          serviceName: nginx3-service
+          serviceName: webapp-service
           servicePort: 80
-
+  - host: radu-test.vpn
+    http:
+      paths:
+      - path: /modules
+        backend:
+          serviceName: modules-service
+          servicePort: 80
