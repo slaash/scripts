@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-service
+  labels:
+    run: pg-service
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: http
+  selector:
+    run: postgres
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        run: postgres
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+      containers:
+      - name: postgres
+        image: postgres:10
+        ports:
+        - containerPort: 5432
+        imagePullPolicy: Always
+        env:
+        - name: POSTGRES_DB
+          value: "app_usermanagement"
+        - name: POSTGRES_PASSWORD
+          value: "admin1234"
+        - name: POSTGRES_USER
+          value: "admin"
