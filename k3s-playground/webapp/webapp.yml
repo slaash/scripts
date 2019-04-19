@@ -51,6 +51,23 @@ spec:
           value: "false"
         - name: SQLALCHEMY_URL
           value: "postgresql://admin:admin1234@pg-service/app_usermanagement"
+        resources:
+          limits:
+            memory: "1024Mi"
+        readinessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
       imagePullSecrets:
       - name: docker.uberresearch.com
 ---
@@ -109,5 +126,24 @@ spec:
           value: "true"
         - name: MIGRATION
           value: "head"
+        - name: UBER_USER_ROLES_ANONYMOUS_USERS
+          value: "false"
+        resources:
+          limits:
+            memory: "1024Mi"
+        readinessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 6543
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
       imagePullSecrets:
       - name: docker.uberresearch.com
