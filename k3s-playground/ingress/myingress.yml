@@ -4,14 +4,14 @@ metadata:
   name: my-ingress
 spec:
   rules:
-  - host: radu-test.vpn
+  - host: integration-k3s.dimensions.ai
     http:
       paths:
       - path: /
         backend:
           serviceName: webapp-service
           servicePort: 80
-  - host: radu-test.vpn
+  - host: integration-k3s.dimensions.ai
     http:
       paths:
       - path: /modules
