@@ -1,0 +1,14 @@
+<user-mapping>
+    <authorize 
+    username="pi"
+    password="b89749505e144b564adfe3ea8fc394aa"
+    encoding="md5">
+        <connection name="pi">
+        <protocol>vnc</protocol>
+        <param name="hostname">localhost</param>
+        <param name="port">5900</param>
+        <param name="swap-red-blue">false</param>
+        <param name="enable-audio">true</param>
+        </connection>
+    </authorize>
+</user-mapping>
