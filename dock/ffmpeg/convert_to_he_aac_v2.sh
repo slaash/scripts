@@ -6,7 +6,7 @@ DSTDIR=${2}
 find "${SRCDIR}" \( -iname "*.mp3" -o -iname "*.m4a" -o -iname "*.flac" \)| while read -r origFile;
 do
     echo "${origFile}"
-    dir=$(dirname "${origFile}"|sed -e 's/.*\///g')
+    dir=$(dirname "${origFile}")
     name=$(echo "${origFile}"|sed -e 's/.*\///g')
     m4a=$(echo $name|sed -r 's/\.[^\.]+$/.m4a/')
     dst="${DSTDIR}/${dir}/${m4a}"
