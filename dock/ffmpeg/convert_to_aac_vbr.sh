@@ -8,9 +8,9 @@ do
     echo "${origFile}"
     dir=$(dirname "${origFile}")
     name=$(echo "${origFile}"|sed -e 's/.*\///g')
-    mp3=$(echo $name|sed -r 's/\.[^\.]+$/.mp3/')
-    dst="${DSTDIR}/${dir}/${mp3}"
+    m4a=$(echo $name|sed -r 's/\.[^\.]+$/.m4a/')
+    dst="${DSTDIR}/${dir}/${m4a}"
     mkdir -p "${DSTDIR}/${dir}"
     echo "${dst}"
-    /opt/ffmpeg/bin/ffmpeg -y -i "${origFile}" -map 0:a -c:a libmp3lame -q:a 3 -id3v2_version 3 "${dst}" < /dev/null
+    /opt/ffmpeg/bin/ffmpeg -y -i "${origFile}" -map 0:a -c:a libfdk_aac -vbr 5 -id3v2_version 3 "${dst}" < /dev/null
 done
