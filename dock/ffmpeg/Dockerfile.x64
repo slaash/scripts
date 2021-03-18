@@ -22,8 +22,8 @@ RUN mkdir ./libvpx && cd ./libvpx && wget -q https://chromium.googlesource.com/w
 
 RUN git -C aom pull 2> /dev/null || git clone --depth 1 https://aomedia.googlesource.com/aom && mkdir -p aom_build && cd aom_build && PATH="/opt/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/opt/ffmpeg/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom && PATH="/opt/ffmpeg/bin:$PATH" make && make install
 
-RUN wget -q https://ffmpeg.org/releases/ffmpeg-4.3.1.tar.bz2 && tar -xjf ffmpeg-4.3.1.tar.bz2
-WORKDIR /opt/ffmpeg_sources/ffmpeg-4.3.1
+RUN wget -q https://ffmpeg.org/releases/ffmpeg-4.3.2.tar.bz2 && tar -xjf ffmpeg-4.3.2.tar.bz2
+WORKDIR /opt/ffmpeg_sources/ffmpeg-4.3.2
 RUN PATH="/opt/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/opt/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
   --prefix="/opt/ffmpeg/ffmpeg_build" \
   --pkg-config-flags="--static" \
