@@ -12,3 +12,4 @@ echo "${newDstDir}"
 mkdir -p "${newDstDir}"
 
 shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${newDstDir}" "${dataFile}"
+cuetag "${cueFile}" ${dstDir}/*
