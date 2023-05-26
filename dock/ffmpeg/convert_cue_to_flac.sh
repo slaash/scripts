@@ -1,15 +1,19 @@
 #!/bin/bash
 
-cueFile="${1}"
-dataFile="${2}"
-dstDir="${3}"
+set -e
 
-echo "${dataFile}"
-dir=$(dirname "${dataFile}")
-echo "${dir}"
-newDstDir="${dstDir}/${dir}"
-echo "${newDstDir}"
-mkdir -p "${newDstDir}"
+SRCDIR=${1}
+DSTDIR=${2}
 
-shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${newDstDir}" "${dataFile}"
-cuetag "${cueFile}" ${dstDir}/*
+find "${SRCDIR}" \( -iname "*.cue" \)| while read -r cueFile;
+do
+    dir=$(dirname "${cueFile}")
+    dst="${DSTDIR}/${dir}"
+    mkdir -p "${DSTDIR}/${dir}"
+    dataFile=$(basename "${cueFile}")
+    fullDataFile="${dir}/${dataFile%.cue}.flac"
+    echo "${cueFile} ${dst} ${fullDataFile}"
+    shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${dst}" "${fullDataFile}"
+    echo "cuetag \"${cueFile}\" \"${dst}/\"*"
+    cuetag "${cueFile}" "${dst}/"*
+done
