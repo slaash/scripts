@@ -12,6 +12,6 @@ do
     dst="${DSTDIR}/${dir}/${opus}"
     mkdir -p "${DSTDIR}/${dir}"
     echo "${dst}"
-    /opt/ffmpeg/bin/ffmpeg -y -i "${origFile}" -map 0:a -c:a libopus -b:a 128k -id3v2_version 3 "${dst}" < /dev/null
+    /opt/ffmpeg/bin/ffmpeg -y -i "${origFile}" -map 0:a -c:a libopus -b:a 192k -id3v2_version 3 "${dst}" < /dev/null
 done
 
