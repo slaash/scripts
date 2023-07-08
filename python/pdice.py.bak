@@ -1,0 +1,42 @@
+import pprint, secrets
+
+diceArt = { 1: "9", 2: "10", 3: "J", 4: "Q", 5: "K", 6: "A" }
+
+pp = pprint.PrettyPrinter(indent=4)
+
+def genHand(n):
+    hand = []
+    for d in range(0, n):
+        r = secrets.randbelow(6) + 1
+        hand.append(r)
+    return hand
+
+def showHand(hand):
+    artHand = []
+    for d in hand:
+        artHand.append(diceArt[d])
+    return artHand
+
+for p in range (0,2):
+    print("Player {}".format(p+1))
+    hand = genHand(5)
+    for h in range(0, 3):
+        print("  Hand {}".format(h+1))
+        pp.pprint(showHand(hand))
+        diceToKeep = []
+        for d in hand:
+            choice = input("  Keep {} (y/n/exit)? ".format(diceArt[d]))
+            if choice == 'y':
+                diceToKeep.append(d)
+            if choice == 'exit':
+                break
+        if len(diceToKeep) == 0:
+            break
+        print("  Dice to keep")
+        pp.pprint(showHand(diceToKeep))
+        shortHand = genHand(5 - len(diceToKeep))
+        print("  Short hand")
+        pp.pprint(showHand(shortHand))
+        hand = shortHand + diceToKeep
+    print("  Final hand")
+    pp.pprint(showHand(hand))
