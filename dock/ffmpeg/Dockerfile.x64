@@ -4,7 +4,7 @@ MAINTAINER Radu Moisa <rmoisa@yahoo.com>
 ENV LD_LIBRARY_PATH="/opt/ffmpeg/ffmpeg_build/lib"
 ENV PATH="$PATH:/opt/ffmpeg/bin:/opt/ffmpeg/ffmpeg_build/bin"
 
-RUN apt -q update && apt -qy upgrade && apt -qy install autoconf automake build-essential libass-dev libfreetype6-dev libssl-dev libsdl2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo wget zlib1g-dev yasm nasm cmake nano less git cuetools shntool wavpack && apt -q clean
+RUN apt -q update && apt -qy upgrade && apt -qy install autoconf automake build-essential libass-dev libfreetype6-dev libssl-dev libsdl2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texinfo wget zlib1g-dev yasm nasm cmake nano less git cuetools shntool wavpack dos2unix && apt -q clean
 
 WORKDIR /opt/ffmpeg_sources
 

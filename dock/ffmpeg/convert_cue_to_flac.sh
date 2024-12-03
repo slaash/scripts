@@ -15,5 +15,6 @@ do
     echo "${cueFile} ${dst} ${fullDataFile}"
     shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${dst}" "${fullDataFile}"
     echo "cuetag \"${cueFile}\" \"${dst}/\"*"
+    dos2unix "${cueFile}"
     cuetag "${cueFile}" "${dst}/"*
 done
