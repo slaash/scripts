@@ -14,6 +14,7 @@ do
     fullDataFile="${dir}/${dataFile%.cue}.flac"
     echo "${cueFile} ${dst} ${fullDataFile}"
     shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${dst}" "${fullDataFile}"
+    find "${dst}" -name "*pregap*" -exec rm {} \;
     echo "cuetag \"${cueFile}\" \"${dst}/\"*"
     dos2unix "${cueFile}"
     cuetag "${cueFile}" "${dst}/"*
