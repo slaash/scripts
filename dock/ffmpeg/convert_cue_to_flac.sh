@@ -11,7 +11,12 @@ do
     dst="${DSTDIR}/${dir}"
     mkdir -p "${DSTDIR}/${dir}"
     dataFile=$(basename "${cueFile}")
-    fullDataFile="${dir}/${dataFile%.cue}.flac"
+#    fullDataFile="${dir}/${dataFile%.cue}.flac"
+    if [[ "$dataFile" == *.flac.cue ]]; then
+      fullDataFile="${dir}/${dataFile%.flac.cue}.flac"
+    else
+      fullDataFile="${dir}/${dataFile%.cue}.flac"
+    fi
     echo "${cueFile} ${dst} ${fullDataFile}"
     shnsplit -o flac -t "%n %t" -f "${cueFile}" -d "${dst}" "${fullDataFile}"
     find "${dst}" -name "*pregap*" -exec rm {} \;
