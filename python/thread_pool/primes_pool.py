@@ -17,7 +17,7 @@ def is_prime(n):
 min=int(sys.argv[1])
 max=int(sys.argv[2])
 
-tPool=Pool(10)
+tPool=Pool(20)
 rez=tPool.map_async(is_prime,range(min,max))
 for i in rez.get():
 	if (i!=-1):

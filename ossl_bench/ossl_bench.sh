@@ -10,7 +10,7 @@ host=$(uname -n)
 os=$(uname -s)
 arch=$(uname -m)
 ciphers=(blowfish rsa4096)
-runs=(1 2 10 100)
+runs=(100)
 
 if [[ -f /proc/meminfo && -f /proc/cpuinfo ]]; then
         mem=$(sed -En "s/MemTotal:\s+(.+)/\1/p" /proc/meminfo)
