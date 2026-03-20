@@ -98,6 +98,10 @@ def compareHands(hands):
     return [i for i, r in enumerate(ranks) if r == best]
 
 def computerKeep(hand):
+    rank = rankHand(hand)[0]
+    # Keep all 5 if the hand is already strong (straight or better)
+    if rank >= 5:
+        return list(range(5))
     counts = {}
     for d in hand:
         counts[d] = counts.get(d, 0) + 1
@@ -111,6 +115,7 @@ def computerKeep(hand):
 parser = argparse.ArgumentParser(description="Poker dice game")
 parser.add_argument("--players", type=int, default=2, help="Number of players")
 parser.add_argument("--no-human", action="store_true", help="All players are computer controlled")
+parser.add_argument("--delay", type=float, default=2, help="Delay in seconds between computer hands (default: 2)")
 args = parser.parse_args()
 
 def isHuman(p):
@@ -140,7 +145,7 @@ for p in range(0, args.players):
             diceToKeep = [hand[i] for i in keep_indices]
             kept_str = ', '.join(str(i+1) for i in keep_indices) if keep_indices else 'none'
             showHand(hand, keeps_str=kept_str)
-            time.sleep(2)
+            time.sleep(args.delay)
         shortHand = genHand(5 - len(diceToKeep))
         hand = shortHand + diceToKeep
     divider("─", "final")
