@@ -12,6 +12,13 @@ DSTDIR="${2:?Usage: $0 <SRCDIR> <DSTDIR>}"
 
 FFMPEG=/opt/ffmpeg/bin/ffmpeg
 
+# Use soxr resampler if ffmpeg was built with --enable-libsoxr; fall back to swr otherwise
+if "${FFMPEG}" -buildconf 2>/dev/null | grep -q -- '--enable-libsoxr'; then
+    RESAMPLE_FILTER=(-af "aresample=resampler=soxr")
+else
+    RESAMPLE_FILTER=()
+fi
+
 PCM_EXTS="wav|flac|aiff|aif|wv|ape|w64"
 DSD_EXTS="dsf|dff"
 
@@ -29,7 +36,8 @@ find "${SRCDIR}" -type f | sort | while read -r origFile; do
         "${FFMPEG}" -y \
             -i "${origFile}" \
             -map 0:a \
-            -map 0:v \
+            -map 0:v? \
+            "${RESAMPLE_FILTER[@]}" \
             -c:a flac \
             -compression_level 8 \
             -bits_per_raw_sample 24 \
