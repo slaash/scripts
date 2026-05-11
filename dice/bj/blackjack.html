@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dice Blackjack</title>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0f4c2a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="icon.svg"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const TARGET = 21;
+
+    function rollDie() {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return (arr[0] % 6) + 1;
+    }
+
+    function sum(dice) { return dice.reduce((a, b) => a + b, 0); }
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    const DieFace = ({ value }) => {
+      const dots = {
+        1: [[50,50]],
+        2: [[25,25],[75,75]],
+        3: [[25,25],[50,50],[75,75]],
+        4: [[25,25],[75,25],[25,75],[75,75]],
+        5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+        6: [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]],
+      };
+      return (
+        <div style={{width:60,height:60,background:"#1a1a1a",borderRadius:10,border:"2px solid #000",display:"inline-block",boxShadow:"2px 3px 8px rgba(0,0,0,0.3)"}}>
+          <svg width="60" height="60" viewBox="0 0 100 100">
+            {(dots[value]||[]).map(([cx,cy],i) => <circle key={i} cx={cx} cy={cy} r={10} fill="#ef4444"/>)}
+          </svg>
+        </div>
+      );
+    };
+
+    const DiceRow = ({ dice, hidden }) => (
+      <div style={{display:"flex",gap:12,justifyContent:"center",minHeight:70,alignItems:"center",flexWrap:"wrap"}}>
+        {dice.map((v,i) => hidden
+          ? <div key={i} style={{width:60,height:60,borderRadius:10,background:"#1e40af",border:"2px solid #334155",boxShadow:"2px 3px 8px rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🎲</div>
+          : <DieFace key={i} value={v}/>
+        )}
+      </div>
+    );
+
+    const Badge = ({ value, bust, stood }) => (
+      <span style={{display:"inline-block",padding:"2px 14px",borderRadius:20,background:bust?"#ef4444":value===TARGET?"#f59e0b":stood?"#6366f1":"#22c55e",color:"white",fontWeight:"bold",fontSize:18,marginTop:4}}>
+        {bust ? `${value} 💥 BUST` : value===TARGET ? `${value} 🎉` : stood ? `${value} ✋ Stood` : value}
+      </span>
+    );
+
+    function DiceBlackjack() {
+      const [playerDice, setPlayerDice] = useState([]);
+      const [dealerDice, setDealerDice] = useState([]);
+      const [phase, setPhase] = useState("idle");
+      const [message, setMessage] = useState("");
+      const [scores, setScores] = useState({ player:0, dealer:0 });
+      const [playerStood, setPlayerStood] = useState(false);
+      const [dealerStood, setDealerStood] = useState(false);
+      const [busy, setBusy] = useState(false);
+
+      const pTotal = sum(playerDice);
+      const dTotal = sum(dealerDice);
+
+      const endGame = (pDice, dDice, pStood, dStood) => {
+        const pt = sum(pDice), dt = sum(dDice);
+        const pBust = pt > TARGET, dBust = dt > TARGET;
+        let msg, winner;
+        if (pBust && dBust)  { msg = "💥 Both busted! It's a tie!"; winner = null; }
+        else if (pBust)      { msg = "💥 You busted! Dealer wins!"; winner = "dealer"; }
+        else if (dBust)      { msg = "💥 Dealer busted! You win!"; winner = "player"; }
+        else if (pt > dt)    { msg = "🎉 You win!"; winner = "player"; }
+        else if (dt > pt)    { msg = "😞 Dealer wins!"; winner = "dealer"; }
+        else                 { msg = "🤝 It's a tie!"; winner = null; }
+        setMessage(msg);
+        setPhase("end");
+        if (winner === "player") setScores(s => ({ ...s, player: s.player + 1 }));
+        else if (winner === "dealer") setScores(s => ({ ...s, dealer: s.dealer + 1 }));
+      };
+
+      const runDealerTurn = async (pDice, dDice, pStood) => {
+        setBusy(true);
+        setDealerStood(false);
+        setMessage("Dealer's turn...");
+
+        if (sum(dDice) >= sum(pDice)) {
+          // Dealer already ahead or tied — no need to hit
+          if (pStood) {
+            endGame(pDice, dDice, true, true);
+            setBusy(false);
+          } else {
+            setBusy(false);
+            setPhase("player");
+            setMessage("Your turn — Hit or Stand?");
+          }
+          return;
+        }
+
+        await sleep(700);
+
+        const d = rollDie();
+        const newDealerDice = [...dDice, d];
+        setDealerDice(newDealerDice);
+        const newDt = sum(newDealerDice);
+
+        if (newDt > TARGET) {
+          endGame(pDice, newDealerDice, pStood, false);
+          setBusy(false);
+          return;
+        }
+        if (newDt === TARGET) {
+          if (pStood) {
+            setMessage("Dealer hit 21!");
+            endGame(pDice, newDealerDice, true, false);
+          } else {
+            setMessage("Dealer hit 21! Your last chance!");
+            setPhase("player");
+          }
+          setBusy(false);
+          return;
+        }
+
+        setBusy(false);
+
+        if (pStood) {
+          if (newDt < sum(pDice)) {
+            runDealerTurn(pDice, newDealerDice, true);
+          } else {
+            endGame(pDice, newDealerDice, true, true);
+          }
+        } else {
+          setPhase("player");
+          setMessage("Your turn — Hit or Stand?");
+        }
+      };
+
+      const startGame = () => {
+        const p = [rollDie(), rollDie()];
+        const d = [rollDie(), rollDie()];
+        setPlayerDice(p); setDealerDice(d);
+        setPlayerStood(false); setDealerStood(false);
+        setMessage(""); setBusy(false);
+        const ps = sum(p), ds = sum(d);
+        if (ps === TARGET && ds === TARGET) { setPhase("end"); setMessage("🤝 Both got 21! It's a tie!"); return; }
+        if (ps === TARGET) { setPhase("end"); setMessage("🎉 Blackjack! You win!"); setScores(s => ({ ...s, player: s.player+1 })); return; }
+        if (ds === TARGET) { setPhase("end"); setMessage("😞 Dealer Blackjack! Dealer wins!"); setScores(s => ({ ...s, dealer: s.dealer+1 })); return; }
+        setPhase("player");
+        setMessage("Your turn — Hit or Stand?");
+      };
+
+      const hit = () => {
+        if (phase !== "player" || busy) return;
+        const d = rollDie();
+        const next = [...playerDice, d];
+        setPlayerDice(next);
+        const t = sum(next);
+        if (t > TARGET) { endGame(next, dealerDice, false, dealerStood); }
+        else if (t === TARGET) { setMessage("🎯 You hit 21!"); runDealerTurn(next, dealerDice, false); }
+        else { setPhase("dealer"); runDealerTurn(next, dealerDice, false); }
+      };
+
+      const stand = () => {
+        if (phase !== "player" || busy) return;
+        setPlayerStood(true);
+        setPhase("dealer");
+        runDealerTurn(playerDice, dealerDice, true);
+      };
+
+      const reset = () => {
+        setPlayerDice([]); setDealerDice([]);
+        setPhase("idle"); setMessage("");
+        setScores({ player:0, dealer:0 });
+        setPlayerStood(false); setDealerStood(false); setBusy(false);
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding:"12px 32px", fontSize:18, fontWeight:"bold", borderRadius:10,
+        border:"none", background: disabled ? "#94a3b8" : color,
+        color:"white", cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+      });
+
+      const turnIndicator = isActive => isActive ? { boxShadow:"0 0 0 3px #fde68a" } : {};
+
+      return (
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif",padding:16}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"20px 24px",width:"100%",maxWidth:480,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white",display:"flex",flexDirection:"column"}}>
+
+            <h1 style={{textAlign:"center",margin:"0 0 2px",fontSize:26,letterSpacing:1}}>🎲 Dice Blackjack</h1>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:12,fontSize:13}}>Alternating turns — closest to 21 wins!</p>
+
+            {/* Scoreboard */}
+            <div style={{display:"flex",justifyContent:"center",gap:32,marginBottom:12}}>
+              {[["You",scores.player],["Dealer",scores.dealer]].map(([label,s]) => (
+                <div key={label} style={{textAlign:"center"}}>
+                  <div style={{fontSize:13,color:"#94a3b8"}}>{label}</div>
+                  <div style={{fontSize:28,fontWeight:"bold",color:"#fde68a"}}>{s}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Dealer */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:10,textAlign:"center",transition:"box-shadow 0.3s",...turnIndicator(phase==="dealer")}}>
+              <div style={{fontSize:13,color:"#94a3b8",marginBottom:6}}>DEALER {phase==="dealer" && "🎲"}</div>
+              {dealerDice.length > 0
+                ? <><DiceRow dice={dealerDice}/><Badge value={dTotal} bust={dTotal>TARGET} stood={dealerStood}/></>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Player */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:12,textAlign:"center",transition:"box-shadow 0.3s",...turnIndicator(phase==="player")}}>
+              <div style={{fontSize:13,color:"#94a3b8",marginBottom:6}}>YOU {phase==="player" && "🎲"}</div>
+              {playerDice.length > 0
+                ? <><DiceRow dice={playerDice}/><Badge value={pTotal} bust={pTotal>TARGET} stood={playerStood}/></>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Message */}
+            <div style={{textAlign:"center",minHeight:24,marginBottom:12,fontSize:17,fontWeight:"bold",color:"#fde68a"}}>{message}</div>
+
+            {/* Buttons */}
+            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+              {phase==="idle"||phase==="end"
+                ? <button style={btnStyle("#2563eb",false)} onClick={startGame}>{phase==="end"?"🔄 Play Again":"🎲 Deal"}</button>
+                : <>
+                    <button style={btnStyle("#16a34a",phase!=="player"||busy)} onClick={hit} disabled={phase!=="player"||busy}>🎲 Hit</button>
+                    <button style={btnStyle("#dc2626",phase!=="player"||busy)} onClick={stand} disabled={phase!=="player"||busy}>✋ Stand</button>
+                  </>
+              }
+            </div>
+
+            {/* Reset */}
+            <div style={{textAlign:"center",marginTop:12}}>
+              <button style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}} onClick={reset}>🔁 Reset Scores</button>
+            </div>
+
+            {/* Bust probability */}
+            <div style={{minHeight:90,marginTop:12}}>
+              {phase==="player" && !playerStood && playerDice.length > 0 && (() => {
+                const bustCount = Math.max(0, Math.min(6, 6-(TARGET-pTotal)));
+                const pct = (bustCount/6*100).toFixed(1);
+                const color = bustCount===0?"#22c55e":bustCount<=2?"#facc15":bustCount<=4?"#f97316":"#ef4444";
+                return (
+                  <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 16px",textAlign:"center"}}>
+                    <div style={{fontSize:13,color:"#94a3b8",marginBottom:4}}>BUST PROBABILITY IF YOU HIT</div>
+                    <div style={{fontSize:24,fontWeight:"bold",color}}>{pct}%</div>
+                    <div style={{background:"rgba(255,255,255,0.1)",borderRadius:99,height:8,margin:"6px 0 4px",overflow:"hidden"}}>
+                      <div style={{width:`${bustCount/6*100}%`,height:"100%",background:color,borderRadius:99,transition:"width 0.4s"}}/>
+                    </div>
+                    <div style={{fontSize:12,color:"#94a3b8"}}>
+                      {bustCount===0?"✅ Safe to hit — no die can bust you"
+                       :bustCount===6?"🚫 Any die will bust you — stand!"
+                       :`${bustCount} out of 6 dice values will bust you`}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <p style={{textAlign:"center",color:"#475569",fontSize:11,marginTop:10,marginBottom:0}}>
+              Rules: Start with 2 dice · Players alternate turns · Hit or Stand each turn · Closest to 21 wins!
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<DiceBlackjack/>);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>

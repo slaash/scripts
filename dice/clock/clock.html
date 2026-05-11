@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Învață Ceasul</title>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#667eea"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="icon.svg"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @keyframes pop {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-8px); }
+      40%       { transform: translateX(8px); }
+      60%       { transform: translateX(-6px); }
+      80%       { transform: translateX(6px); }
+    }
+    .result-correct { animation: pop 0.35s ease forwards; }
+    .result-wrong   { animation: shake 0.4s ease; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    function randomTime(fiveMinutes) {
+      const arr = new Uint32Array(2);
+      crypto.getRandomValues(arr);
+      const h = (arr[0] % 12) + 1;
+      const m = fiveMinutes ? (arr[1] % 12) * 5 : arr[1] % 60;
+      return { h, m };
+    }
+
+    const ROMAN = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+
+    function ClockFace({ hour, minute, roman }) {
+      const cx = 150, cy = 150, r = 128;
+
+      const minuteAngle = (minute / 60) * 2 * Math.PI;
+      const hourAngle   = ((hour % 12 + minute / 60) / 12) * 2 * Math.PI;
+
+      const handEnd = (angle, length) => ({
+        x: cx + Math.sin(angle) * length,
+        y: cy - Math.cos(angle) * length,
+      });
+
+      const hourEnd = handEnd(hourAngle, 68);
+      const minEnd  = handEnd(minuteAngle, 100);
+
+      const hourMarkers = Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * 2 * Math.PI;
+        return {
+          x1:    cx + Math.sin(angle) * (r - 16),
+          y1:    cy - Math.cos(angle) * (r - 16),
+          x2:    cx + Math.sin(angle) * (r - 4),
+          y2:    cy - Math.cos(angle) * (r - 4),
+          numX:  cx + Math.sin(angle) * (r - 32),
+          numY:  cy - Math.cos(angle) * (r - 32),
+          label: i === 0 ? 12 : i,
+          romanLabel: ROMAN[i],
+        };
+      });
+
+      const minuteTicks = Array.from({ length: 60 }, (_, i) => {
+        if (i % 5 === 0) return null;
+        const angle = (i / 60) * 2 * Math.PI;
+        return {
+          x1: cx + Math.sin(angle) * (r - 7),
+          y1: cy - Math.cos(angle) * (r - 7),
+          x2: cx + Math.sin(angle) * (r - 2),
+          y2: cy - Math.cos(angle) * (r - 2),
+        };
+      }).filter(Boolean);
+
+      return (
+        <svg width="300" height="300" viewBox="0 0 300 300" style={{ filter: 'drop-shadow(0 6px 18px rgba(0,0,0,0.25))' }}>
+          {/* Face */}
+          <circle cx={cx} cy={cy} r={r + 4} fill="#fff3"/>
+          <circle cx={cx} cy={cy} r={r} fill="white" stroke="#1a1a2e" strokeWidth="5"/>
+
+          {/* Minute ticks */}
+          {minuteTicks.map((t, i) => (
+            <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} stroke="#ccc" strokeWidth="1.5"/>
+          ))}
+
+          {/* Hour markers + numbers */}
+          {hourMarkers.map((m, i) => (
+            <g key={i}>
+              <line x1={m.x1} y1={m.y1} x2={m.x2} y2={m.y2} stroke="#1a1a2e" strokeWidth="3.5"/>
+              <text
+                x={m.numX} y={m.numY}
+                textAnchor="middle" dominantBaseline="central"
+                fontSize={roman ? "13" : "20"} fontWeight="bold" fill="#1a1a2e"
+              >
+                {roman ? m.romanLabel : m.label}
+              </text>
+            </g>
+          ))}
+
+          {/* Hour hand */}
+          <line
+            x1={cx} y1={cy} x2={hourEnd.x} y2={hourEnd.y}
+            stroke="#e74c3c" strokeWidth="7" strokeLinecap="round"
+          />
+          {/* Minute hand */}
+          <line
+            x1={cx} y1={cy} x2={minEnd.x} y2={minEnd.y}
+            stroke="#2980b9" strokeWidth="4.5" strokeLinecap="round"
+          />
+          {/* Center */}
+          <circle cx={cx} cy={cy} r={7} fill="#1a1a2e"/>
+        </svg>
+      );
+    }
+
+    function App() {
+      const [easyMode, setEasyMode]   = useState(true);
+      const [romanMode, setRomanMode] = useState(false);
+      const [time, setTime]           = useState(() => randomTime(true));
+      const [inputH, setInputH]       = useState('');
+      const [inputM, setInputM]       = useState('');
+      const [result, setResult]       = useState(null); // null | 'correct' | 'wrong'
+      const [streak, setStreak]       = useState(0);
+      const [resultKey, setResultKey] = useState(0);
+      const hourRef = useRef(null);
+      const minRef  = useRef(null);
+
+      const advance = () => {
+        setTime(randomTime(easyMode));
+        setInputH('');
+        setInputM('');
+        setResult(null);
+        hourRef.current?.focus();
+      };
+
+      // When mode changes, reset
+      useEffect(() => {
+        setTime(randomTime(easyMode));
+        setInputH('');
+        setInputM('');
+        setResult(null);
+        setStreak(0);
+      }, [easyMode]);
+
+      const check = () => {
+        const h = parseInt(inputH, 10);
+        const m = parseInt(inputM, 10);
+        if (isNaN(h) || isNaN(m) || inputH === '' || inputM === '') return;
+
+        const correct = h === time.h && m === time.m;
+        setResult(correct ? 'correct' : 'wrong');
+        setResultKey(k => k + 1);
+        setStreak(s => correct ? s + 1 : 0);
+        setTimeout(advance, 1600);
+      };
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter') check();
+      };
+
+      const inputStyle = {
+        width: '80px', fontSize: '1.8rem', textAlign: 'center',
+        padding: '8px 4px', borderRadius: '10px',
+        border: '3px solid #9b59b6', outline: 'none',
+        fontWeight: 'bold', color: '#1a1a2e',
+      };
+
+      const fmt = n => String(n).padStart(2, '0');
+
+      return (
+        <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+          <h1 style={{ fontSize: '2rem', color: 'white', marginBottom: '4px', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+            🕐 Ce oră este?
+          </h1>
+
+          {/* Mode toggle */}
+          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
+            <span style={{ color: 'white', fontSize: '0.9rem', opacity: 0.85 }}>Dificultate:</span>
+            <button
+              onClick={() => setEasyMode(true)}
+              style={{
+                padding: '4px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                background: easyMode ? '#f39c12' : 'rgba(255,255,255,0.2)',
+                color: 'white', fontWeight: 'bold', fontSize: '0.9rem',
+              }}
+            >Ușor (5 min)</button>
+            <button
+              onClick={() => setEasyMode(false)}
+              style={{
+                padding: '4px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                background: !easyMode ? '#e74c3c' : 'rgba(255,255,255,0.2)',
+                color: 'white', fontWeight: 'bold', fontSize: '0.9rem',
+              }}
+            >Greu (orice minut)</button>
+            <button
+              onClick={() => setRomanMode(r => !r)}
+              style={{
+                padding: '4px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                background: romanMode ? '#16a085' : 'rgba(255,255,255,0.2)',
+                color: 'white', fontWeight: 'bold', fontSize: '0.9rem',
+              }}
+            >🏛 Cifre romane</button>
+          </div>
+
+          {/* Clock */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <ClockFace hour={time.h} minute={time.m} roman={romanMode} />
+          </div>
+
+          {/* Input row */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+            <input
+              ref={hourRef}
+              type="number" min="1" max="12"
+              value={inputH}
+              onChange={e => { setInputH(e.target.value); setResult(null); }}
+              onKeyDown={handleKeyDown}
+              placeholder="HH"
+              style={inputStyle}
+            />
+            <span style={{ fontSize: '2.2rem', fontWeight: 'bold', color: 'white' }}>:</span>
+            <input
+              ref={minRef}
+              type="number" min="0" max="59"
+              value={inputM}
+              onChange={e => { setInputM(e.target.value); setResult(null); }}
+              onKeyDown={handleKeyDown}
+              placeholder="MM"
+              style={inputStyle}
+            />
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '22px' }}>
+            <button
+              onClick={check}
+              style={{
+                fontSize: '1.2rem', padding: '12px 32px',
+                background: '#27ae60', color: 'white',
+                border: 'none', borderRadius: '12px', cursor: 'pointer',
+                fontWeight: 'bold', boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              }}
+            >
+              ✔ Verifică
+            </button>
+          </div>
+
+          {/* Result */}
+          {result && (
+            <div
+              key={resultKey}
+              className={result === 'correct' ? 'result-correct' : 'result-wrong'}
+              style={{
+                display: 'inline-block',
+                fontSize: '1.8rem', fontWeight: 'bold',
+                color: result === 'correct' ? '#2ecc71' : '#e74c3c',
+                background: 'rgba(255,255,255,0.15)',
+                borderRadius: '14px', padding: '12px 28px',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              {result === 'correct'
+                ? `🎉 Corect! Era ${time.h}:${fmt(time.m)}`
+                : `❌ Greșit! Era ${time.h}:${fmt(time.m)}`}
+            </div>
+          )}
+
+          {/* Streak */}
+          {streak >= 2 && (
+            <div style={{ marginTop: '12px', color: '#f1c40f', fontSize: '1.1rem', fontWeight: 'bold' }}>
+              🔥 {streak} la rând!
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>

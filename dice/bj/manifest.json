@@ -1,0 +1,18 @@
+{
+  "name": "Dice Blackjack",
+  "short_name": "Dice BJ",
+  "description": "Alternating turns dice blackjack — closest to 21 wins!",
+  "start_url": "./blackjack.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f4c2a",
+  "theme_color": "#0f4c2a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

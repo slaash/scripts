@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Poker Dice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function rollDie() {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return (arr[0] % 6) + 1;
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    const HAND_RANKS = [
+      { rank: 0, label: "High Card" },
+      { rank: 1, label: "One Pair" },
+      { rank: 2, label: "Two Pair" },
+      { rank: 3, label: "Three of a Kind" },
+      { rank: 4, label: "Straight" },
+      { rank: 5, label: "Full House" },
+      { rank: 6, label: "Four of a Kind" },
+      { rank: 7, label: "Five of a Kind" },
+    ];
+
+    function evaluateHand(dice) {
+      if (!dice || dice.length < 5) return { rank: -1, label: "—" };
+      const counts = {};
+      for (const d of dice) counts[d] = (counts[d] || 0) + 1;
+      const freq = Object.values(counts).sort((a, b) => b - a);
+      const sorted = [...dice].sort((a, b) => a - b);
+      const isStr = new Set(sorted).size === 5 && sorted[4] - sorted[0] === 4;
+      if (freq[0] === 5) return { rank: 7, label: "Five of a Kind" };
+      if (freq[0] === 4) return { rank: 6, label: "Four of a Kind" };
+      if (freq[0] === 3 && freq[1] === 2) return { rank: 5, label: "Full House" };
+      if (isStr) return { rank: 4, label: "Straight" };
+      if (freq[0] === 3) return { rank: 3, label: "Three of a Kind" };
+      if (freq[0] === 2 && freq[1] === 2) return { rank: 2, label: "Two Pair" };
+      if (freq[0] === 2) return { rank: 1, label: "One Pair" };
+      return { rank: 0, label: "High Card" };
+    }
+
+    // Returns boolean[] — which dice the CPU wants to keep
+    function cpuDecideKeep(dice) {
+      const hand = evaluateHand(dice);
+      if (hand.rank >= 5) return dice.map(() => true);
+
+      const counts = {};
+      for (const d of dice) counts[d] = (counts[d] || 0) + 1;
+      const topCount = Math.max(...Object.values(counts));
+
+      // Check for straight potential: longest consecutive run among unique values
+      const unique = [...new Set(dice)].sort((a, b) => a - b);
+      let best = [unique[0]], cur = [unique[0]];
+      for (let i = 1; i < unique.length; i++) {
+        if (unique[i] === unique[i - 1] + 1) cur.push(unique[i]);
+        else cur = [unique[i]];
+        if (cur.length > best.length) best = [...cur];
+      }
+      if (best.length >= 4) {
+        const runSet = new Set(best);
+        const seenInRun = {};
+        return dice.map(d => {
+          if (!runSet.has(d)) return false;
+          seenInRun[d] = (seenInRun[d] || 0) + 1;
+          return seenInRun[d] === 1;
+        });
+      }
+
+      // Keep by frequency
+      if (topCount >= 3) {
+        const keepVal = Object.keys(counts).find(k => counts[k] === topCount);
+        return dice.map(d => String(d) === keepVal);
+      }
+      if (topCount === 2) {
+        const pairVals = new Set(Object.keys(counts).filter(k => counts[k] >= 2));
+        const seen = {};
+        return dice.map(d => {
+          const k = String(d);
+          if (pairVals.has(k)) { seen[k] = (seen[k] || 0) + 1; return seen[k] <= 2; }
+          return false;
+        });
+      }
+
+      // Keep 5s and 6s as fallback
+      return dice.map(d => d >= 5);
+    }
+
+    const DieFace = ({ value, selected, onClick }) => {
+      const dots = {
+        1: [[50,50]],
+        2: [[25,25],[75,75]],
+        3: [[25,25],[50,50],[75,75]],
+        4: [[25,25],[75,25],[25,75],[75,75]],
+        5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+        6: [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]],
+      };
+      return (
+        <div
+          onClick={onClick}
+          style={{
+            width:60, height:60, background:"#1a1a1a", borderRadius:10,
+            border: selected ? "2px solid #fde68a" : "2px solid #000",
+            display:"inline-block", cursor: onClick ? "pointer" : "default",
+            boxShadow: selected
+              ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)"
+              : "2px 3px 8px rgba(0,0,0,0.3)",
+            transition:"box-shadow 0.15s, border-color 0.15s",
+          }}
+        >
+          <svg width="60" height="60" viewBox="0 0 100 100">
+            {(dots[value]||[]).map(([cx,cy],i) => (
+              <circle key={i} cx={cx} cy={cy} r={10} fill="#ef4444"/>
+            ))}
+          </svg>
+        </div>
+      );
+    };
+
+    const HAND_COLORS = ["#475569","#22c55e","#16a34a","#f59e0b","#8b5cf6","#ec4899","#ef4444","#fbbf24"];
+    const HAND_TEXT   = ["white",  "white",  "white",  "white",  "white",  "white",  "white",  "#1a1a1a"];
+
+    const HandBadge = ({ label, rank }) => (
+      <span style={{
+        display:"inline-block", padding:"3px 14px", borderRadius:20,
+        background: rank >= 0 ? HAND_COLORS[rank] : "#475569",
+        color: rank >= 0 ? HAND_TEXT[rank] : "white",
+        fontWeight:"bold", fontSize:16, marginTop:4,
+      }}>{label}</span>
+    );
+
+    function PokerDice() {
+      const [playerDice, setPlayerDice] = useState([]);
+      const [cpuDice,    setCpuDice]    = useState([]);
+      const [kept,       setKept]       = useState([false,false,false,false,false]);
+      const [phase,      setPhase]      = useState("idle");
+      const [rollsLeft,  setRollsLeft]  = useState(2);
+      const [message,    setMessage]    = useState("");
+      const [scores,     setScores]     = useState({ player:0, cpu:0 });
+      const [busy,       setBusy]       = useState(false);
+      const [cpuHidden,    setCpuHidden]    = useState(true);
+      const [cpuRollNum,   setCpuRollNum]   = useState(0);
+      const [cpuHandHist,  setCpuHandHist]  = useState([]);
+
+      const playerHand = evaluateHand(playerDice);
+      const cpuHand    = evaluateHand(cpuDice);
+
+      const resolveGame = (pDice, cDice) => {
+        const ph = evaluateHand(pDice);
+        const ch = evaluateHand(cDice);
+        let msg, winner;
+        if      (ph.rank > ch.rank) { msg = `🎉 You win! ${ph.label} beats ${ch.label}!`; winner = "player"; }
+        else if (ch.rank > ph.rank) { msg = `😞 CPU wins! ${ch.label} beats ${ph.label}!`; winner = "cpu"; }
+        else                        { msg = `🤝 Tie! Both have ${ph.label}.`; winner = null; }
+        setMessage(msg);
+        setPhase("end");
+        if (winner === "player") setScores(s => ({ ...s, player: s.player + 1 }));
+        else if (winner === "cpu") setScores(s => ({ ...s, cpu: s.cpu + 1 }));
+      };
+
+      const startGame = () => {
+        const p = Array.from({length:5}, rollDie);
+        const c = Array.from({length:5}, rollDie);
+        setPlayerDice(p); setCpuDice(c);
+        setKept([false,false,false,false,false]);
+        setRollsLeft(2); setPhase("cpu"); setBusy(false);
+        setCpuHidden(true); setCpuRollNum(1); setCpuHandHist([]);
+        setMessage("CPU goes first...");
+        runCpuTurn(c);
+      };
+
+      const toggleKeep = (i) => {
+        if (phase !== "player" || busy) return;
+        setKept(k => k.map((v, j) => j === i ? !v : v));
+      };
+
+      const doRoll = () => {
+        if (phase !== "player" || busy || rollsLeft <= 0) return;
+        const next = playerDice.map((d, i) => kept[i] ? d : rollDie());
+        setPlayerDice(next);
+        const rem = rollsLeft - 1;
+        setRollsLeft(rem);
+        if (rem <= 0) {
+          setMessage("No rolls left — standing automatically...");
+          resolveGame(next, cpuDice);
+        } else {
+          setMessage(`${rem} roll${rem === 1 ? "" : "s"} left — click dice to keep.`);
+        }
+      };
+
+      const doStand = () => {
+        if (phase !== "player" || busy) return;
+        resolveGame(playerDice, cpuDice);
+      };
+
+      const runCpuTurn = async (initialCDice) => {
+        setBusy(true);
+        let cDice = [...initialCDice];
+        let rolls = 2; // initial deal used 1 of 3
+        const hist = [evaluateHand(cDice).label];
+
+        while (rolls > 0) {
+          setMessage("CPU is thinking...");
+          await sleep(600);
+          const keep = cpuDecideKeep(cDice);
+          if (keep.every(Boolean)) break; // happy with hand
+          cDice = cDice.map((d, i) => keep[i] ? d : rollDie());
+          setCpuDice([...cDice]);
+          setCpuRollNum(n => n + 1);
+          hist.push(evaluateHand(cDice).label);
+          rolls--;
+          setMessage("CPU rolled...");
+          await sleep(300);
+        }
+
+        setCpuHandHist(hist);
+        setCpuDice([...cDice]);
+        setCpuHidden(false);
+        await sleep(400);
+        setBusy(false);
+        setPhase("player");
+        setMessage("Your turn — click dice to keep, then Roll or Stand.");
+      };
+
+      const reset = () => {
+        setPlayerDice([]); setCpuDice([]);
+        setPhase("idle"); setMessage("");
+        setScores({ player:0, cpu:0 });
+        setKept([false,false,false,false,false]);
+        setBusy(false); setCpuHidden(true); setRollsLeft(2); setCpuRollNum(0); setCpuHandHist([]);
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding:"12px 28px", fontSize:17, fontWeight:"bold", borderRadius:10,
+        border:"none", background: disabled ? "#94a3b8" : color,
+        color:"white", cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+      });
+
+      const turnRing = active => active ? { boxShadow:"0 0 0 3px #fde68a" } : {};
+
+      const renderStats = () => {
+        if ((phase !== "player" && phase !== "end") || cpuHidden || cpuDice.length < 5) return null;
+        const beatingCount = HAND_RANKS.filter(h => h.rank > cpuHand.rank).length;
+        return (
+          <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 16px",marginTop:12}}>
+            <div style={{fontSize:13,color:"#94a3b8",marginBottom:8,textAlign:"center",letterSpacing:1}}>
+              HAND RANKINGS — WHAT BEATS THE CPU
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {[...HAND_RANKS].reverse().map(h => {
+                const isCpu  = h.rank === cpuHand.rank;
+                const beats  = h.rank > cpuHand.rank;
+                const isPlayer = h.rank === playerHand.rank && !isCpu;
+                return (
+                  <div key={h.rank} style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    borderRadius:8, padding:"5px 12px",
+                    background: isCpu  ? "rgba(239,68,68,0.2)"
+                              : beats  ? "rgba(34,197,94,0.15)"
+                              : "rgba(255,255,255,0.04)",
+                    border: isCpu  ? "1px solid rgba(239,68,68,0.6)"
+                          : beats  ? "1px solid rgba(34,197,94,0.4)"
+                          : "1px solid transparent",
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{
+                        fontSize:14, fontWeight:(beats||isCpu)?"bold":"normal",
+                        color: isCpu  ? "#fca5a5"
+                             : beats  ? "#86efac"
+                             : "#64748b",
+                      }}>
+                        {h.label}
+                      </span>
+                      {isPlayer && (
+                        <span style={{fontSize:11,color:"#fde68a",background:"rgba(253,230,138,0.15)",padding:"1px 7px",borderRadius:99,border:"1px solid rgba(253,230,138,0.3)"}}>your hand</span>
+                      )}
+                    </div>
+                    <span style={{fontSize:12,color: beats?"#22c55e":isCpu?"#ef4444":"#475569"}}>
+                      {isCpu ? "← CPU's hand" : beats ? "✅ beats CPU" : ""}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{marginTop:8,fontSize:12,textAlign:"center",color: beatingCount>0?"#86efac":"#fca5a5"}}>
+              {beatingCount > 0
+                ? `${beatingCount} hand${beatingCount>1?"s":""} beat${beatingCount===1?"s":""} the CPU's ${cpuHand.label}`
+                : "Nothing beats Five of a Kind — unbeatable hand!"}
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif",padding:16}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"20px 24px",width:"100%",maxWidth:500,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white",display:"flex",flexDirection:"column"}}>
+
+            <h1 style={{textAlign:"center",margin:"0 0 2px",fontSize:26,letterSpacing:1}}>🎲 Poker Dice</h1>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:12,fontSize:13}}>Best hand wins — up to 3 rolls per round</p>
+
+            {/* Scoreboard */}
+            <div style={{display:"flex",justifyContent:"center",gap:32,marginBottom:12}}>
+              {[["You",scores.player],["CPU",scores.cpu]].map(([label,s]) => (
+                <div key={label} style={{textAlign:"center"}}>
+                  <div style={{fontSize:13,color:"#94a3b8"}}>{label}</div>
+                  <div style={{fontSize:28,fontWeight:"bold",color:"#fde68a"}}>{s}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* CPU area */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:10,textAlign:"center",transition:"box-shadow 0.3s",...turnRing(phase==="cpu")}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>CPU {phase==="cpu" ? "🎲" : ""}</div>
+                {cpuRollNum > 0 && (
+                  <div style={{fontSize:12,color:"#fde68a"}}>Roll {cpuRollNum} of 3</div>
+                )}
+              </div>
+              {cpuDice.length > 0
+                ? <>
+                    <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+                      {cpuDice.map((v,i) => cpuHidden
+                        ? <div key={i} style={{width:60,height:60,borderRadius:10,background:"#1e40af",border:"2px solid #334155",boxShadow:"2px 3px 8px rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🎲</div>
+                        : <DieFace key={i} value={v}/>
+                      )}
+                    </div>
+                    {!cpuHidden && (
+                      <div style={{marginTop:6}}>
+                        <HandBadge label={cpuHand.label} rank={cpuHand.rank}/>
+                        <div style={{fontSize:11,color:"#64748b",marginTop:5}}>
+                          {cpuHandHist.map((l,i) => `Roll ${i+1}: ${l}`).join(" → ")}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Player area */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:8,textAlign:"center",transition:"box-shadow 0.3s",...turnRing(phase==="player")}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>YOU {phase==="player" ? "🎲" : ""}</div>
+                {phase==="player" && (
+                  <div style={{fontSize:12,color:"#fde68a"}}>
+                    {rollsLeft > 0 ? `${rollsLeft} roll${rollsLeft===1?"":"s"} left` : "No rolls left"}
+                  </div>
+                )}
+              </div>
+              {playerDice.length > 0
+                ? <>
+                    <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+                      {playerDice.map((v,i) => (
+                        <DieFace
+                          key={i} value={v}
+                          selected={kept[i]}
+                          onClick={phase==="player" ? () => toggleKeep(i) : undefined}
+                        />
+                      ))}
+                    </div>
+                    {phase==="player" && (
+                      <div style={{fontSize:11,color:"#94a3b8",marginTop:5}}>
+                        Click dice to keep them highlighted in gold
+                      </div>
+                    )}
+                    <div style={{marginTop:6}}><HandBadge label={playerHand.label} rank={playerHand.rank}/></div>
+                  </>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Message */}
+            <div style={{textAlign:"center",minHeight:26,marginBottom:10,fontSize:17,fontWeight:"bold",color:"#fde68a"}}>{message}</div>
+
+            {/* Buttons */}
+            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+              {phase==="idle"||phase==="end"
+                ? <button style={btnStyle("#2563eb",false)} onClick={startGame}>
+                    {phase==="end" ? "🔄 Play Again" : "🎲 Deal"}
+                  </button>
+                : <>
+                    <button
+                      style={btnStyle("#16a34a", phase!=="player"||busy||rollsLeft<=0)}
+                      onClick={doRoll}
+                      disabled={phase!=="player"||busy||rollsLeft<=0}
+                    >🎲 Roll</button>
+                    <button
+                      style={btnStyle("#dc2626", phase!=="player"||busy)}
+                      onClick={doStand}
+                      disabled={phase!=="player"||busy}
+                    >✋ Stand</button>
+                  </>
+              }
+            </div>
+
+            {/* Reset */}
+            <div style={{textAlign:"center",marginTop:10}}>
+              <button
+                style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}}
+                onClick={reset}
+              >🔁 Reset Scores</button>
+            </div>
+
+            {/* Stats — what beats the CPU */}
+            {renderStats()}
+
+            <p style={{textAlign:"center",color:"#475569",fontSize:11,marginTop:12,marginBottom:0}}>
+              Rules: 5 dice · Up to 3 rolls total · Click dice to keep · Best poker hand wins
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<PokerDice/>);
+  </script>
+</body>
+</html>

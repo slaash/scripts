@@ -1,0 +1,18 @@
+{
+  "name": "Învață Ceasul",
+  "short_name": "Ceasul",
+  "description": "Exersează cititul ceasului — ușor și greu!",
+  "start_url": "./clock.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
