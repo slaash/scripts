@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Testul Ishihara</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 28px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #999;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .canvas-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    canvas {
+      display: block;
+      border-radius: 50%;
+    }
+    .input-section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus {
+      border-color: #4CAF50;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-check {
+      background: #4CAF50;
+      color: white;
+    }
+    .btn-check:hover {
+      background: #45a049;
+    }
+    .feedback {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      display: none;
+    }
+    .feedback.correct {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+    .feedback.incorrect {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+    .score {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ce vezi în imagine?</h1>
+
+    <div class="canvas-container">
+      <canvas id="testCanvas" width="320" height="320"></canvas>
+    </div>
+
+    <div class="input-section">
+      <input type="text" id="answerInput" placeholder="Introdu ce vezi...">
+    </div>
+
+    <div class="button-group">
+      <button class="btn-check" onclick="checkAnswer()">OK</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="score">
+      <strong id="scoreText">Corect: 0 | Greșit: 0</strong>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('testCanvas');
+    const ctx = canvas.getContext('2d');
+    const answerInput = document.getElementById('answerInput');
+    const feedbackEl = document.getElementById('feedback');
+
+    let currentAnswer = '';
+    let score = { correct: 0, incorrect: 0 };
+
+    // Possible answers - mix of numbers and letters
+    const testSequences = [
+      '5', '8', '29', '42', '6', '15', '17', '26', '35',
+      'A', 'B', 'C', 'E', 'F', 'P', 'R', 'S', 'X', 'Z'
+    ];
+
+    // Ishihara-style: figure and background share similar lightness, differ only in hue
+    // Each palette defines hue ranges for figure and background; saturation/lightness vary slightly per dot
+    const colorPalettes = [
+      { fgH: [10, 38],  bgH: [75, 125] },   // orange on green (classic)
+      { fgH: [0,  18],  bgH: [155, 195] },  // red on teal
+      { fgH: [270,310], bgH: [70, 120] },   // purple on green
+      { fgH: [195,225], bgH: [20,  55] },   // blue on orange-yellow
+      { fgH: [20,  45], bgH: [200, 240] },  // orange on blue
+    ];
+
+    function dotColor(hRange) {
+      const h = hRange[0] + Math.random() * (hRange[1] - hRange[0]);
+      const s = 52 + Math.random() * 28;   // 52–80%
+      const l = 48 + Math.random() * 18;   // 48–66% — same brightness band for both
+      return `hsl(${h},${s}%,${l}%)`;
+    }
+
+    function generateTest() {
+      const answerIndex = Math.floor(Math.random() * testSequences.length);
+      currentAnswer = testSequences[answerIndex];
+      const paletteIndex = Math.floor(Math.random() * colorPalettes.length);
+      const palette = colorPalettes[paletteIndex];
+
+      // Draw the Ishihara-style test
+      drawIshihara(currentAnswer, palette);
+
+      // Clear input and feedback
+      answerInput.value = '';
+      feedbackEl.className = 'feedback hidden';
+      answerInput.focus();
+    }
+
+    function buildMask(answer, w, h) {
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const c = off.getContext('2d');
+      c.fillStyle = '#000';
+      c.fillRect(0, 0, w, h);
+      c.fillStyle = '#fff';
+      const fontSize = answer.length === 1 ? 250 : answer.length === 2 ? 200 : 160;
+      c.font = `900 ${fontSize}px Arial, sans-serif`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillText(answer.toUpperCase(), w / 2, h / 2);
+      return c.getImageData(0, 0, w, h).data;
+    }
+
+    function drawIshihara(answer, palette) {
+      const w = canvas.width, h = canvas.height;
+      const mask = buildMask(answer, w, h);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Clip to circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2);
+      ctx.clip();
+
+      // Dense, varied-size dots with strong jitter — Ishihara style
+      const spacing = 15;
+      for (let x = spacing / 2; x < w; x += spacing) {
+        for (let y = spacing / 2; y < h; y += spacing) {
+          const jx = x + (Math.random() * spacing * 0.55 - spacing * 0.275);
+          const jy = y + (Math.random() * spacing * 0.55 - spacing * 0.275);
+          const px = Math.min(w - 1, Math.max(0, Math.round(jx)));
+          const py = Math.min(h - 1, Math.max(0, Math.round(jy)));
+          const onChar = mask[(py * w + px) * 4] > 128;
+
+          // Vary dot size — smaller dots make it harder to read
+          const r = 3.5 + Math.random() * 3.5;  // 3.5–7px radius
+
+          ctx.fillStyle = dotColor(onChar ? palette.fgH : palette.bgH);
+          ctx.beginPath();
+          ctx.arc(jx, jy, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function checkAnswer() {
+      const userAnswer = answerInput.value.trim().toUpperCase();
+      const correctAnswer = currentAnswer.toString().toUpperCase();
+
+      if (!userAnswer) {
+        feedbackEl.textContent = 'Te rog introdu un răspuns!';
+        feedbackEl.className = 'feedback incorrect';
+        return;
+      }
+
+      if (userAnswer === correctAnswer) {
+        feedbackEl.textContent = '✓ Corect!';
+        feedbackEl.className = 'feedback correct';
+        score.correct++;
+      } else {
+        feedbackEl.textContent = `✗ Greșit! Răspunsul corect era: ${currentAnswer}`;
+        feedbackEl.className = 'feedback incorrect';
+        score.incorrect++;
+      }
+
+      updateScore();
+      feedbackEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      // Draw a new image immediately, keep the feedback visible
+      const paletteIndex = Math.floor(Math.random() * colorPalettes.length);
+      const answerIndex = Math.floor(Math.random() * testSequences.length);
+      currentAnswer = testSequences[answerIndex];
+      drawIshihara(currentAnswer, colorPalettes[paletteIndex]);
+      answerInput.value = '';
+      answerInput.focus();
+    }
+
+    function updateScore() {
+      document.getElementById('scoreText').textContent =
+        `Corect: ${score.correct} | Greșit: ${score.incorrect}`;
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') {
+        checkAnswer();
+      }
+    }
+
+    answerInput.addEventListener('keypress', handleKeyPress);
+
+    // Initialize first test
+    generateTest();
+  </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+server {
+    listen 8181;
+    server_name _;
+
+    # Prevent nginx from merging // in the URI (needed to preserve https://)
+    merge_slashes off;
+
+    resolver 8.8.8.8 valid=60s;
+    resolver_timeout 10s;
+
+    allow 192.168.88.0/24;
+    allow 127.0.0.1;
+    deny all;
+
+    # Capture scheme+host and path separately so proxy_pass sends the right URI
+    # e.g. /https://example.com/foo  ->  proxy to https://example.com  with URI /foo
+    location ~ ^/(https?://[^/]+)(/.*)?$ {
+        set $ups_base $1;   # https://example.com
+        set $ups_path $2;   # /foo  (empty if no path given)
+
+        if ($ups_path = "") {
+            set $ups_path /;
+        }
+
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin  * always;
+            add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+            add_header Access-Control-Allow-Headers "*" always;
+            return 204;
+        }
+
+        proxy_pass              $ups_base$ups_path$is_args$args;
+        proxy_ssl_server_name   on;
+        proxy_set_header        Host             $proxy_host;
+        proxy_set_header        User-Agent       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+        proxy_set_header        Accept           $http_accept;
+        proxy_set_header        Accept-Language  $http_accept_language;
+        proxy_set_header        Referer          "";
+        proxy_connect_timeout   10s;
+        proxy_read_timeout      30s;
+        proxy_redirect          off;
+
+        proxy_hide_header       Access-Control-Allow-Origin;
+        proxy_hide_header       Access-Control-Allow-Methods;
+        proxy_hide_header       Access-Control-Allow-Headers;
+        add_header Access-Control-Allow-Origin * always;
+    }
+}

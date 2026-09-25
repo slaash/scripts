@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Romanian 6/49 Lottery</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    // Cryptographically strong, strictly unbiased integer in [0, maxExclusive).
+    // Uses rejection sampling on uint32 to avoid modulo bias.
+    function randomInt(maxExclusive) {
+      const limit = Math.floor(0xFFFFFFFF / maxExclusive) * maxExclusive;
+      const buf = new Uint32Array(1);
+      let r;
+      do {
+        crypto.getRandomValues(buf);
+        r = buf[0];
+      } while (r >= limit);
+      return r % maxExclusive;
+    }
+
+    // Fisher-Yates shuffle of a uniform "ball pool" — equivalent to a fair
+    // draw-without-replacement from a mechanical tumbler.
+    function drawBalls(count, min = 1, max = 49) {
+      const balls = Array.from({length: max - min + 1}, (_, i) => i + min);
+      for (let i = balls.length - 1; i > 0; i--) {
+        const j = randomInt(i + 1);
+        [balls[i], balls[j]] = [balls[j], balls[i]];
+      }
+      return balls.slice(0, count);
+    }
+
+    // Single source of truth for hot/neutral/cold classification.
+    // drawsAgo semantics: 1 = drawn in the most recent completed draw, 2 = the one before, etc.
+    // A number that has never been drawn returns Infinity.
+    function categoryFromDrawsAgo(drawsAgo) {
+      if (drawsAgo <= 3) return "hot";
+      if (drawsAgo <= 7) return "neutral";
+      return "cold";
+    }
+
+    // Compute lastSeen[1..49] from a slice of history (draws with index < upTo).
+    // Pass upTo = history.length for the live/current state.
+    function computeLastSeen(history, upTo) {
+      const lastSeen = {};
+      for (let i = 1; i <= 49; i++) lastSeen[i] = -1;
+      const limit = Math.min(upTo, history.length);
+      for (let i = 0; i < limit; i++) {
+        history[i].cpuNumbers.forEach(n => { lastSeen[n] = i; });
+      }
+      return lastSeen;
+    }
+
+    // drawsAgo relative to the point right BEFORE draw `referenceDraw` happens.
+    // referenceDraw = history.length means "now" (after all draws).
+    function drawsAgoAt(lastSeen, num, referenceDraw) {
+      if (lastSeen[num] === -1) return Infinity;
+      return referenceDraw - lastSeen[num];
+    }
+
+    const NumberButton = ({ number, selected, matched, disabled, onClick, category }) => {
+      let categoryBg = "#1e293b";
+      let categoryBorder = "#334155";
+      let categoryText = "#e2e8f0";
+      
+      if (category === "hot") {
+        categoryBg = "rgba(239,68,68,0.15)";
+        categoryBorder = "#ef4444";
+        categoryText = "#fca5a5";
+      } else if (category === "neutral") {
+        categoryBg = "rgba(251,191,36,0.15)";
+        categoryBorder = "#fbbf24";
+        categoryText = "#fde68a";
+      } else if (category === "cold") {
+        categoryBg = "rgba(96,165,250,0.15)";
+        categoryBorder = "#60a5fa";
+        categoryText = "#93c5fd";
+      }
+
+      return (
+        <button
+          onClick={onClick}
+          disabled={disabled}
+          style={{
+            width: 48,
+            height: 48,
+            fontSize: 16,
+            fontWeight: 'bold',
+            borderRadius: 8,
+            border: selected ? "2px solid #fde68a" : matched ? "2px solid #22c55e" : `1px solid ${categoryBorder}`,
+            background: matched ? "rgba(34,197,94,0.2)" : selected ? "rgba(253,230,138,0.2)" : categoryBg,
+            color: matched ? "#86efac" : selected ? "#fde68a" : categoryText,
+            cursor: disabled ? "not-allowed" : "pointer",
+            boxShadow: selected ? "0 0 0 2px #fde68a" : matched ? "0 0 0 2px #22c55e" : "none",
+            transition: "all 0.15s",
+            opacity: disabled && !matched && !selected ? 0.4 : 1,
+          }}
+        >
+          {number}
+        </button>
+      );
+    };
+
+    const NumberGrid = ({ userSelection, cpuNumbers, extractedNumbers, disabled, history }) => {
+      const numbers = Array.from({length: 49}, (_, i) => i + 1);
+
+      const lastSeen = computeLastSeen(history, history.length);
+      const getCategory = (num) => categoryFromDrawsAgo(drawsAgoAt(lastSeen, num, history.length));
+
+      return (
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: 8,
+          padding: 12,
+          background: "rgba(255,255,255,0.05)",
+          borderRadius: 14,
+          marginBottom: 12,
+        }}>
+          {numbers.map(n => {
+            const isSelected = userSelection.includes(n);
+            const isMatched = cpuNumbers.includes(n) && isSelected;
+            const isExtracted = extractedNumbers.includes(n);
+            const category = getCategory(n);
+            return (
+              <NumberButton
+                key={n}
+                number={n}
+                selected={isSelected}
+                matched={isMatched}
+                disabled={disabled || (extractedNumbers.length > 0 && !isMatched && isExtracted)}
+                category={category}
+                onClick={() => {
+                  if (!disabled && extractedNumbers.length === 0) {
+                    // Only allow changes before draw
+                    if (isSelected) {
+                      // Deselect
+                      window.toggleNumber(n);
+                    } else if (userSelection.length < 6) {
+                      // Select if not full
+                      window.toggleNumber(n);
+                    }
+                  }
+                }}
+              />
+            );
+          })}
+        </div>
+      );
+    };
+
+    const DrawHistory = ({ history, userSelectionHistory }) => {
+      if (history.length === 0) return null;
+
+      // Category as it was JUST BEFORE draw `drawIndex` happened
+      // (i.e. using only draws 0..drawIndex-1).
+      const getCategoryAtDraw = (num, drawIndex) => {
+        const lastSeen = computeLastSeen(history, drawIndex);
+        return categoryFromDrawsAgo(drawsAgoAt(lastSeen, num, drawIndex));
+      };
+
+      return (
+        <div style={{
+          background: "rgba(255,255,255,0.07)",
+          borderRadius: 14,
+          padding: "12px 16px",
+          marginTop: 12,
+        }}>
+          <div style={{fontSize: 13, color: "#94a3b8", marginBottom: 12, textAlign: "center", letterSpacing: 1}}>
+            DRAW HISTORY
+          </div>
+
+          <div style={{display: "flex", flexDirection: "column", gap: 8}}>
+            {history.map((entry, idx) => {
+              const drawIndex = idx;
+              const userNums = userSelectionHistory[drawIndex] || [];
+              const matches = entry.cpuNumbers.filter(n => userNums.includes(n));
+
+              return (
+                <div key={drawIndex} style={{
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 10,
+                  padding: "10px 12px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}>
+                  <div style={{fontSize: 11, color: "#94a3b8", marginBottom: 6}}>
+                    Draw #{drawIndex + 1} • {entry.timestamp}
+                  </div>
+
+                  <div style={{display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 6}}>
+                    <div>
+                      <div style={{fontSize: 10, color: "#64748b", marginBottom: 4}}>Your Pick:</div>
+                      <div style={{display: "flex", gap: 4, flexWrap: "wrap"}}>
+                        {userNums.map(n => {
+                          const isMatched = entry.cpuNumbers.includes(n);
+                          const category = getCategoryAtDraw(n, drawIndex);
+                          
+                          let bgColor, borderColor, textColor;
+                          if (category === "hot") {
+                            bgColor = "rgba(239,68,68,0.15)";
+                            borderColor = "#ef4444";
+                            textColor = "#fca5a5";
+                          } else if (category === "neutral") {
+                            bgColor = "rgba(251,191,36,0.15)";
+                            borderColor = "#fbbf24";
+                            textColor = "#fde68a";
+                          } else {
+                            bgColor = "rgba(96,165,250,0.15)";
+                            borderColor = "#60a5fa";
+                            textColor = "#93c5fd";
+                          }
+
+                          if (isMatched) {
+                            bgColor = "rgba(34,197,94,0.3)";
+                            borderColor = "#22c55e";
+                            textColor = "#22c55e";
+                          }
+
+                          return (
+                            <div key={n} style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 4,
+                              background: bgColor,
+                              border: `2px solid ${borderColor}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 11,
+                              fontWeight: isMatched ? "900" : "bold",
+                              color: textColor,
+                              boxShadow: isMatched ? "0 0 0 2px #22c55e" : "none",
+                            }}>
+                              {n}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div style={{fontSize: 10, color: "#64748b", marginBottom: 4}}>CPU Draw:</div>
+                      <div style={{display: "flex", gap: 4, flexWrap: "wrap"}}>
+                        {entry.cpuNumbers.map(n => {
+                          const category = getCategoryAtDraw(n, drawIndex);
+                          let bgColor, borderColor, textColor;
+
+                          if (category === "hot") {
+                            bgColor = "rgba(239,68,68,0.2)";
+                            borderColor = "#ef4444";
+                            textColor = "#fca5a5";
+                          } else if (category === "neutral") {
+                            bgColor = "rgba(251,191,36,0.2)";
+                            borderColor = "#fbbf24";
+                            textColor = "#fde68a";
+                          } else {
+                            bgColor = "rgba(96,165,250,0.2)";
+                            borderColor = "#60a5fa";
+                            textColor = "#93c5fd";
+                          }
+
+                          return (
+                            <div key={n} style={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 4,
+                              background: bgColor,
+                              border: `1px solid ${borderColor}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: 11,
+                              fontWeight: "bold",
+                              color: textColor,
+                            }}>
+                              {n}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    textAlign: "right",
+                    fontSize: 12,
+                    fontWeight: "bold",
+                    color: matches.length === 6 ? "#fbbf24" : matches.length >= 4 ? "#34d399" : matches.length >= 2 ? "#60a5fa" : "#ef5350",
+                  }}>
+                    Matches: {matches.length}/6
+                  </div>
+                </div>
+              );
+            }).reverse()}
+          </div>
+        </div>
+      );
+    };
+
+    const NumberFrequencyAnalysis = ({ history, userSelectionHistory }) => {
+      if (history.length === 0) return null;
+
+      const lastSeen = computeLastSeen(history, history.length);
+
+      // Build set of numbers picked by user in any draw
+      const userPickedNumbers = new Set();
+      userSelectionHistory.forEach(selection => {
+        selection.forEach(num => userPickedNumbers.add(num));
+      });
+
+      // Categorize numbers
+      const hot = [], neutral = [], cold = [];
+
+      for (let num = 1; num <= 49; num++) {
+        const cat = categoryFromDrawsAgo(drawsAgoAt(lastSeen, num, history.length));
+        if (cat === "hot") hot.push(num);
+        else if (cat === "neutral") neutral.push(num);
+        else cold.push(num);
+      }
+
+      const NumberList = ({ numbers, color, label }) => (
+        <div style={{marginBottom: 12}}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: "bold",
+            color: color,
+            marginBottom: 6,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}>
+            <span style={{display: "inline-block", width: 12, height: 12, borderRadius: 2, background: color}}></span>
+            {label} ({numbers.length})
+          </div>
+          <div style={{display: "flex", flexWrap: "wrap", gap: 6}}>
+            {numbers.map(num => {
+              const wasUserPicked = userPickedNumbers.has(num);
+              let bgColor;
+              if (color === "#ef4444") {
+                bgColor = "rgba(239,68,68,0.15)";
+              } else if (color === "#fbbf24") {
+                bgColor = "rgba(251,191,36,0.15)";
+              } else {
+                bgColor = "rgba(96,165,250,0.15)";
+              }
+              return (
+                <div key={num} style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 6,
+                  background: wasUserPicked
+                    ? "rgba(34,197,94,0.3)"
+                    : bgColor,
+                  border: wasUserPicked ? "2px solid #22c55e" : `1px solid ${color}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  color: wasUserPicked ? "#22c55e" : color,
+                  boxShadow: wasUserPicked ? "0 0 0 2px #22c55e" : "none",
+                }}>
+                  {num}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+
+      return (
+        <div style={{
+          background: "rgba(255,255,255,0.07)",
+          borderRadius: 14,
+          padding: "12px 16px",
+          marginTop: 12,
+        }}>
+          <div style={{fontSize: 13, color: "#94a3b8", marginBottom: 12, textAlign: "center", letterSpacing: 1}}>
+            HOT & COLD NUMBERS — LAST {history.length} DRAWS
+          </div>
+
+          <NumberList numbers={hot} color="#ef4444" label="🔥 Hot (Last 3 draws)" />
+          <NumberList numbers={neutral} color="#fbbf24" label="⭐ Neutral (4-7 draws ago)" />
+          <NumberList numbers={cold} color="#60a5fa" label="❄️ Cold (8+ draws ago)" />
+
+          <div style={{
+            marginTop: 10,
+            paddingTop: 10,
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            fontSize: 11,
+            textAlign: "center",
+            color: "#94a3b8",
+          }}>
+            <span style={{display: "inline-block", width: 10, height: 10, borderRadius: 2, background: "#22c55e", marginRight: 4}}></span>
+            Green numbers were picked by you in past draws.
+          </div>
+        </div>
+      );
+    };
+
+    function Loto649() {
+      const [userSelection, setUserSelection] = useState([]);
+      const [cpuNumbers, setCpuNumbers] = useState([]);
+      const [extractedNumbers, setExtractedNumbers] = useState([]);
+      const [phase, setPhase] = useState("idle"); // "idle" | "drawing" | "result"
+      const [busy, setBusy] = useState(false);
+      const [message, setMessage] = useState("");
+      const [history, setHistory] = useState([]);
+      const [userSelectionHistory, setUserSelectionHistory] = useState([]);
+      const [smartPickConfig, setSmartPickConfig] = useState({ hot: 1, neutral: 2, cold: 3 });
+      const [smartPickRangeConfig, setSmartPickRangeConfig] = useState({ low: 2, medium: 2, high: 2 });
+
+      window.toggleNumber = (n) => {
+        setUserSelection(prev => {
+          if (prev.includes(n)) {
+            return prev.filter(x => x !== n);
+          } else if (prev.length < 6) {
+            return [...prev, n].sort((a, b) => a - b);
+          }
+          return prev;
+        });
+      };
+
+      const generateCPUNumbers = async () => {
+        setBusy(true);
+        setMessage("");
+        setExtractedNumbers([]);
+        setCpuNumbers([]);
+        setPhase("drawing");
+
+        // One fair draw of 6 balls; reveal them one at a time for the animation.
+        const draw = drawBalls(6);
+        const numbers = [];
+        const used = [];
+
+        for (let i = 0; i < 6; i++) {
+          await sleep(600);
+          const pick = draw[i];
+          numbers.push(pick);
+          used.push(pick);
+          setCpuNumbers([...numbers]);
+          setExtractedNumbers([...used]);
+        }
+
+        const matches = userSelection.filter(n => numbers.includes(n)).length;
+        setMessage(`🎯 You matched ${matches} out of 6 numbers!`);
+        setPhase("result");
+        setHistory(prev => [...prev, { matches, cpuNumbers: numbers, timestamp: new Date().toLocaleTimeString() }]);
+        setUserSelectionHistory(prev => [...prev, userSelection]);
+        setBusy(false);
+      };
+
+      const quickPick = () => {
+        setUserSelection(drawBalls(6).sort((a, b) => a - b));
+      };
+
+      const rangeOf = (n) => (n <= 16 ? "low" : n <= 33 ? "medium" : "high");
+
+      const getCategorizedNumbers = () => {
+        const lastSeen = computeLastSeen(history, history.length);
+        const hot = [], neutral = [], cold = [];
+        for (let num = 1; num <= 49; num++) {
+          const cat = categoryFromDrawsAgo(drawsAgoAt(lastSeen, num, history.length));
+          if (cat === "hot") hot.push(num);
+          else if (cat === "neutral") neutral.push(num);
+          else cold.push(num);
+        }
+        return { hot, neutral, cold };
+      };
+
+      // Try to pick numbers that satisfy BOTH the H/N/C marginals and the L/M/H
+      // marginals. Uses random greedy with retries; returns null if infeasible.
+      const tryJointPick = (catTarget, rangeTarget) => {
+        const { hot, neutral, cold } = getCategorizedNumbers();
+        const catOf = {};
+        hot.forEach(n => { catOf[n] = "hot"; });
+        neutral.forEach(n => { catOf[n] = "neutral"; });
+        cold.forEach(n => { catOf[n] = "cold"; });
+
+        const total = catTarget.hot + catTarget.neutral + catTarget.cold;
+        if (total !== rangeTarget.low + rangeTarget.medium + rangeTarget.high) return null;
+        if (total === 0) return [];
+
+        for (let attempt = 0; attempt < 200; attempt++) {
+          const cat = { ...catTarget };
+          const range = { ...rangeTarget };
+          // Pool of numbers still eligible (one of each per attempt)
+          const pool = Array.from({length: 49}, (_, i) => i + 1);
+          const picked = [];
+          let failed = false;
+
+          for (let step = 0; step < total; step++) {
+            const candidates = pool.filter(n => cat[catOf[n]] > 0 && range[rangeOf(n)] > 0);
+            if (candidates.length === 0) { failed = true; break; }
+            const choice = candidates[randomInt(candidates.length)];
+            picked.push(choice);
+            cat[catOf[choice]]--;
+            range[rangeOf(choice)]--;
+            pool.splice(pool.indexOf(choice), 1);
+          }
+
+          if (!failed) return picked;
+        }
+        return null;
+      };
+
+      const smartPick = () => {
+        const picked = tryJointPick(smartPickConfig, smartPickRangeConfig);
+        if (picked === null) return;
+        setUserSelection(picked.sort((a, b) => a - b));
+      };
+
+      const playAgain = () => {
+        setUserSelection([]);
+        setCpuNumbers([]);
+        setExtractedNumbers([]);
+        setPhase("idle");
+        setMessage("");
+      };
+
+      const reset = () => {
+        setUserSelection([]);
+        setCpuNumbers([]);
+        setExtractedNumbers([]);
+        setPhase("idle");
+        setMessage("");
+        setHistory([]);
+        setUserSelectionHistory([]);
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding: "12px 32px",
+        fontSize: 16,
+        fontWeight: "bold",
+        borderRadius: 10,
+        border: "none",
+        background: disabled ? "#94a3b8" : color,
+        color: "white",
+        cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+        transition: "all 0.2s",
+      });
+
+      return (
+        <div style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          fontFamily: "'Segoe UI',sans-serif",
+          padding: 16,
+        }}>
+          <div style={{
+            background: "rgba(0,0,0,0.45)",
+            borderRadius: 20,
+            padding: "20px 24px",
+            width: "100%",
+            maxWidth: 600,
+            boxShadow: "0 8px 40px rgba(0,0,0,0.5)",
+            color: "white",
+            display: "flex",
+            flexDirection: "column",
+          }}>
+
+            <h1 style={{textAlign: "center", margin: "0 0 2px", fontSize: 28, letterSpacing: 1}}>
+              🎰 Loto 6/49
+            </h1>
+            <p style={{textAlign: "center", color: "#86efac", marginBottom: 16, fontSize: 13}}>
+              Select 6 numbers, let the CPU draw, and see how close you get!
+            </p>
+
+            {/* User Selection Display */}
+            <div style={{
+              background: "rgba(255,255,255,0.07)",
+              borderRadius: 14,
+              padding: "10px 12px",
+              marginBottom: 12,
+              textAlign: "center",
+            }}>
+              <div style={{fontSize: 12, color: "#94a3b8", marginBottom: 6}}>
+                YOUR SELECTION — {userSelection.length}/6 numbers
+              </div>
+              {userSelection.length > 0 ? (
+                <div style={{display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap"}}>
+                  {userSelection.map(n => (
+                    <div key={n} style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 6,
+                      background: "rgba(253,230,138,0.2)",
+                      border: "1px solid #fde68a",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 14,
+                      fontWeight: "bold",
+                      color: "#fde68a",
+                    }}>
+                      {n}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{color: "#475569", fontSize: 13}}>Click 6 numbers to get started</div>
+              )}
+            </div>
+
+            {/* Number Grid */}
+            <NumberGrid
+              userSelection={userSelection}
+              cpuNumbers={cpuNumbers}
+              extractedNumbers={extractedNumbers}
+              disabled={busy || phase === "result"}
+              history={history}
+            />
+
+            {/* CPU Numbers Display */}
+            {cpuNumbers.length > 0 && (
+              <div style={{
+                background: "rgba(255,255,255,0.07)",
+                borderRadius: 14,
+                padding: "10px 12px",
+                marginBottom: 12,
+                textAlign: "center",
+              }}>
+                <div style={{fontSize: 12, color: "#94a3b8", marginBottom: 6}}>
+                  CPU DRAW — {cpuNumbers.length}/6 numbers
+                </div>
+                <div style={{display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap"}}>
+                  {cpuNumbers.map(n => {
+                    const isMatched = userSelection.includes(n);
+                    return (
+                      <div key={n} style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 6,
+                        background: isMatched ? "rgba(34,197,94,0.2)" : "rgba(96,165,250,0.2)",
+                        border: isMatched ? "1px solid #34d399" : "1px solid #60a5fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 14,
+                        fontWeight: "bold",
+                        color: isMatched ? "#86efac" : "#93c5fd",
+                        boxShadow: isMatched ? "0 0 0 2px #34d399" : "none",
+                      }}>
+                        {n}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Message */}
+            <div style={{
+              textAlign: "center",
+              minHeight: 24,
+              marginBottom: 12,
+              fontSize: 16,
+              fontWeight: "bold",
+              color: "#fde68a",
+            }}>
+              {message}
+            </div>
+
+            {/* Buttons */}
+            <div style={{display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap"}}>
+              {phase === "idle" ? (
+                <>
+                  <button
+                    style={btnStyle("#2563eb", userSelection.length !== 6 || busy)}
+                    onClick={generateCPUNumbers}
+                    disabled={userSelection.length !== 6 || busy}
+                  >
+                    🎲 Draw Numbers
+                  </button>
+                  <button
+                    style={btnStyle("#f97316", userSelection.length === 6 || busy)}
+                    onClick={quickPick}
+                    disabled={userSelection.length === 6 || busy}
+                  >
+                    🎯 Quick Pick
+                  </button>
+                  {(() => {
+                    const { hot, neutral, cold } = getCategorizedNumbers();
+                    const { hot: hotCount, neutral: neutralCount, cold: coldCount } = smartPickConfig;
+                    const { low: lowCount, medium: medCount, high: highCount } = smartPickRangeConfig;
+                    const lowPool = 16, medPool = 17, highPool = 16;
+                    const sumsMatch = (hotCount + neutralCount + coldCount) === (lowCount + medCount + highCount);
+                    const hasCategoryRoom = hot.length >= hotCount && neutral.length >= neutralCount && cold.length >= coldCount;
+                    const hasRangeRoom = lowPool >= lowCount && medPool >= medCount && highPool >= highCount;
+                    const canSmartPick = sumsMatch && hasCategoryRoom && hasRangeRoom && userSelection.length < 6 && (hotCount + neutralCount + coldCount) > 0;
+                    return (
+                      <button
+                        style={btnStyle("#8b5cf6", !canSmartPick || userSelection.length === 6 || busy)}
+                        onClick={smartPick}
+                        disabled={!canSmartPick || userSelection.length === 6 || busy}
+                      >
+                        ✨ Smart Pick ({hotCount}H/{neutralCount}N/{coldCount}C, {lowCount}L/{medCount}M/{highCount}H)
+                      </button>
+                    );
+                  })()}
+                </>
+              ) : phase === "result" ? (
+                <button
+                  style={btnStyle("#16a34a", false)}
+                  onClick={playAgain}
+                >
+                  🔄 Play Again
+                </button>
+              ) : (
+                <div style={{color: "#fde68a", fontSize: 14, fontWeight: "bold"}}>Drawing...</div>
+              )}
+            </div>
+
+            {/* Reset */}
+            <div style={{textAlign: "center", marginTop: 12}}>
+              <button
+                style={{
+                  padding: "8px 24px",
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  borderRadius: 10,
+                  border: "1px solid #475569",
+                  background: "transparent",
+                  color: "#94a3b8",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                onClick={reset}
+              >
+                🔁 Reset All
+              </button>
+            </div>
+
+            {/* Smart Pick Configuration */}
+            <div style={{textAlign: "center", marginTop: 12}}>
+              <div style={{fontSize: 12, color: "#94a3b8", marginBottom: 8}}>Smart Pick Configuration</div>
+              <div style={{display: "flex", gap: 12, justifyContent: "center", alignItems: "center", flexWrap: "wrap"}}>
+                {[["Hot", "hot", "#ef4444"], ["Neutral", "neutral", "#fbbf24"], ["Cold", "cold", "#60a5fa"]].map(([label, key, color]) => (
+                  <div key={key} style={{display: "flex", alignItems: "center", gap: 6}}>
+                    <span style={{fontSize: 12, color}}>{label}:</span>
+                    <button
+                      onClick={() => setSmartPickConfig(prev => ({...prev, [key]: Math.max(0, prev[key] - 1)}))}
+                      style={{width: 24, height: 24, borderRadius: 4, background: "rgba(255,255,255,0.1)", border: "1px solid #475569", color: "#94a3b8", cursor: "pointer", fontSize: 12, fontWeight: "bold"}}
+                    >−</button>
+                    <span style={{width: 20, textAlign: "center", fontSize: 13, fontWeight: "bold", color: color}}>{smartPickConfig[key]}</span>
+                    <button
+                      onClick={() => setSmartPickConfig(prev => ({...prev, [key]: prev[key] + 1}))}
+                      style={{width: 24, height: 24, borderRadius: 4, background: "rgba(255,255,255,0.1)", border: "1px solid #475569", color: "#94a3b8", cursor: "pointer", fontSize: 12, fontWeight: "bold"}}
+                    >+</button>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{display: "flex", gap: 12, justifyContent: "center", alignItems: "center", flexWrap: "wrap", marginTop: 6}}>
+                {[["Low (1-16)", "low"], ["Mid (17-33)", "medium"], ["High (34-49)", "high"]].map(([label, key]) => (
+                  <div key={key} style={{display: "flex", alignItems: "center", gap: 6}}>
+                    <span style={{fontSize: 12, color: "#a78bfa"}}>{label}:</span>
+                    <button
+                      onClick={() => setSmartPickRangeConfig(prev => ({...prev, [key]: Math.max(0, prev[key] - 1)}))}
+                      style={{width: 24, height: 24, borderRadius: 4, background: "rgba(255,255,255,0.1)", border: "1px solid #475569", color: "#94a3b8", cursor: "pointer", fontSize: 12, fontWeight: "bold"}}
+                    >−</button>
+                    <span style={{width: 20, textAlign: "center", fontSize: 13, fontWeight: "bold", color: "#a78bfa"}}>{smartPickRangeConfig[key]}</span>
+                    <button
+                      onClick={() => setSmartPickRangeConfig(prev => ({...prev, [key]: prev[key] + 1}))}
+                      style={{width: 24, height: 24, borderRadius: 4, background: "rgba(255,255,255,0.1)", border: "1px solid #475569", color: "#94a3b8", cursor: "pointer", fontSize: 12, fontWeight: "bold"}}
+                    >+</button>
+                  </div>
+                ))}
+              </div>
+
+              {history.length > 0 && (() => {
+                const window = Math.min(3, history.length);
+                const totals = { hot: 0, neutral: 0, cold: 0 };
+                const range = { low: 0, medium: 0, high: 0 };
+                for (let k = history.length - window; k < history.length; k++) {
+                  const lastSeen = computeLastSeen(history, k);
+                  history[k].cpuNumbers.forEach(n => {
+                    totals[categoryFromDrawsAgo(drawsAgoAt(lastSeen, n, k))]++;
+                    if (n <= 16) range.low++;
+                    else if (n <= 33) range.medium++;
+                    else range.high++;
+                  });
+                }
+                const avg = {
+                  hot: (totals.hot / window).toFixed(1),
+                  neutral: (totals.neutral / window).toFixed(1),
+                  cold: (totals.cold / window).toFixed(1),
+                  low: (range.low / window).toFixed(1),
+                  medium: (range.medium / window).toFixed(1),
+                  high: (range.high / window).toFixed(1),
+                };
+                return (
+                  <div style={{marginTop: 8}}>
+                    <div style={{fontSize: 11, color: "#94a3b8"}}>
+                      Avg drawn in last {window} {window === 1 ? "round" : "rounds"}:{" "}
+                      <span style={{color: "#ef4444", fontWeight: "bold"}}>{avg.hot}H</span>
+                      {" / "}
+                      <span style={{color: "#fbbf24", fontWeight: "bold"}}>{avg.neutral}N</span>
+                      {" / "}
+                      <span style={{color: "#60a5fa", fontWeight: "bold"}}>{avg.cold}C</span>
+                    </div>
+                    <div style={{fontSize: 11, color: "#94a3b8", marginTop: 2}}>
+                      By range:{" "}
+                      <span style={{color: "#a78bfa", fontWeight: "bold"}}>{avg.low}</span>
+                      <span style={{color: "#64748b"}}> low (1-16)</span>
+                      {" / "}
+                      <span style={{color: "#a78bfa", fontWeight: "bold"}}>{avg.medium}</span>
+                      <span style={{color: "#64748b"}}> mid (17-33)</span>
+                      {" / "}
+                      <span style={{color: "#a78bfa", fontWeight: "bold"}}>{avg.high}</span>
+                      <span style={{color: "#64748b"}}> high (34-49)</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* History */}
+            <DrawHistory history={history} userSelectionHistory={userSelectionHistory} />
+
+            {/* Statistics */}
+            <NumberFrequencyAnalysis history={history} userSelectionHistory={userSelectionHistory} />
+
+            <p style={{
+              textAlign: "center",
+              color: "#475569",
+              fontSize: 11,
+              marginTop: 12,
+              marginBottom: 0,
+            }}>
+              Rules: Select 6 numbers · Click Draw · CPU generates 6 random numbers · Green highlights show matches!
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<Loto649/>);
+  </script>
+</body>
+</html>

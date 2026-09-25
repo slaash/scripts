@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ollama Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .cursor { animation: blink 1s step-start infinite; }
+    @keyframes thinking-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+    .thinking-block {
+      border-left: 2px solid #7c3aed;
+      background: rgba(124,58,237,0.08);
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #c4b5fd;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.55;
+    }
+    .thinking-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      font-size: 12px;
+      color: #a78bfa;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .thinking-header:hover { color: #c4b5fd; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const KNOWN_TEXT_EXTENSIONS = new Set([
+      'js','ts','jsx','tsx','py','rs','go','c','cpp','h','hpp',
+      'java','rb','php','sh','bash','zsh','fish',
+      'json','yaml','yml','toml','md','txt','html','htm',
+      'css','scss','less','sql','xml','env','ini','cfg',
+      'lock','gitignore','dockerfile','makefile','csv','log',
+    ]);
+    const MAX_TEXT_BYTES  = 512 * 1024;
+    const MAX_IMAGE_BYTES = 10  * 1024 * 1024;
+    const MULTIMODAL_HINTS = ["llava","gemma3","vision","vl","bakllava","moondream","minicpm"];
+    const isMultimodalModel = name => MULTIMODAL_HINTS.some(h => name.toLowerCase().includes(h));
+    const THINKING_HINTS = ["qwen3","deepseek-r1","deepseek-r2","marco-o1","qwq","o1"];
+    const isThinkingModel = name => THINKING_HINTS.some(h => name.toLowerCase().includes(h));
+
+    const STATUS_COLORS = {
+      idle:       "#94a3b8",
+      connecting: "#f59e0b",
+      connected:  "#22c55e",
+      error:      "#ef4444",
+    };
+
+    const ThinkingBlock = ({ thinking, isStreaming, isOpen, onToggle }) => {
+      if (!thinking && !isStreaming) return null;
+      return (
+        <div className="thinking-block">
+          <div className="thinking-header" onClick={onToggle}>
+            <span style={{
+              width:8, height:8, borderRadius:"50%", flexShrink:0,
+              background: isStreaming ? "#7c3aed" : "#6d28d9",
+              display:"inline-block",
+              animation: isStreaming ? "thinking-pulse 1.2s ease-in-out infinite" : "none",
+            }}/>
+            <span style={{animation: isStreaming ? "thinking-pulse 1.2s ease-in-out infinite" : "none"}}>
+              {isStreaming ? "Thinking…" : "Thinking"}
+            </span>
+            <span style={{marginLeft:"auto", fontSize:11, opacity:0.7}}>
+              {isOpen ? "▲ hide" : "▼ show"}
+            </span>
+          </div>
+          {isOpen && <div>{thinking || ""}</div>}
+        </div>
+      );
+    };
+
+    const StatusBadge = ({ status, msg }) => (
+      <span style={{
+        display:"inline-flex", alignItems:"center", gap:6,
+        padding:"4px 12px", borderRadius:20,
+        background:"rgba(255,255,255,0.07)",
+        color: STATUS_COLORS[status] || "#94a3b8",
+        fontSize:13, fontWeight:"bold",
+      }}>
+        <span style={{width:8,height:8,borderRadius:"50%",background:STATUS_COLORS[status]||"#94a3b8",display:"inline-block",flexShrink:0}}/>
+        {msg}
+      </span>
+    );
+
+    const MessageBubble = ({ role, content, streaming, imagePreviewUrl,
+                             thinking, thinkingOpen, onToggleThinking, isThinkingStreaming, stats }) => {
+      const isUser = role === "user";
+      return (
+        <div style={{
+          display:"flex",
+          justifyContent: isUser ? "flex-end" : "flex-start",
+          marginBottom:10,
+        }}>
+          <div style={{
+            maxWidth:"85%",
+            padding:"10px 14px",
+            borderRadius: isUser ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+            background: isUser ? "rgba(22,163,74,0.3)" : "rgba(255,255,255,0.07)",
+            color:"white",
+            fontSize:14,
+            lineHeight:1.6,
+            whiteSpace:"pre-wrap",
+            wordBreak:"break-word",
+          }}>
+            {imagePreviewUrl && (
+              <img
+                src={imagePreviewUrl}
+                alt="attached"
+                style={{maxWidth:"100%",maxHeight:200,borderRadius:8,display:"block",marginBottom:content?8:0}}
+              />
+            )}
+            {!isUser && thinking !== undefined && (
+              <ThinkingBlock
+                thinking={thinking}
+                isStreaming={isThinkingStreaming}
+                isOpen={thinkingOpen}
+                onToggle={onToggleThinking}
+              />
+            )}
+            {content || (streaming ? "" : "…")}
+            {streaming && <span className="cursor" style={{color:"#86efac",fontWeight:"bold"}}>▋</span>}
+            {!isUser && !streaming && stats && (
+              <div style={{marginTop:6,fontSize:11,color:"#94a3b8",textAlign:"right"}}>{stats}</div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    function OllamaChat() {
+      const [serverUrl, setServerUrl]       = useState("http://localhost:11434");
+      const [status, setStatus]             = useState("idle");
+      const [statusMsg, setStatusMsg]       = useState("Not connected");
+      const [models, setModels]             = useState([]);
+      const [selectedModel, setSelectedModel] = useState("");
+      const [messages, setMessages]         = useState([]);
+      const [input, setInput]               = useState("");
+      const [streaming, setStreaming]       = useState(false);
+      const [attachment, setAttachment]     = useState(null);
+      const [attachError, setAttachError]   = useState("");
+      const [thinkEnabled, setThinkEnabled] = useState(false);
+
+      const abortCtrlRef = useRef(null);
+      const chatEndRef   = useRef(null);
+      const textareaRef  = useRef(null);
+      const fileInputRef = useRef(null);
+
+      useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior:"smooth" });
+      }, [messages]);
+
+      const connectAndFetch = async () => {
+        setStatus("connecting");
+        setStatusMsg("Connecting…");
+        setModels([]);
+        setSelectedModel("");
+        setMessages([]);
+        setAttachment(null);
+        setAttachError("");
+        try {
+          const url = serverUrl.replace(/\/$/, "");
+          const res = await fetch(`${url}/api/tags`);
+          if (!res.ok) throw new Error(`Server returned ${res.status}`);
+          const data = await res.json();
+          const names = (data.models || []).map(m => m.name);
+          if (names.length === 0) {
+            setStatus("connected");
+            setStatusMsg("Connected — no models found (run: ollama pull <model>)");
+          } else {
+            setModels(names);
+            setSelectedModel(names[0]);
+            setStatus("connected");
+            setStatusMsg(`Connected — ${names.length} model${names.length>1?"s":""} available`);
+          }
+        } catch (e) {
+          setStatus("error");
+          setStatusMsg(`Error: ${e.message}${e.message.includes("fetch") ? " (CORS or unreachable)" : ""}`);
+        }
+      };
+
+      const stopStreaming = () => {
+        abortCtrlRef.current?.abort();
+      };
+
+      const handleFileSelect = e => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setAttachError("");
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isImage = file.type.startsWith("image/");
+        const isAudio = file.type.startsWith("audio/");
+        const isText  = file.type.startsWith("text/") || KNOWN_TEXT_EXTENSIONS.has(ext);
+
+        if (isAudio) {
+          setAttachError("Audio files are not supported — the Ollama API has no audio input. Transcribe the audio first, then paste the text.");
+          return;
+        }
+        if (!isImage && !isText) {
+          setAttachError(`Cannot attach "${file.name}" — only text/code files and images are supported.`);
+          return;
+        }
+        if (isText && file.size > MAX_TEXT_BYTES) {
+          setAttachError(`File too large (${(file.size/1024).toFixed(0)} KB). Text files must be under 512 KB.`);
+          return;
+        }
+        if (isImage && file.size > MAX_IMAGE_BYTES) {
+          setAttachError(`Image too large (${(file.size/1024/1024).toFixed(1)} MB). Images must be under 10 MB.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        if (isImage) {
+          reader.onload = ev => {
+            const dataUrl = ev.target.result;
+            const base64  = dataUrl.split(",")[1];
+            setAttachment({ type:"image", name:file.name, base64, previewUrl:dataUrl, size:file.size, content:null });
+          };
+          reader.readAsDataURL(file);
+        } else {
+          reader.onload = ev => {
+            const text = ev.target.result;
+            if (text.slice(0, 512).includes('\0')) {
+              setAttachError(`"${file.name}" appears to be a binary file and cannot be sent as text.`);
+              return;
+            }
+            setAttachment({ type:"text", name:file.name, content:text, base64:null, previewUrl:null, size:file.size });
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const sendMessage = async () => {
+        if ((!input.trim() && !attachment) || streaming || !selectedModel) return;
+
+        // Build content and API message
+        let userContent = input.trim();
+        if (attachment?.type === "text") {
+          const fence = "```";
+          userContent = `[File: ${attachment.name}]\n${fence}\n${attachment.content}\n${fence}${userContent ? "\n\n" + userContent : ""}`;
+        }
+        const apiUserMsg = { role:"user", content: userContent };
+        if (attachment?.type === "image") {
+          apiUserMsg.images = [attachment.base64];
+        }
+
+        // Display message (includes preview URL for rendering in history)
+        const displayUserMsg = {
+          role:"user",
+          content: userContent || `[Image: ${attachment?.name}]`,
+          ...(attachment?.type === "image" ? { imagePreviewUrl:attachment.previewUrl, imageBase64:attachment.base64 } : {}),
+        };
+
+        // API history strips display-only fields and restores images array
+        const toApiMsg = m => {
+          const { imagePreviewUrl, imageBase64, thinking, thinkingOpen, stats, ...rest } = m;
+          if (imageBase64) rest.images = [imageBase64];
+          return rest;
+        };
+        const nextMessages    = [...messages, displayUserMsg];
+        const nextApiMessages = [...messages.map(toApiMsg), apiUserMsg];
+
+        setMessages(nextMessages);
+        setInput("");
+        setAttachment(null);
+        setStreaming(true);
+        textareaRef.current?.focus();
+
+        const ctrl = new AbortController();
+        abortCtrlRef.current = ctrl;
+
+        // placeholder for assistant reply
+        setMessages(prev => [...prev, {
+          role:"assistant", content:"",
+          ...(thinkEnabled && isThinkingModel(selectedModel) ? { thinking:"", thinkingOpen:true } : {}),
+        }]);
+
+        try {
+          const url = serverUrl.replace(/\/$/, "");
+          const res = await fetch(`${url}/api/chat`, {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({ model:selectedModel, messages:nextApiMessages, stream:true, ...(thinkEnabled && isThinkingModel(selectedModel) ? { think:true } : {}) }),
+            signal: ctrl.signal,
+          });
+          if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+          const reader  = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream:true });
+            const lines = buf.split("\n");
+            buf = lines.pop(); // keep incomplete last line
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              let obj;
+              try { obj = JSON.parse(line); } catch { continue; }
+              const thinkToken   = obj?.message?.thinking;
+              const contentToken = obj?.message?.content;
+              if (thinkToken) {
+                setMessages(prev => {
+                  const updated = [...prev];
+                  const last = { ...updated[updated.length - 1] };
+                  last.thinking = (last.thinking || "") + thinkToken;
+                  updated[updated.length - 1] = last;
+                  return updated;
+                });
+              }
+              if (contentToken) {
+                setMessages(prev => {
+                  const updated = [...prev];
+                  const last = { ...updated[updated.length - 1] };
+                  last.content = last.content + contentToken;
+                  // Auto-collapse thinking when content starts flowing
+                  if (last.thinkingOpen && last.content.length > 0 && last.thinking) {
+                    last.thinkingOpen = false;
+                  }
+                  updated[updated.length - 1] = last;
+                  return updated;
+                });
+              }
+              if (obj?.done) {
+                if (obj.total_duration) {
+                  const secs     = (obj.total_duration / 1e9).toFixed(1);
+                  const tokSec   = obj.eval_count && obj.eval_duration
+                    ? (obj.eval_count / (obj.eval_duration / 1e9)).toFixed(1)
+                    : null;
+                  const stats = tokSec
+                    ? `${secs}s · ${obj.eval_count} tokens · ${tokSec} tok/s`
+                    : `${secs}s`;
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { ...updated[updated.length - 1], stats };
+                    return updated;
+                  });
+                }
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          if (e.name !== "AbortError") {
+            setMessages(prev => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role:"assistant", content:`⚠️ Error: ${e.message}` };
+              return updated;
+            });
+          }
+        } finally {
+          setStreaming(false);
+          abortCtrlRef.current = null;
+        }
+      };
+
+      const handleKeyDown = e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      };
+
+      const inputStyle = {
+        width:"100%", padding:"10px 12px", borderRadius:10,
+        border:"1px solid #334155", background:"rgba(255,255,255,0.07)",
+        color:"white", fontSize:14, outline:"none",
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding:"10px 20px", fontSize:14, fontWeight:"bold", borderRadius:10,
+        border:"none", background: disabled ? "#334155" : color,
+        color: disabled ? "#64748b" : "white",
+        cursor: disabled ? "not-allowed" : "pointer",
+        whiteSpace:"nowrap",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+        flexShrink:0,
+      });
+
+      const canSend = !streaming && !!selectedModel && (!!input.trim() || !!attachment);
+
+      return (
+        <div style={{
+          minHeight:"100vh",
+          background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",
+          display:"flex", alignItems:"flex-start", justifyContent:"center",
+          fontFamily:"'Segoe UI',sans-serif", padding:16,
+        }}>
+          <div style={{
+            background:"rgba(0,0,0,0.45)", borderRadius:20, padding:"20px 24px",
+            width:"100%", maxWidth:680,
+            boxShadow:"0 8px 40px rgba(0,0,0,0.5)",
+            color:"white", display:"flex", flexDirection:"column", gap:12,
+          }}>
+
+            {/* Header */}
+            <div>
+              <h1 style={{textAlign:"center",fontSize:26,letterSpacing:1,marginBottom:2}}>🤖 Ollama Chat</h1>
+              <p style={{textAlign:"center",color:"#86efac",fontSize:13}}>Local LLM chat via Ollama API</p>
+            </div>
+
+            {/* Connection bar */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 14px",display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <input
+                  style={{...inputStyle, flex:1}}
+                  value={serverUrl}
+                  onChange={e => { setServerUrl(e.target.value); setStatus("idle"); setStatusMsg("Not connected"); }}
+                  placeholder="http://localhost:11434"
+                  onKeyDown={e => e.key==="Enter" && connectAndFetch()}
+                />
+                <button
+                  style={btnStyle("#16a34a", status==="connecting")}
+                  onClick={connectAndFetch}
+                  disabled={status==="connecting"}
+                >
+                  {status==="connecting" ? "Connecting…" : status==="connected" ? "Reconnect" : "Connect"}
+                </button>
+              </div>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                <StatusBadge status={status} msg={statusMsg}/>
+                {models.length > 0 && (
+                  <label style={{
+                    display:"flex", alignItems:"center", gap:7, cursor:"pointer",
+                    color: thinkEnabled ? "#c4b5fd" : "#94a3b8",
+                    fontSize:13, userSelect:"none", marginLeft:"auto",
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={thinkEnabled}
+                      onChange={e => setThinkEnabled(e.target.checked)}
+                      style={{accentColor:"#7c3aed", width:15, height:15, cursor:"pointer"}}
+                    />
+                    Thinking mode
+                    {thinkEnabled && (() => {
+                      const thinkingModels = models.filter(isThinkingModel).map(m => m.split(':')[0]).filter((v,i,a) => a.indexOf(v)===i);
+                      return thinkingModels.length > 0
+                        ? <span style={{fontSize:11,color:"#a78bfa",background:"rgba(124,58,237,0.15)",borderRadius:8,padding:"2px 8px"}}>
+                            {thinkingModels.join(' · ')}
+                          </span>
+                        : <span style={{fontSize:11,color:"#f59e0b",background:"rgba(245,158,11,0.12)",borderRadius:8,padding:"2px 8px"}}>
+                            no thinking models available
+                          </span>;
+                    })()}
+                  </label>
+                )}
+              </div>
+              <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+                {models.length > 0 && (
+                  <select
+                    value={selectedModel}
+                    onChange={e => { setSelectedModel(e.target.value); setMessages([]); setAttachment(null); setAttachError(""); }}
+                    style={{
+                      ...inputStyle, flex:1, minWidth:160,
+                      cursor:"pointer", appearance:"none",
+                      backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat:"no-repeat", backgroundPosition:"right 12px center",
+                      paddingRight:32,
+                    }}
+                  >
+                    {models.map(m => <option key={m} value={m} style={{background:"#1e293b"}}>{m}</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* Message history */}
+            <div style={{
+              background:"rgba(255,255,255,0.04)", borderRadius:14,
+              padding:"12px 14px",
+              minHeight:200, maxHeight:"55vh",
+              overflowY:"auto",
+              display:"flex", flexDirection:"column",
+            }}>
+              {messages.length === 0 ? (
+                <div style={{
+                  flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+                  color:"#475569", fontSize:14, textAlign:"center",
+                }}>
+                  {status === "connected"
+                    ? selectedModel
+                      ? "Start chatting — type a message below"
+                      : "No models available"
+                    : "Connect to an Ollama server to start chatting"
+                  }
+                </div>
+              ) : (
+                messages.map((msg, i) => (
+                  <MessageBubble
+                    key={i}
+                    role={msg.role}
+                    content={msg.content}
+                    streaming={streaming && i === messages.length - 1 && msg.role === "assistant"}
+                    imagePreviewUrl={msg.imagePreviewUrl}
+                    thinking={msg.thinking}
+                    thinkingOpen={msg.thinkingOpen}
+                    isThinkingStreaming={streaming && i === messages.length - 1 && msg.role === "assistant" && msg.thinking !== undefined && msg.content === ""}
+                    onToggleThinking={() => setMessages(prev => {
+                      const updated = [...prev];
+                      updated[i] = { ...updated[i], thinkingOpen: !updated[i].thinkingOpen };
+                      return updated;
+                    })}
+                    stats={msg.stats}
+                  />
+                ))
+              )}
+              <div ref={chatEndRef}/>
+            </div>
+
+            {/* Attachment preview / error */}
+            {(attachment || attachError) && (
+              <div style={{
+                background:"rgba(255,255,255,0.06)", borderRadius:10,
+                padding:"8px 12px", display:"flex", alignItems:"center", gap:10,
+                border: attachError ? "1px solid #ef4444" : "1px solid rgba(22,163,74,0.4)",
+              }}>
+                {attachError ? (
+                  <>
+                    <span style={{color:"#ef4444",fontSize:13,flex:1}}>{attachError}</span>
+                    <button onClick={() => setAttachError("")} style={{background:"none",border:"none",color:"#94a3b8",cursor:"pointer",fontSize:16}}>✕</button>
+                  </>
+                ) : attachment?.type === "image" ? (
+                  <>
+                    <img src={attachment.previewUrl} alt={attachment.name} style={{height:48,width:48,objectFit:"cover",borderRadius:6,flexShrink:0}}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{color:"#e2e8f0",fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment.name}</div>
+                      <div style={{color:"#94a3b8",fontSize:11}}>{(attachment.size/1024).toFixed(0)} KB</div>
+                      {!isMultimodalModel(selectedModel) && (
+                        <div style={{color:"#f59e0b",fontSize:11,marginTop:2}}>Warning: "{selectedModel}" may not support images. Try llava, gemma3, or qwen3-vl.</div>
+                      )}
+                    </div>
+                    <button onClick={() => setAttachment(null)} style={{background:"none",border:"none",color:"#94a3b8",cursor:"pointer",fontSize:16}} title="Remove">✕</button>
+                  </>
+                ) : (
+                  <>
+                    <span style={{fontSize:20,flexShrink:0}}>📄</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{color:"#e2e8f0",fontSize:13,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment.name}</div>
+                      <div style={{color:"#94a3b8",fontSize:11}}>{(attachment.size/1024).toFixed(0)} KB</div>
+                    </div>
+                    <button onClick={() => setAttachment(null)} style={{background:"none",border:"none",color:"#94a3b8",cursor:"pointer",fontSize:16}} title="Remove">✕</button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Input bar */}
+            <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="text/*,image/*,.js,.ts,.jsx,.tsx,.py,.rs,.go,.c,.cpp,.h,.hpp,.java,.rb,.php,.sh,.json,.yaml,.yml,.toml,.md,.sql,.xml,.env,.ini,.cfg,.lock,.csv,.log"
+                style={{display:"none"}}
+                onChange={handleFileSelect}
+              />
+              <textarea
+                ref={textareaRef}
+                rows={3}
+                style={{
+                  ...inputStyle, flex:1, resize:"vertical", minHeight:72,
+                  lineHeight:1.5,
+                }}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  attachment
+                    ? "Add a message or press Send to submit the file…"
+                    : selectedModel
+                      ? `Message ${selectedModel}… (Enter to send, Shift+Enter for newline)`
+                      : "Select a model to start chatting"
+                }
+                disabled={!selectedModel || streaming}
+              />
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                <button
+                  style={{
+                    padding:"10px 14px", fontSize:18, borderRadius:10,
+                    border:"1px solid #334155",
+                    background: attachment ? "rgba(22,163,74,0.25)" : "rgba(255,255,255,0.07)",
+                    color: attachment ? "#86efac" : "#94a3b8",
+                    cursor: (!selectedModel || streaming) ? "not-allowed" : "pointer",
+                    flexShrink:0, boxShadow:"none",
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={!selectedModel || streaming}
+                  title="Attach a file (text/code or image)"
+                >📎</button>
+                <button
+                  style={btnStyle("#2563eb", !canSend)}
+                  onClick={sendMessage}
+                  disabled={!canSend}
+                >
+                  Send
+                </button>
+                {streaming && (
+                  <button
+                    style={btnStyle("#dc2626", false)}
+                    onClick={stopStreaming}
+                  >
+                    Stop
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <p style={{textAlign:"center",color:"#475569",fontSize:11,marginTop:2}}>
+              Requires Ollama running locally · Models load from /api/tags · Full conversation context sent each message
+            </p>
+
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<OllamaChat/>);
+  </script>
+</body>
+</html>

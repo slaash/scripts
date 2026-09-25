@@ -1,0 +1,109 @@
+import secrets
+
+DICE = {
+    1: ["┌───────┐", "│       │", "│   1   │", "│       │", "└───────┘"],
+    2: ["┌───────┐", "│ 2     │", "│       │", "│     2 │", "└───────┘"],
+    3: ["┌───────┐", "│ 3     │", "│   3   │", "│     3 │", "└───────┘"],
+    4: ["┌───────┐", "│ 4   4 │", "│       │", "│ 4   4 │", "└───────┘"],
+    5: ["┌───────┐", "│ 5   5 │", "│   5   │", "│ 5   5 │", "└───────┘"],
+    6: ["┌───────┐", "│ 6   6 │", "│ 6   6 │", "│ 6   6 │", "└───────┘"],
+}
+
+RESET = "\033[0m"
+PLAYER_COLORS = ["\033[92m", "\033[91m"]
+W = 38
+
+def divider(char, label=""):
+    if label:
+        side = (W - len(label) - 2) // 2
+        print(char * side + " " + label + " " + char * (W - side - len(label) - 2))
+    else:
+        print(char * W)
+
+def dieLines(value):
+    color = "\033[1m"
+    return [f"{color}{line}{RESET}" for line in DICE[value]]
+
+def showHand(hand, label=""):
+    all_lines = [dieLines(d) for d in hand]
+    for row in range(5):
+        print("  ".join(lines[row] for lines in all_lines))
+    if label:
+        print(label)
+    print()
+
+def rollDice(n):
+    return [secrets.randbelow(6) + 1 for _ in range(n)]
+
+def isDouble(hand):
+    return len(hand) == 2 and hand[0] == hand[1]
+
+def compareHands(player, computer):
+    player_sum = sum(player)
+    computer_sum = sum(computer)
+    
+    if isDouble(player) and isDouble(computer):
+        if max(player) > max(computer):
+            return 1
+        elif max(computer) > max(player):
+            return -1
+        return 0
+    elif isDouble(player):
+        return 1
+    elif isDouble(computer):
+        return -1
+    
+    if player_sum > computer_sum:
+        return 1
+    elif computer_sum > player_sum:
+        return -1
+    return 0
+
+def main():
+    print()
+    divider("═", "DICE DUEL")
+    print()
+    print("Roll 2 dice vs the computer. Highest sum wins!")
+    print("Rolling doubles? Your biggest die breaks the tie!")
+    print()
+    
+    while True:
+        input("Press Enter to roll... ")
+        
+        divider("─", "Your Roll")
+        player = rollDice(2)
+        player_sum = sum(player)
+        player_info = f"You rolled {player_sum} (sum)"
+        if isDouble(player):
+            player_info = f"You rolled {player_sum} (sum) - DOUBLE!"
+        showHand(player, f"\033[92m{player_info}{RESET}")
+        
+        divider("─", "Computer's Roll")
+        computer = rollDice(2)
+        computer_sum = sum(computer)
+        computer_info = f"Computer rolled {computer_sum} (sum)"
+        if isDouble(computer):
+            computer_info = f"Computer rolled {computer_sum} (sum) - DOUBLE!"
+        showHand(computer, f"\033[91m{computer_info}{RESET}")
+        
+        divider("─", "Result")
+        result = compareHands(player, computer)
+        if result == 1:
+            print("\033[92m🎉 You win!\033[0m")
+        elif result == -1:
+            print("\033[91m😢 Computer wins!\033[0m")
+        else:
+            print("\033[93m🤝 It's a tie!\033[0m")
+        
+        print()
+        
+        again = input("Play again? (y/n): ").strip().lower()
+        if again != 'y':
+            print()
+            divider("═")
+            print("Thanks for playing!")
+            divider("═")
+            break
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ollama Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Helvetica, 'Lucida Sans', Arial, sans-serif;
+      font-size: 13px;
+      background: #7080a8;
+      color: #000;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .cursor { animation: blink 1s step-start infinite; }
+    @keyframes thinking-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+    /* Motif raised/sunken bevel helpers */
+    .raised {
+      border-top:    2px solid #dfdfdf;
+      border-left:   2px solid #dfdfdf;
+      border-right:  2px solid #7f7f7f;
+      border-bottom: 2px solid #7f7f7f;
+    }
+    .sunken {
+      border-top:    2px solid #7f7f7f;
+      border-left:   2px solid #7f7f7f;
+      border-right:  2px solid #dfdfdf;
+      border-bottom: 2px solid #dfdfdf;
+    }
+
+    .thinking-block {
+      border-left: 3px solid #4a7888;
+      background: #253545;
+      border-top:    1px solid #1a2430;
+      border-right:  1px solid #3a5060;
+      border-bottom: 1px solid #3a5060;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #a0c8d8;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+    .thinking-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      font-size: 11px;
+      color: #78b8d0;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
+    }
+    .thinking-header:hover { color: #a0d0e8; }
+
+    /* CDE-style scrollbar */
+    ::-webkit-scrollbar { width: 16px; }
+    ::-webkit-scrollbar-track { background: #1a2430; border-left: 1px solid #0a1420; }
+    ::-webkit-scrollbar-thumb {
+      background: #aeb2c3;
+      border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
+      border-right: 2px solid #7f7f7f; border-bottom: 2px solid #7f7f7f;
+    }
+    ::-webkit-scrollbar-button { background: #aeb2c3; display: block; height: 16px;
+      border-top: 2px solid #dfdfdf; border-left: 2px solid #dfdfdf;
+      border-right: 2px solid #7f7f7f; border-bottom: 2px solid #7f7f7f;
+    }
+
+    /* Motif button */
+    .motif-btn {
+      background: #aeb2c3;
+      border-top:    2px solid #dfdfdf;
+      border-left:   2px solid #dfdfdf;
+      border-right:  2px solid #7f7f7f;
+      border-bottom: 2px solid #7f7f7f;
+      padding: 4px 16px;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      color: #000;
+      cursor: pointer;
+      white-space: nowrap;
+      min-width: 64px;
+    }
+    .motif-btn:active {
+      border-top:    2px solid #7f7f7f;
+      border-left:   2px solid #7f7f7f;
+      border-right:  2px solid #dfdfdf;
+      border-bottom: 2px solid #dfdfdf;
+    }
+    .motif-btn:disabled {
+      color: #7f7f7f;
+      cursor: not-allowed;
+    }
+    .motif-btn.primary { background: #5f7fb5; color: #fff; }
+    .motif-btn.primary:disabled { background: #8090a8; color: #c0c0c0; }
+    .motif-btn.danger  { background: #a03030; color: #fff; }
+
+    /* Motif text input / textarea */
+    .motif-input {
+      background: #fff7e9;
+      border-top:    2px solid #7f7f7f;
+      border-left:   2px solid #7f7f7f;
+      border-right:  2px solid #dfdfdf;
+      border-bottom: 2px solid #dfdfdf;
+      padding: 4px 6px;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      color: #000;
+      outline: none;
+      width: 100%;
+    }
+    .motif-input:disabled { background: #c8c8c8; color: #7f7f7f; }
+
+    select.motif-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23000' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const KNOWN_TEXT_EXTENSIONS = new Set([
+      'js','ts','jsx','tsx','py','rs','go','c','cpp','h','hpp',
+      'java','rb','php','sh','bash','zsh','fish',
+      'json','yaml','yml','toml','md','txt','html','htm',
+      'css','scss','less','sql','xml','env','ini','cfg',
+      'lock','gitignore','dockerfile','makefile','csv','log',
+    ]);
+    const MAX_IMAGE_BYTES = 10  * 1024 * 1024;
+    const MULTIMODAL_HINTS = ["llava","gemma3","vision","vl","bakllava","moondream","minicpm"];
+    const isMultimodalModel = name => MULTIMODAL_HINTS.some(h => name.toLowerCase().includes(h));
+    const THINKING_HINTS = ["qwen3","deepseek-r1","deepseek-r2","marco-o1","qwq","o1"];
+    const isThinkingModel = name => THINKING_HINTS.some(h => name.toLowerCase().includes(h));
+
+    const URL_RE = /https?:\/\/[^\s<>"{}|\\^[\]`]+/g;
+
+    async function fetchUrlText(url, capEnabled, capSize, originalUrl) {
+      const displayUrl = originalUrl || url;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            "Accept": "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!res.ok) return { url, error: `HTTP ${res.status}` };
+        const ct = res.headers.get("content-type") || "";
+        const isHtml  = ct.includes("text/html") || ct.includes("xhtml");
+        const isPlain = ct.includes("text/plain");
+        if (!isHtml && !isPlain) return { url, error: `not HTML (${ct.split(";")[0].trim()})` };
+        const raw = await res.text();
+        let text;
+        if (isPlain) {
+          text = raw.replace(/\n{3,}/g, "\n\n").trim();
+        } else {
+          const doc = new DOMParser().parseFromString(raw, "text/html");
+          ["script","style","nav","header","footer","aside","noscript"].forEach(
+            tag => doc.querySelectorAll(tag).forEach(el => el.remove())
+          );
+          text = doc.body.innerText.replace(/\n{3,}/g, "\n\n").trim();
+        }
+        const totalChars = text.length;
+        const capped = capEnabled && totalChars > capSize;
+        if (capped) text = text.slice(0, capSize);
+        return { url: displayUrl, text, totalChars, capped, capSize };
+      } catch (e) {
+        const msg = e.name === "TimeoutError"    ? "timed out (10s)"
+                  : e.name === "AbortError"      ? "aborted"
+                  : e.message.toLowerCase().includes("failed to fetch") ? "unreachable"
+                  : e.message;
+        return { url: displayUrl, error: msg };
+      }
+    }
+
+    const STATUS_DOT = { idle:"#7f7f7f", connecting:"#b08000", connected:"#007f00", error:"#a00000" };
+    const STATUS_TEXT = { idle:"#505050", connecting:"#704000", connected:"#004000", error:"#700000" };
+
+    const LANG_EXT = {
+      python:"py", py:"py",
+      javascript:"js", js:"js", typescript:"ts", ts:"ts", jsx:"jsx", tsx:"tsx",
+      bash:"sh", sh:"sh", shell:"sh", zsh:"sh", fish:"sh",
+      rust:"rs", rs:"rs", go:"go",
+      sql:"sql", json:"json", yaml:"yml", yml:"yml",
+      html:"html", htm:"html", css:"css", scss:"scss",
+      c:"c", cpp:"cpp", h:"h", java:"java", rb:"rb", php:"php",
+      toml:"toml", xml:"xml", dockerfile:"dockerfile",
+    };
+
+    function extractCodeBlocks(content) {
+      const blocks = [];
+      const re = /```(\w*)\n([\s\S]*?)```/g;
+      let m;
+      while ((m = re.exec(content)) !== null) {
+        const lang = m[1].toLowerCase();
+        blocks.push({ lang, code: m[2], ext: LANG_EXT[lang] || lang || "txt" });
+      }
+      return blocks;
+    }
+
+
+    const ThinkingBlock = ({ thinking, isStreaming, isOpen, onToggle }) => {
+      if (!thinking && !isStreaming) return null;
+      return (
+        <div className="thinking-block">
+          <div className="thinking-header" onClick={onToggle}>
+            <span style={{
+              width:8, height:8, flexShrink:0, display:"inline-block",
+              background: isStreaming ? "#4a9ab8" : "#4a7888",
+              border: "1px solid #1a3848",
+              animation: isStreaming ? "thinking-pulse 1.2s ease-in-out infinite" : "none",
+            }}/>
+            <span style={{animation: isStreaming ? "thinking-pulse 1.2s ease-in-out infinite" : "none"}}>
+              {isStreaming ? "Thinking…" : "Thinking"}
+            </span>
+            <span style={{marginLeft:"auto", fontSize:11, color:"#505050"}}>
+              {isOpen ? "▲ hide" : "▼ show"}
+            </span>
+          </div>
+          {isOpen && <div>{thinking || ""}</div>}
+        </div>
+      );
+    };
+
+    const StatusBadge = ({ status, msg }) => (
+      <span style={{
+        display:"inline-flex", alignItems:"center", gap:5,
+        padding:"2px 8px",
+        border:"1px solid #7f7f7f",
+        background:"#c8ccd8",
+        color: STATUS_TEXT[status] || "#505050",
+        fontSize:12,
+      }}>
+        <span style={{
+          width:8, height:8, display:"inline-block", flexShrink:0,
+          background: STATUS_DOT[status] || "#7f7f7f",
+          border:"1px solid #505050",
+        }}/>
+        {msg}
+      </span>
+    );
+
+    const MessageBubble = ({ role, content, streaming, imagePreviewUrl,
+                             thinking, thinkingOpen, onToggleThinking, isThinkingStreaming, stats, isSummary, isError, onRetry }) => {
+      const isUser = role === "user";
+      return (
+        <div style={{
+          display:"flex",
+          justifyContent: isUser ? "flex-end" : "flex-start",
+          marginBottom:8,
+        }}>
+          <div style={{
+            maxWidth:"85%",
+            padding:"6px 10px",
+            background: isError ? "#2e1a1a" : isSummary ? "#1a2e20" : isUser ? "#1e3448" : "#253545",
+            color: isError ? "#e87878" : isUser ? "#a8c8e8" : "#c8d8e8",
+            fontSize:13,
+            lineHeight:1.55,
+            whiteSpace:"pre-wrap",
+            wordBreak:"break-word",
+            borderTop:    isError ? "2px solid #a04040" : isSummary ? "2px solid #2a6840" : isUser ? "2px solid #4a7888" : "2px solid #304858",
+            borderLeft:   isError ? "2px solid #a04040" : isSummary ? "2px solid #2a6840" : isUser ? "2px solid #4a7888" : "2px solid #304858",
+            borderRight:  isError ? "2px solid #601010" : isSummary ? "2px solid #1a3020" : isUser ? "2px solid #1a2838" : "2px solid #1a2430",
+            borderBottom: isError ? "2px solid #601010" : isSummary ? "2px solid #1a3020" : isUser ? "2px solid #1a2838" : "2px solid #1a2430",
+          }}>
+            {isSummary && (
+              <div style={{fontSize:11, color:"#4a9860", marginBottom:5, borderBottom:"1px solid #2a4830", paddingBottom:3}}>
+                📋 Conversation summary — history compressed
+              </div>
+            )}
+            {imagePreviewUrl && (
+              <img
+                src={imagePreviewUrl}
+                alt="attached"
+                style={{maxWidth:"100%",maxHeight:200,display:"block",marginBottom:content?6:0,border:"1px solid #3a5868"}}
+              />
+            )}
+            {!isUser && thinking !== undefined && (
+              <ThinkingBlock
+                thinking={thinking}
+                isStreaming={isThinkingStreaming}
+                isOpen={thinkingOpen}
+                onToggle={onToggleThinking}
+              />
+            )}
+            {content || (streaming ? "" : (
+              <span style={{color:"#607888", fontStyle:"italic", fontSize:12}}>
+                {isError ? "" : "(no response — model produced no content)"}
+              </span>
+            ))}
+            {streaming && <span className="cursor" style={{color:"#78b8d0",fontWeight:"bold"}}>▋</span>}
+            {!isUser && !streaming && content && (() => {
+              const blocks = extractCodeBlocks(content);
+              if (blocks.length === 0) return null;
+              const ext = blocks[0].ext;
+              const filename = ext === "dockerfile" ? "Dockerfile" : `script.${ext}`;
+              const combined = blocks.length === 1
+                ? blocks[0].code
+                : blocks.map((b, i) => (b.lang ? `# --- block ${i+1}: ${b.lang} ---\n` : "") + b.code).join("\n");
+              return (
+                <div style={{marginTop:6,borderTop:"1px solid #304858",paddingTop:5}}>
+                  <button
+                    className="motif-btn"
+                    style={{
+                      padding:"2px 10px", fontSize:11, minWidth:"unset",
+                      background:"#1e3448", color:"#78b8d0",
+                      borderTop:"2px solid #4a7888", borderLeft:"2px solid #4a7888",
+                      borderRight:"2px solid #1a2430", borderBottom:"2px solid #1a2430",
+                    }}
+                    onClick={() => {
+                      const blob = new Blob([combined], { type:"text/plain" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url; a.download = filename; a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    title={`Save ${blocks.length} code block${blocks.length>1?"s":""} as ${filename}`}
+                  >
+                    💾 Save {filename}{blocks.length > 1 ? ` (${blocks.length} blocks)` : ""}
+                  </button>
+                </div>
+              );
+            })()}
+            {(isError || (!content && !streaming)) && onRetry && (
+              <div style={{marginTop:6, borderTop:"1px solid #601010", paddingTop:4}}>
+                <button
+                  className="motif-btn"
+                  style={{padding:"2px 10px", fontSize:11, minWidth:"unset", background:"#2e1a1a", color:"#e87878",
+                    borderTop:"2px solid #a04040", borderLeft:"2px solid #a04040",
+                    borderRight:"2px solid #601010", borderBottom:"2px solid #601010"}}
+                  onClick={onRetry}
+                >↺ Retry</button>
+              </div>
+            )}
+            {!isUser && !streaming && stats && (
+              <div style={{marginTop:4,fontSize:11,color:"#78a8c0",textAlign:"right",borderTop:"1px solid #304858",paddingTop:3}}>{stats}</div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    function OllamaChat() {
+      const [serverUrl, setServerUrl]       = useState("http://192.168.88.60:11434");
+      const [status, setStatus]             = useState("idle");
+      const [statusMsg, setStatusMsg]       = useState("Not connected");
+      const [models, setModels]             = useState([]);
+      const [selectedModel, setSelectedModel] = useState("");
+      const [messages, setMessages]         = useState([]);
+      const [input, setInput]               = useState("");
+      const [streaming, setStreaming]       = useState(false);
+      const [attachment, setAttachment]     = useState(null);
+      const [attachError, setAttachError]   = useState("");
+      const [thinkEnabled, setThinkEnabled]       = useState(true);
+      const [imgResizeEnabled, setImgResizeEnabled] = useState(true);
+      const [webCapEnabled, setWebCapEnabled]     = useState(false);
+      const [webCapSize, setWebCapSize]       = useState(8000);
+      const [webFetching, setWebFetching]     = useState(false);
+      const [webResults, setWebResults]       = useState([]);
+      const [webProxy, setWebProxy]           = useState("http://192.168.88.60:8181/");
+      const [systemPrompt, setSystemPrompt]   = useState(
+`You are a concise, practical assistant for a Linux/DevOps engineer.
+
+- For conversational or ambiguous messages, respond naturally. For technical questions, keep explanations short — lead with the solution, not the reasoning.
+- Always wrap scripts and code in fenced code blocks with the correct language tag (\`\`\`python, \`\`\`bash, \`\`\`yaml, etc.)
+- If writing a script, produce one complete, working file rather than fragments
+- Prefer explicit over clever; add comments only where logic is non-obvious
+- When asked to analyse a file, identify the key points without restating the obvious
+- When a message contains [Web: <url>] blocks, the page content has already been fetched and is provided inline — use it directly to answer; never say you cannot access a URL when its content is present in the message`
+      );
+      const [sysPromptOpen, setSysPromptOpen] = useState(true);
+      const [serverPs, setServerPs]           = useState([]);
+      const [psState, setPsState]           = useState("idle"); // "idle" | "generating" | "stopping"
+      const [contextTokens, setContextTokens] = useState(null); // { prompt, generated }
+      const [numCtx, setNumCtx]               = useState(8192);
+      const [summaryModal, setSummaryModal]   = useState(null); // null | { text, streaming, toKeep, error }
+      const [chunkProgress, setChunkProgress] = useState(null); // null | { current, total }
+      const [apiKey, setApiKey]               = useState("");
+
+      const isOpenAI = url => url.includes("googleapis.com") || url.replace(/\/$/, "").endsWith("/openai");
+
+      const httpError = async res => {
+        let msg = `Server returned ${res.status}`;
+        try {
+          const body = await res.json();
+          const detail = body?.error?.message || body?.message;
+          if (detail) msg += `: ${detail}`;
+        } catch { /* ignore JSON parse error */ }
+        return new Error(msg);
+      };
+
+      const abortCtrlRef    = useRef(null);
+      const summaryAbortRef = useRef(null);
+      const chatEndRef    = useRef(null);
+      const textareaRef   = useRef(null);
+      const fileInputRef  = useRef(null);
+      const psIntervalRef = useRef(null);
+      const stopTimerRef  = useRef(null);
+
+      useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior:"smooth" });
+      }, [messages]);
+
+      // Poll /api/ps every 2s while connected
+      useEffect(() => {
+        clearInterval(psIntervalRef.current);
+        setServerPs([]);
+        if (status !== "connected" || isOpenAI(serverUrl)) return;
+        const poll = async () => {
+          try {
+            const url = serverUrl.replace(/\/$/, "");
+            const res = await fetch(`${url}/api/ps`, { signal: AbortSignal.timeout(1500) });
+            if (res.ok) setServerPs((await res.json()).models || []);
+          } catch { /* poll failure is expected when server is unreachable */ }
+        };
+        poll();
+        psIntervalRef.current = setInterval(poll, 2000);
+        return () => clearInterval(psIntervalRef.current);
+      }, [status, serverUrl]);
+
+      const connectAndFetch = async () => {
+        setStatus("connecting");
+        setStatusMsg("Connecting…");
+        setModels([]);
+        setSelectedModel("");
+        setMessages([]);
+        setAttachment(null);
+        setAttachError("");
+        try {
+          const url = serverUrl.replace(/\/$/, "");
+          if (isOpenAI(url)) {
+            const res = await fetch(`${url}/models`, {
+              headers: { "Authorization": `Bearer ${apiKey}` },
+            });
+            if (!res.ok) throw await httpError(res);
+            const data = await res.json();
+            // Keep only generative models that support chat (filter out embedding/aqa models)
+            const names = (data.data || []).map(m => m.id).filter(id => !id.includes("embedding") && !id.includes("aqa") && !id.includes("retrieval")).sort();
+            if (names.length === 0) {
+              setStatus("connected");
+              setStatusMsg("Connected — no models found");
+            } else {
+              setModels(names);
+              setSelectedModel(names[0]);
+              setStatus("connected");
+              setStatusMsg(`Connected — ${names.length} model${names.length>1?"s":""} available`);
+            }
+          } else {
+            const res = await fetch(`${url}/api/tags`);
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
+            const data = await res.json();
+            const names = (data.models || []).map(m => m.name);
+            if (names.length === 0) {
+              setStatus("connected");
+              setStatusMsg("Connected — no models found (run: ollama pull <model>)");
+            } else {
+              setModels(names);
+              setSelectedModel(names[0]);
+              setStatus("connected");
+              setStatusMsg(`Connected — ${names.length} model${names.length>1?"s":""} available`);
+            }
+          }
+        } catch (e) {
+          setStatus("error");
+          setStatusMsg(`Error: ${e.message}${e.message.includes("fetch") ? " (CORS or unreachable)" : ""}`);
+        }
+      };
+
+      const stopStreaming = () => {
+        abortCtrlRef.current?.abort();
+        setPsState("stopping");
+        clearTimeout(stopTimerRef.current);
+        stopTimerRef.current = setTimeout(() => setPsState("idle"), 6000);
+      };
+
+      const handleNewChat = () => {
+        if (messages.length === 0 && !input.trim() && !attachment && webResults.length === 0) return;
+        if (!window.confirm("Start a new chat? The current conversation will be cleared.")) return;
+        abortCtrlRef.current?.abort();
+        abortCtrlRef.current = null;
+        setStreaming(false);
+        setPsState("idle");
+        clearTimeout(stopTimerRef.current);
+        setMessages([]);
+        setInput("");
+        setAttachment(null);
+        setWebResults([]);
+        setContextTokens(null);
+        textareaRef.current?.focus();
+      };
+
+      const COMPRESS_KEEP = 4; // keep last 4 messages (2 pairs) verbatim after summary
+
+      const handleCompress = async () => {
+        const toSummarise = messages.slice(0, messages.length - COMPRESS_KEEP);
+        const toKeep      = messages.slice(messages.length - COMPRESS_KEEP);
+        const convText = toSummarise.map(m =>
+          `[${m.role === "user" ? "User" : "Assistant"}]\n${m.isSummary ? "(previous summary)\n" : ""}${m.content}`
+        ).join("\n\n");
+        const prompt = `Summarise the following conversation into a concise but complete recap that preserves all key facts, decisions, code snippets, and conclusions. Be thorough — this summary will replace the full conversation history.\n\n${convText}`;
+
+        setSummaryModal({ text: "", streaming: true, toKeep, error: null });
+        const ctrl = new AbortController();
+        summaryAbortRef.current = ctrl;
+
+        try {
+          const url = serverUrl.replace(/\/$/, "");
+          if (isOpenAI(url)) {
+            const res = await fetch(`${url}/chat/completions`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+              body: JSON.stringify({
+                model: selectedModel,
+                messages: [{ role: "user", content: prompt }],
+                stream: true,
+              }),
+              signal: ctrl.signal,
+            });
+            if (!res.ok) throw await httpError(res);
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+            outer: while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split("\n");
+              buf = lines.pop();
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const payload = line.slice(6).trim();
+                if (payload === "[DONE]") { reader.cancel(); break outer; }
+                let obj;
+                try { obj = JSON.parse(payload); } catch { continue; }
+                const token = obj?.choices?.[0]?.delta?.content;
+                if (token) {
+                  setSummaryModal(prev => prev ? { ...prev, text: prev.text + token } : prev);
+                }
+              }
+            }
+          } else {
+            const res = await fetch(`${url}/api/chat`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                model: selectedModel,
+                messages: [{ role: "user", content: prompt }],
+                stream: true,
+                options: { num_ctx: numCtx },
+              }),
+              signal: ctrl.signal,
+            });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream: true });
+              const lines = buf.split("\n");
+              buf = lines.pop();
+              for (const line of lines) {
+                if (!line.trim()) continue;
+                let obj;
+                try { obj = JSON.parse(line); } catch { continue; }
+                if (obj?.message?.content) {
+                  setSummaryModal(prev => prev ? { ...prev, text: prev.text + obj.message.content } : prev);
+                }
+              }
+            }
+          }
+          setSummaryModal(prev => prev ? { ...prev, streaming: false } : prev);
+        } catch (e) {
+          if (e.name === "AbortError") {
+            setSummaryModal(null);
+          } else {
+            setSummaryModal(prev => prev ? { ...prev, streaming: false, error: e.message } : prev);
+          }
+        }
+      };
+
+      const applySummary = () => {
+        if (!summaryModal) return;
+        const summaryMsg = { role: "assistant", content: summaryModal.text, isSummary: true };
+        setMessages([summaryMsg, ...summaryModal.toKeep]);
+        setContextTokens(null);
+        setSummaryModal(null);
+      };
+
+      const handleFileSelect = e => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setAttachError("");
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isImage = file.type.startsWith("image/");
+        const isAudio = file.type.startsWith("audio/");
+        const isText  = file.type.startsWith("text/") || KNOWN_TEXT_EXTENSIONS.has(ext);
+
+        if (isAudio) {
+          setAttachError("Audio files are not supported — the Ollama API has no audio input. Transcribe the audio first, then paste the text.");
+          return;
+        }
+        if (!isImage && !isText) {
+          setAttachError(`Cannot attach "${file.name}" — only text/code files and images are supported.`);
+          return;
+        }
+        if (isImage && file.size > MAX_IMAGE_BYTES) {
+          setAttachError(`Image too large (${(file.size/1024/1024).toFixed(1)} MB). Images must be under 10 MB.`);
+          return;
+        }
+
+        const reader = new FileReader();
+        if (isImage) {
+          reader.onload = ev => {
+            const originalDataUrl = ev.target.result;
+            const finalize = (dataUrl) => {
+              const base64 = dataUrl.split(",")[1];
+              setAttachment({ type:"image", name:file.name, base64, previewUrl:originalDataUrl, size:file.size, content:null });
+            };
+            if (!imgResizeEnabled) { finalize(originalDataUrl); return; }
+            const img = new Image();
+            img.onload = () => {
+              const MAX = 1024;
+              let { width, height } = img;
+              if (width <= MAX && height <= MAX) { finalize(originalDataUrl); return; }
+              const scale = MAX / Math.max(width, height);
+              width  = Math.round(width  * scale);
+              height = Math.round(height * scale);
+              const canvas = document.createElement("canvas");
+              canvas.width  = width;
+              canvas.height = height;
+              canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+              finalize(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.src = originalDataUrl;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          reader.onload = ev => {
+            const text = ev.target.result;
+            if (text.slice(0, 512).includes('\0')) {
+              setAttachError(`"${file.name}" appears to be a binary file and cannot be sent as text.`);
+              return;
+            }
+            setAttachment({ type:"text", name:file.name, content:text, base64:null, previewUrl:null, size:file.size });
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const handleWebFetch = async () => {
+        const urls = [...new Set(input.match(URL_RE) || [])];
+        if (urls.length === 0) return;
+        // Mark pending slots immediately so user sees loading state
+        setWebResults(prev => {
+          const existing = new Set(prev.map(r => r.url));
+          const pending  = urls.filter(u => !existing.has(u)).map(u => ({ url:u, status:"fetching" }));
+          return [...prev, ...pending];
+        });
+        setWebFetching(true);
+        try {
+          const proxy = webProxy.trim().replace(/\/$/, "") + "/";
+          const results = await Promise.all(urls.map(u => fetchUrlText(proxy + u, webCapEnabled, webCapSize, u)));
+          setWebResults(prev => {
+            const map = new Map(prev.map(r => [r.url, r]));
+            results.forEach(r => map.set(r.url, r.error
+              ? { url:r.url, status:"error", error:r.error }
+              : { url:r.url, status:"ok", text:r.text, totalChars:r.totalChars, capped:r.capped, capSize:r.capSize }
+            ));
+            return [...map.values()];
+          });
+        } finally {
+          setWebFetching(false);
+        }
+      };
+
+      // Sends messages to the model and returns the full response text (no UI side-effects).
+      // Used for map-reduce chunk processing of large files.
+      const completionText = async (msgs, signal) => {
+        const url = serverUrl.replace(/\/$/, "");
+        let text = "";
+        if (isOpenAI(url)) {
+          const res = await fetch(`${url}/chat/completions`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},
+            body: JSON.stringify({ model:selectedModel, messages:msgs, stream:true }),
+            signal,
+          });
+          if (!res.ok) throw await httpError(res);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+          outer: while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream:true });
+            const lines = buf.split("\n"); buf = lines.pop();
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const payload = line.slice(6).trim();
+              if (payload === "[DONE]") { reader.cancel(); break outer; }
+              try { const obj = JSON.parse(payload); const t = obj?.choices?.[0]?.delta?.content; if (t) text += t; } catch { /* ignore */ }
+            }
+          }
+        } else {
+          const res = await fetch(`${url}/api/chat`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ model:selectedModel, messages:msgs, stream:true, options:{ num_ctx: numCtx } }),
+            signal,
+          });
+          if (!res.ok) throw new Error(`Server returned ${res.status}`);
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+          outer: while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream:true });
+            const lines = buf.split("\n"); buf = lines.pop();
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try {
+                const obj = JSON.parse(line);
+                if (obj?.message?.content) text += obj.message.content;
+                if (obj?.done) { reader.cancel(); break outer; }
+              } catch { /* ignore */ }
+            }
+          }
+        }
+        return text;
+      };
+
+      const sendMessage = async () => {
+        if ((!input.trim() && !attachment && webResults.length === 0) || streaming || !selectedModel || webFetching) return;
+
+        const rawInput = input.trim();
+
+        // Build web prefix from stored fetch results
+        const successResults = webResults.filter(r => r.status === "ok");
+        const successUrls    = new Set(successResults.map(r => r.url));
+        const webPrefix = webResults.length === 0 ? "" : webResults.map(r => {
+          if (r.status === "error") return `[Web: ${r.url} — ✕ ${r.error}]`;
+          const capNote = r.capped
+            ? ` — ⚠ truncated at ${r.capSize.toLocaleString()} of ${r.totalChars.toLocaleString()} chars`
+            : ` — ${r.totalChars.toLocaleString()} chars`;
+          const bar = "─".repeat(64);
+          return `[Web: ${r.url}${capNote}]\n${bar}\n${r.text}\n${bar}`;
+        }).join("\n\n") + "\n\n";
+
+        // For the API: replace successfully-fetched URLs with [fetched above]
+        const apiInput = successUrls.size > 0
+          ? rawInput.replace(URL_RE, u => successUrls.has(u) ? "[fetched above]" : u)
+          : rawInput;
+
+        let userContent = webPrefix + apiInput;
+        if (attachment?.type === "text") {
+          const fence = "```";
+          userContent = `[File: ${attachment.name}]\n${fence}\n${attachment.content}\n${fence}${apiInput ? "\n\n" + apiInput : ""}`;
+          if (webPrefix) userContent = webPrefix + userContent;
+        }
+        const apiUserMsg = { role:"user", content: userContent };
+        if (attachment?.type === "image") apiUserMsg.images = [attachment.base64];
+
+        const displayUserMsg = {
+          role:"user",
+          content: rawInput || `[Image: ${attachment?.name}]`,
+          apiContent: userContent, // stored for retry — includes web prefix / file content
+          ...(attachment?.type === "image" ? { imagePreviewUrl:attachment.previewUrl, imageBase64:attachment.base64 } : {}),
+        };
+
+        // Find the index of the most recent history message that has an image,
+        // so we can drop images from all older messages (avoids re-sending large
+        // base64 blobs on every turn).
+        const lastImgIdx = (() => {
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].imageBase64) return i;
+          }
+          return -1;
+        })();
+        const toApiMsg = (m, i) => {
+          // eslint-disable-next-line no-unused-vars
+          const { imagePreviewUrl, imageBase64, thinking, thinkingOpen, stats, isError, isSummary, apiContent, ...rest } = m;
+          if (apiContent) rest.content = apiContent; // use full API content (includes web prefix)
+          if (imageBase64 && i === lastImgIdx) rest.images = [imageBase64];
+          return rest;
+        };
+
+        // ── Large-file map-reduce chunking ────────────────────────────────────
+        if (attachment?.type === "text") {
+          // 3 bytes/token × numCtx = bytes that fill ~75% of context window
+          const chunkSize = Math.max(8192, Math.floor(numCtx * 3));
+          if (attachment.content.length > chunkSize) {
+            const fileText = attachment.content;
+            const fileName = attachment.name;
+            const fence    = "```";
+            const question = rawInput.trim() || "Summarize this file.";
+            const chunks   = [];
+            for (let i = 0; i < fileText.length; i += chunkSize) chunks.push(fileText.slice(i, i + chunkSize));
+            const total = chunks.length;
+            const chunkSysMsg = systemPrompt.trim() ? [{ role:"system", content:systemPrompt.trim() }] : [];
+
+            setInput(""); setAttachment(null); setWebResults([]);
+            textareaRef.current?.focus();
+            setChunkProgress({ current:0, total });
+
+            const ctrl = new AbortController();
+            abortCtrlRef.current = ctrl;
+            try {
+              const summaries = [];
+              for (let ci = 0; ci < total; ci++) {
+                setChunkProgress({ current:ci+1, total });
+                const prompt = `Part ${ci+1} of ${total} of file "${fileName}":\n${fence}\n${chunks[ci]}\n${fence}\n\nTask: "${question}"\n\nExtract only information directly relevant to the task from this section. Be concise. If nothing is relevant here, reply with just a dash.`;
+                const summary = await completionText([{ role:"user", content:prompt }], ctrl.signal);
+                summaries.push(`[${ci+1}/${total}] ${summary.trim()}`);
+              }
+              setChunkProgress(null);
+
+              const combined  = `[File: ${fileName} — processed in ${total} sections]\n\nSection summaries:\n${summaries.join("\n\n")}\n\n---\n\n${question}`;
+              const dispMsg   = { role:"user", content: rawInput || `[File: ${fileName}]`, apiContent: combined };
+              const apiChunk  = { role:"user", content: combined };
+              const nextMsgs  = [...messages, dispMsg];
+              const nextApi   = [...chunkSysMsg, ...messages.filter(m => !m.isError).map(toApiMsg), apiChunk];
+              await runStream(nextMsgs, nextApi);
+            } catch(e) {
+              if (e.name !== "AbortError") {
+                setMessages(prev => [...prev, { role:"assistant", content:`Chunked processing error: ${e.message}`, isError:true }]);
+              }
+            } finally {
+              setChunkProgress(null);
+              abortCtrlRef.current = null;
+            }
+            return;
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
+        const nextMessages    = [...messages, displayUserMsg];
+        const sysMsg = systemPrompt.trim() ? [{ role:"system", content:systemPrompt.trim() }] : [];
+        // Exclude error messages from API history — they are UI feedback only
+        const nextApiMessages = [...sysMsg, ...messages.filter(m => !m.isError).map(toApiMsg), apiUserMsg];
+
+        setMessages(nextMessages);
+        setInput("");
+        setAttachment(null);
+        setWebResults([]);
+        textareaRef.current?.focus();
+        await runStream(nextMessages, nextApiMessages);
+      };
+
+      const runStream = async (nextMessages, nextApiMessages) => {
+        setStreaming(true);
+        setPsState("generating");
+
+        const ctrl = new AbortController();
+        abortCtrlRef.current = ctrl;
+
+        setMessages([...nextMessages, {
+          role:"assistant", content:"",
+          ...(thinkEnabled && isThinkingModel(selectedModel) ? { thinking:"", thinkingOpen:true } : {}),
+        }]);
+
+        try {
+          const url = serverUrl.replace(/\/$/, "");
+          if (isOpenAI(url)) {
+            // Convert messages to OpenAI format (handle Ollama-style images array)
+            const openaiMsgs = nextApiMessages.map(m => {
+              const { images, ...rest } = m;
+              if (images && images.length > 0) {
+                const parts = [];
+                if (rest.content) parts.push({ type:"text", text:rest.content });
+                images.forEach(b64 => parts.push({ type:"image_url", image_url:{ url:`data:image/jpeg;base64,${b64}` } }));
+                return { ...rest, content: parts };
+              }
+              return rest;
+            });
+            const res = await fetch(`${url}/chat/completions`, {
+              method:"POST",
+              headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${apiKey}` },
+              body: JSON.stringify({ model:selectedModel, messages:openaiMsgs, stream:true }),
+              signal: ctrl.signal,
+            });
+            if (!res.ok) throw await httpError(res);
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream:true });
+              const lines = buf.split("\n");
+              buf = lines.pop();
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const payload = line.slice(6).trim();
+                if (payload === "[DONE]") { reader.cancel(); return; }
+                let obj;
+                try { obj = JSON.parse(payload); } catch { continue; }
+                const token = obj?.choices?.[0]?.delta?.content;
+                if (token) {
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    const last = { ...updated[updated.length - 1] };
+                    last.content = last.content + token;
+                    updated[updated.length - 1] = last;
+                    return updated;
+                  });
+                }
+                if (obj?.usage) {
+                  const u = obj.usage;
+                  if (u.prompt_tokens != null || u.completion_tokens != null) {
+                    setContextTokens({ prompt: u.prompt_tokens ?? null, generated: u.completion_tokens ?? null });
+                    const stats = `${u.prompt_tokens ?? "?"} prompt · ${u.completion_tokens ?? "?"} completion · ${u.total_tokens ?? "?"} total tokens`;
+                    setMessages(prev => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = { ...updated[updated.length - 1], stats };
+                      return updated;
+                    });
+                  }
+                }
+              }
+            }
+          } else {
+            const res = await fetch(`${url}/api/chat`, {
+              method:"POST",
+              headers:{ "Content-Type":"application/json" },
+              body: JSON.stringify({ model:selectedModel, messages:nextApiMessages, stream:true, options:{ num_ctx: numCtx }, ...(thinkEnabled && isThinkingModel(selectedModel) ? { think:true } : {}) }),
+              signal: ctrl.signal,
+            });
+            if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+            const reader  = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              buf += decoder.decode(value, { stream:true });
+              const lines = buf.split("\n");
+              buf = lines.pop();
+              for (const line of lines) {
+                if (!line.trim()) continue;
+                let obj;
+                try { obj = JSON.parse(line); } catch { continue; }
+                const thinkToken   = obj?.message?.thinking;
+                const contentToken = obj?.message?.content;
+                if (thinkToken) {
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    const last = { ...updated[updated.length - 1] };
+                    last.thinking = (last.thinking || "") + thinkToken;
+                    updated[updated.length - 1] = last;
+                    return updated;
+                  });
+                }
+                if (contentToken) {
+                  setMessages(prev => {
+                    const updated = [...prev];
+                    const last = { ...updated[updated.length - 1] };
+                    last.content = last.content + contentToken;
+                    if (last.thinkingOpen && last.content.length > 0 && last.thinking) {
+                      last.thinkingOpen = false;
+                    }
+                    updated[updated.length - 1] = last;
+                    return updated;
+                  });
+                }
+                if (obj?.done) {
+                  if (obj.prompt_eval_count || obj.eval_count) {
+                    setContextTokens({
+                      prompt: obj.prompt_eval_count ?? null,
+                      generated: obj.eval_count ?? null,
+                    });
+                  }
+                  if (obj.total_duration) {
+                    const secs   = (obj.total_duration / 1e9).toFixed(1);
+                    const tokSec = obj.eval_count && obj.eval_duration
+                      ? (obj.eval_count / (obj.eval_duration / 1e9)).toFixed(1) : null;
+                    const stats = tokSec
+                      ? `${secs}s · ${obj.eval_count} tokens · ${tokSec} tok/s`
+                      : `${secs}s`;
+                    setMessages(prev => {
+                      const updated = [...prev];
+                      updated[updated.length - 1] = { ...updated[updated.length - 1], stats };
+                      return updated;
+                    });
+                  }
+                  // Cancel the reader immediately so the while loop exits without
+                  // waiting for the TCP stream to close (avoids streaming=true getting stuck)
+                  reader.cancel();
+                  return;
+                }
+              }
+            }
+          }
+        } catch (e) {
+          if (e.name !== "AbortError") {
+            setMessages(prev => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role:"assistant", content:`Error: ${e.message}`, isError: true };
+              return updated;
+            });
+          } else {
+            // Aborted — remove the empty placeholder assistant message
+            setMessages(prev => prev[prev.length - 1]?.content === "" ? prev.slice(0, -1) : prev);
+          }
+        } finally {
+          setStreaming(false);
+          abortCtrlRef.current = null;
+          // Only reset to idle if stop wasn't pressed (stop sets "stopping" with its own timer)
+          setPsState(prev => prev === "generating" ? "idle" : prev);
+        }
+      };
+
+      const handleRetry = async () => {
+        if (streaming || !selectedModel) return;
+        // Error message is last; user message to retry is just before it
+        const msgsWithoutError = messages.slice(0, -1);
+        const lastUserMsg = msgsWithoutError[msgsWithoutError.length - 1];
+        if (!lastUserMsg || lastUserMsg.role !== "user") return;
+
+        const apiUserMsg = { role:"user", content: lastUserMsg.apiContent || lastUserMsg.content };
+        if (lastUserMsg.imageBase64) apiUserMsg.images = [lastUserMsg.imageBase64];
+
+        const historyMsgs = msgsWithoutError.slice(0, -1);
+        const lastImgIdx = (() => {
+          for (let i = historyMsgs.length - 1; i >= 0; i--) {
+            if (historyMsgs[i].imageBase64) return i;
+          }
+          return -1;
+        })();
+        const toApiMsgRetry = (m, i) => {
+          // eslint-disable-next-line no-unused-vars
+          const { imagePreviewUrl, imageBase64, thinking, thinkingOpen, stats, isError, isSummary, apiContent, ...rest } = m;
+          if (apiContent) rest.content = apiContent;
+          if (imageBase64 && i === lastImgIdx) rest.images = [imageBase64];
+          return rest;
+        };
+        const sysMsg = systemPrompt.trim() ? [{ role:"system", content:systemPrompt.trim() }] : [];
+        const nextApiMessages = [...sysMsg, ...historyMsgs.filter(m => !m.isError).map(toApiMsgRetry), apiUserMsg];
+
+        await runStream(msgsWithoutError, nextApiMessages);
+      };
+
+      const handleKeyDown = e => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+      };
+
+      const canSend = !streaming && !chunkProgress && !webFetching && !!selectedModel && (!!input.trim() || !!attachment || webResults.length > 0);
+
+      /* ── CDE palette ── */
+      const cde = {
+        bg:       "#7080a8",
+        panel:    "#aeb2c3",
+        titleBar: "#4a7888",
+        input:    "#fff7e9",
+        termBg:   "#1a2430",
+        termFg:   "#c8d8e8",
+      };
+
+      return (
+        <>
+        <div style={{
+          minHeight:"100vh",
+          background: cde.bg,
+          display:"flex", alignItems:"flex-start", justifyContent:"center",
+          fontFamily:"Helvetica, 'Lucida Sans', Arial, sans-serif",
+          padding:16,
+        }}>
+          {/* Main window — raised panel */}
+          <div style={{
+            background: cde.panel,
+            borderTop:"2px solid #dfdfdf", borderLeft:"2px solid #dfdfdf",
+            borderRight:"2px solid #7f7f7f", borderBottom:"2px solid #7f7f7f",
+            width:"100%", maxWidth:680,
+            display:"flex", flexDirection:"column",
+          }}>
+
+            {/* Title bar */}
+            <div style={{
+              background: cde.titleBar,
+              color:"#fff",
+              padding:"4px 10px",
+              display:"flex", alignItems:"center", gap:8,
+              borderBottom:"2px solid #2a5060",
+            }}>
+              <span style={{fontSize:14}}>🤖</span>
+              <span style={{fontWeight:"bold", fontSize:13, letterSpacing:0.5}}>Ollama Chat</span>
+              <span style={{fontSize:11, color:"#a0c8d8", marginLeft:4}}>— Local LLM Client</span>
+            </div>
+
+            {/* Body */}
+            <div style={{padding:"8px 10px", display:"flex", flexDirection:"column", gap:8}}>
+
+              {/* Connection panel */}
+              <fieldset style={{
+                border:"2px solid",
+                borderTopColor:"#7f7f7f", borderLeftColor:"#7f7f7f",
+                borderRightColor:"#dfdfdf", borderBottomColor:"#dfdfdf",
+                padding:"6px 8px", background: cde.panel,
+              }}>
+                <legend style={{
+                  background: cde.titleBar, color:"#e0f0f8",
+                  padding:"1px 6px", fontSize:11, fontWeight:"bold",
+                }}>Connection</legend>
+
+                <div style={{display:"flex", gap:6, alignItems:"center", marginBottom:6}}>
+                  <input
+                    className="motif-input"
+                    style={{flex:1}}
+                    value={serverUrl}
+                    onChange={e => { setServerUrl(e.target.value); setStatus("idle"); setStatusMsg("Not connected"); }}
+                    placeholder="http://localhost:11434"
+                    onKeyDown={e => e.key==="Enter" && connectAndFetch()}
+                  />
+                  <button className="motif-btn" onClick={connectAndFetch} disabled={status==="connecting"}>
+                    {status==="connecting" ? "Connecting…" : status==="connected" ? "Reconnect" : "Connect"}
+                  </button>
+                </div>
+
+                {isOpenAI(serverUrl) && (
+                  <div style={{display:"flex", gap:6, alignItems:"center", marginBottom:6}}>
+                    <span style={{fontSize:12, color:"#404040", whiteSpace:"nowrap"}}>API Key:</span>
+                    <input
+                      className="motif-input"
+                      type="password"
+                      style={{flex:1}}
+                      value={apiKey}
+                      onChange={e => setApiKey(e.target.value)}
+                      placeholder="AIza…"
+                      onKeyDown={e => e.key==="Enter" && connectAndFetch()}
+                    />
+                  </div>
+                )}
+
+                <div style={{display:"flex", gap:8, alignItems:"center", flexWrap:"wrap"}}>
+                  <StatusBadge status={status} msg={statusMsg}/>
+                  {status === "connected" && !isOpenAI(serverUrl) && (() => {
+                    const loaded = serverPs[0];
+                    const dotColor = psState === "generating" ? "#c08000"
+                                   : psState === "stopping"   ? "#a06000"
+                                   : "#007f00";
+                    const label = psState === "generating" ? "generating"
+                                : psState === "stopping"   ? "stopping…"
+                                : "idle";
+                    const modelLabel = loaded ? loaded.name.split(":")[0] : "no model loaded";
+                    return (
+                      <span style={{
+                        display:"inline-flex", alignItems:"center", gap:5,
+                        padding:"2px 8px",
+                        border:"1px solid #7f7f7f",
+                        background:"#c8ccd8",
+                        fontSize:12, color:"#404040",
+                      }}>
+                        server: {modelLabel}{loaded && <>
+                          {" "}loaded
+                          <span style={{
+                            width:8, height:8, display:"inline-block", flexShrink:0,
+                            background: dotColor, border:"1px solid #505050",
+                          }}/>
+                          <span style={{color: psState === "idle" ? "#004000" : "#704000"}}>{label}</span>
+                        </>}
+                      </span>
+                    );
+                  })()}
+                  {models.length > 0 && (
+                    <label style={{
+                      display:"flex", alignItems:"center", gap:6, cursor:"pointer",
+                      fontSize:12, userSelect:"none", marginLeft:"auto",
+                      color: thinkEnabled ? "#303840" : "#404040",
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={thinkEnabled}
+                        onChange={e => setThinkEnabled(e.target.checked)}
+                        style={{cursor:"pointer"}}
+                      />
+                      Thinking mode
+                      {thinkEnabled && (() => {
+                        const tm = models.filter(isThinkingModel).map(m => m.split(':')[0]).filter((v,i,a)=>a.indexOf(v)===i);
+                        return tm.length > 0
+                          ? <span style={{fontSize:11,color:"#1a3040",background:"#a0c0d0",border:"1px solid #4a7888",padding:"1px 6px"}}>
+                              {tm.join(' · ')}
+                            </span>
+                          : <span style={{fontSize:11,color:"#703000",background:"#e8d4b8",border:"1px solid #a07040",padding:"1px 6px"}}>
+                              no thinking models available
+                            </span>;
+                      })()}
+                    </label>
+                  )}
+                </div>
+
+                {models.length > 0 && (
+                  <div style={{marginTop:6}}>
+                    <select
+                      className="motif-input"
+                      value={selectedModel}
+                      onChange={e => { setSelectedModel(e.target.value); setMessages([]); setAttachment(null); setAttachError(""); }}
+                    >
+                      {models.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {/* Web fetch proxy + cap setting */}
+                <div style={{marginTop:6, display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#404040", flexWrap:"wrap"}}>
+                  <span style={{whiteSpace:"nowrap"}}>CORS proxy:</span>
+                  <input
+                    className="motif-input"
+                    style={{flex:1, minWidth:180, padding:"1px 4px", fontSize:12}}
+                    value={webProxy}
+                    onChange={e => setWebProxy(e.target.value)}
+                    placeholder="http://host:8181/"
+                    title="Proxy prefix for web fetches — e.g. http://192.168.88.60:8181/"
+                  />
+                </div>
+                <div style={{marginTop:4, display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#404040"}}>
+                  <label style={{display:"flex", alignItems:"center", gap:5, cursor:"pointer", userSelect:"none"}}>
+                    <input
+                      type="checkbox"
+                      checked={imgResizeEnabled}
+                      onChange={e => setImgResizeEnabled(e.target.checked)}
+                      style={{cursor:"pointer"}}
+                    />
+                    Resize images to 1024 px max
+                  </label>
+                </div>
+                {!isOpenAI(serverUrl) && (
+                <div style={{marginTop:4, display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#404040"}}>
+                  <span style={{whiteSpace:"nowrap"}}>Context size (num_ctx):</span>
+                  <input
+                    type="number"
+                    className="motif-input"
+                    style={{width:80, padding:"1px 4px", fontSize:12}}
+                    value={numCtx}
+                    min={512}
+                    max={131072}
+                    step={512}
+                    onChange={e => setNumCtx(Math.max(512, parseInt(e.target.value) || 8192))}
+                    title="Context window size sent to Ollama (num_ctx). Changing mid-conversation takes effect on the next message."
+                  />
+                  <span>tokens</span>
+                </div>
+                )}
+                <div style={{marginTop:4, display:"flex", alignItems:"center", gap:6, fontSize:12, color:"#404040"}}>
+                  <label style={{display:"flex", alignItems:"center", gap:5, cursor:"pointer", userSelect:"none"}}>
+                    <input
+                      type="checkbox"
+                      checked={webCapEnabled}
+                      onChange={e => setWebCapEnabled(e.target.checked)}
+                      style={{cursor:"pointer"}}
+                    />
+                    Cap web content at
+                  </label>
+                  <input
+                    type="number"
+                    className="motif-input"
+                    style={{width:72, padding:"1px 4px", fontSize:12}}
+                    value={webCapSize}
+                    min={1000}
+                    max={200000}
+                    step={1000}
+                    disabled={!webCapEnabled}
+                    onChange={e => setWebCapSize(Math.max(1000, parseInt(e.target.value) || 8000))}
+                  />
+                  <span>chars</span>
+                  <span style={{marginLeft:4, color:"#606878", fontSize:11}}>
+                    (press 🌐 to fetch URLs from your message)
+                  </span>
+                </div>
+              </fieldset>
+
+              {/* System prompt */}
+              <fieldset style={{
+                border:"2px solid",
+                borderTopColor:"#7f7f7f", borderLeftColor:"#7f7f7f",
+                borderRightColor:"#dfdfdf", borderBottomColor:"#dfdfdf",
+                padding:"0", background: cde.panel,
+              }}>
+                <legend
+                  style={{
+                    background: systemPrompt.trim() ? cde.titleBar : "#707888",
+                    color:"#e0f0f8", padding:"1px 6px", fontSize:11, fontWeight:"bold",
+                    cursor:"pointer", userSelect:"none",
+                  }}
+                  onClick={() => setSysPromptOpen(o => !o)}
+                >
+                  {sysPromptOpen ? "▲" : "▼"} System Prompt{systemPrompt.trim() ? " ✔" : ""}
+                </legend>
+                {sysPromptOpen && (
+                  <div style={{padding:"6px 8px", display:"flex", flexDirection:"column", gap:4}}>
+                    <textarea
+                      className="motif-input"
+                      rows={4}
+                      style={{resize:"vertical", minHeight:60, maxHeight:180, overflowY:"scroll", lineHeight:1.5, fontFamily:"monospace", fontSize:12, scrollbarWidth:"none"}}
+                      value={systemPrompt}
+                      onChange={e => setSystemPrompt(e.target.value)}
+                      placeholder={"You are a helpful assistant.\n\nCustomise the model's behaviour here — this is sent as the first message of every conversation and is not shown in the chat."}
+                    />
+                    {systemPrompt.trim() && (
+                      <div style={{display:"flex", justifyContent:"flex-end"}}>
+                        <button
+                          className="motif-btn"
+                          style={{padding:"2px 10px", fontSize:11, minWidth:"unset"}}
+                          onClick={() => setSystemPrompt("")}
+                        >Clear</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </fieldset>
+
+              {/* Message history — terminal pane */}
+              <div style={{
+                background: cde.termBg,
+                borderTop:"2px solid #7f7f7f", borderLeft:"2px solid #7f7f7f",
+                borderRight:"2px solid #dfdfdf", borderBottom:"2px solid #dfdfdf",
+                padding:"6px 8px",
+                minHeight:200, maxHeight:"55vh",
+                overflowY:"auto",
+                display:"flex", flexDirection:"column",
+              }}>
+                {messages.length === 0 ? (
+                  <div style={{
+                    flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+                    color:"#506880", fontSize:12, textAlign:"center",
+                    fontStyle:"italic",
+                  }}>
+                    {status === "connected"
+                      ? selectedModel ? "Type a message below to begin." : "No models available."
+                      : "Connect to an Ollama server or Google AI Studio to start chatting."
+                    }
+                  </div>
+                ) : (
+                  messages.map((msg, i) => (
+                    <MessageBubble
+                      key={i}
+                      role={msg.role}
+                      content={msg.content}
+                      streaming={streaming && i === messages.length - 1 && msg.role === "assistant"}
+                      imagePreviewUrl={msg.imagePreviewUrl}
+                      thinking={msg.thinking}
+                      thinkingOpen={msg.thinkingOpen}
+                      isThinkingStreaming={streaming && i === messages.length - 1 && msg.role === "assistant" && msg.thinking !== undefined && msg.content === ""}
+                      onToggleThinking={() => setMessages(prev => {
+                        const updated = [...prev];
+                        updated[i] = { ...updated[i], thinkingOpen: !updated[i].thinkingOpen };
+                        return updated;
+                      })}
+                      stats={msg.stats}
+                      isSummary={msg.isSummary}
+                      isError={msg.isError}
+                      onRetry={(msg.isError || (!msg.content && msg.role === "assistant")) && i === messages.length - 1 ? handleRetry : null}
+                    />
+                  ))
+                )}
+                <div ref={chatEndRef}/>
+              </div>
+
+              {/* Web fetch result cards */}
+              {webResults.length > 0 && (
+                <div style={{display:"flex", flexDirection:"column", gap:4}}>
+                  {webResults.map((r, i) => {
+                    const domain = (() => { try { return new URL(r.url).hostname; } catch { return r.url; } })();
+                    const isOk  = r.status === "ok";
+                    const isErr = r.status === "error";
+                    const isFetching = r.status === "fetching";
+                    return (
+                      <div key={r.url} style={{
+                        background: isErr ? "#2a1818" : isFetching ? "#1a2430" : "#182818",
+                        borderTop:    "2px solid " + (isErr ? "#6a3030" : isFetching ? "#304858" : "#306030"),
+                        borderLeft:   "2px solid " + (isErr ? "#6a3030" : isFetching ? "#304858" : "#306030"),
+                        borderRight:  "2px solid " + (isErr ? "#1a0808" : isFetching ? "#1a2430" : "#0a1808"),
+                        borderBottom: "2px solid " + (isErr ? "#1a0808" : isFetching ? "#1a2430" : "#0a1808"),
+                        padding:"5px 8px",
+                      }}>
+                        <div style={{display:"flex", alignItems:"center", gap:6}}>
+                          <span style={{fontSize:13}}>
+                            {isFetching ? "⏳" : isErr ? "✕" : "🌐"}
+                          </span>
+                          <span style={{
+                            fontSize:12, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                            color: isErr ? "#e08080" : isFetching ? "#78a8c0" : "#80c080",
+                          }}>
+                            {domain}
+                            {isOk && (
+                              <span style={{marginLeft:6, fontSize:11, color: r.capped ? "#c0a040" : "#60a060"}}>
+                                {r.capped
+                                  ? `⚠ ${r.capSize.toLocaleString()} / ${r.totalChars.toLocaleString()} chars (truncated)`
+                                  : `${r.totalChars.toLocaleString()} chars`}
+                              </span>
+                            )}
+                            {isErr && <span style={{marginLeft:6, fontSize:11, color:"#c07070"}}>{r.error}</span>}
+                            {isFetching && <span style={{marginLeft:6, fontSize:11, color:"#6090a8"}}>fetching…</span>}
+                          </span>
+                          <button
+                            className="motif-btn"
+                            style={{padding:"1px 6px", minWidth:"unset", fontSize:11}}
+                            onClick={() => setWebResults(prev => prev.filter((_, j) => j !== i))}
+                          >✕</button>
+                        </div>
+                        {isOk && r.text && (
+                          <div style={{
+                            marginTop:4, fontSize:11, color:"#5a8a6a",
+                            whiteSpace:"pre-wrap", lineHeight:1.4,
+                            maxHeight:60, overflow:"hidden",
+                            maskImage:"linear-gradient(to bottom, black 60%, transparent 100%)",
+                            WebkitMaskImage:"linear-gradient(to bottom, black 60%, transparent 100%)",
+                          }}>
+                            {r.text.slice(0, 300)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Attachment preview / error */}
+              {(attachment || attachError) && (
+                <div style={{
+                  background: attachError ? "#f0d8d8" : "#d8e4f0",
+                  borderTop:    "2px solid " + (attachError ? "#a04040" : "#7f7f7f"),
+                  borderLeft:   "2px solid " + (attachError ? "#a04040" : "#7f7f7f"),
+                  borderRight:  "2px solid " + (attachError ? "#e8c0c0" : "#dfdfdf"),
+                  borderBottom: "2px solid " + (attachError ? "#e8c0c0" : "#dfdfdf"),
+                  padding:"5px 8px", display:"flex", alignItems:"center", gap:8,
+                }}>
+                  {attachError ? (
+                    <>
+                      <span style={{color:"#700000",fontSize:12,flex:1}}>{attachError}</span>
+                      <button className="motif-btn" style={{padding:"2px 8px",minWidth:"unset"}} onClick={() => setAttachError("")}>✕</button>
+                    </>
+                  ) : attachment?.type === "image" ? (
+                    <>
+                      <img src={attachment.previewUrl} alt={attachment.name} style={{height:40,width:40,objectFit:"cover",border:"1px solid #7f7f7f",flexShrink:0}}/>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment.name}</div>
+                        <div style={{fontSize:11,color:"#505050"}}>{(attachment.size/1024).toFixed(0)} KB</div>
+                        {!isMultimodalModel(selectedModel) && (
+                          <div style={{fontSize:11,color:"#703000"}}>Note: "{selectedModel}" may not support images.</div>
+                        )}
+                      </div>
+                      <button className="motif-btn" style={{padding:"2px 8px",minWidth:"unset"}} onClick={() => setAttachment(null)} title="Remove">✕</button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{fontSize:16,flexShrink:0}}>📄</span>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{attachment.name}</div>
+                        <div style={{fontSize:11,color:"#505050"}}>{(attachment.size/1024).toFixed(0)} KB</div>
+                      </div>
+                      <button className="motif-btn" style={{padding:"2px 8px",minWidth:"unset"}} onClick={() => setAttachment(null)} title="Remove">✕</button>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Input bar */}
+              <div style={{display:"flex", flexDirection:"column", gap:4}}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="text/*,image/*,.js,.ts,.jsx,.tsx,.py,.rs,.go,.c,.cpp,.h,.hpp,.java,.rb,.php,.sh,.json,.yaml,.yml,.toml,.md,.sql,.xml,.env,.ini,.cfg,.lock,.csv,.log"
+                  style={{display:"none"}}
+                  onChange={handleFileSelect}
+                />
+                <textarea
+                  ref={textareaRef}
+                  rows={4}
+                  className="motif-input"
+                  style={{width:"100%", resize:"vertical", minHeight:96, lineHeight:1.5}}
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={
+                    attachment
+                      ? "Add a message or press Send…"
+                      : selectedModel
+                        ? `Message ${selectedModel}… (Enter = send, Shift+Enter = newline)`
+                        : "Select a model to start chatting"
+                  }
+                  disabled={!selectedModel || streaming || !!chunkProgress}
+                />
+                <div style={{display:"flex", gap:4}}>
+                  <button
+                    className="motif-btn primary"
+                    onClick={sendMessage}
+                    disabled={!canSend}
+                  >{webFetching ? "Fetching…" : "Send"}</button>
+                  <button
+                    className="motif-btn"
+                    style={{
+                      background: attachment ? "#d0e0f4" : cde.panel,
+                      color: attachment ? "#1a3a6e" : "#000",
+                      fontSize:15, padding:"4px 10px", minWidth:"unset",
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!selectedModel || streaming || !!chunkProgress}
+                    title="Attach file"
+                  >📎</button>
+                  <button
+                    className="motif-btn"
+                    style={{
+                      background: webResults.length > 0 ? "#d0e4d0" : cde.panel,
+                      color: webResults.length > 0 ? "#1a3a1a" : "#000",
+                      fontSize:15, padding:"4px 10px", minWidth:"unset",
+                    }}
+                    onClick={handleWebFetch}
+                    disabled={!selectedModel || streaming || webFetching || !input.match(URL_RE)}
+                    title="Fetch URLs from message"
+                  >{webFetching ? "⏳" : "🌐"}</button>
+                  {(streaming || chunkProgress) && (
+                    <button className="motif-btn danger" onClick={stopStreaming}>Stop</button>
+                  )}
+                </div>
+              </div>
+
+              {/* Chunk processing progress bar */}
+              {chunkProgress && (
+                <div style={{
+                  padding:"5px 8px", fontSize:12, color:"#78a8c0",
+                  background:"#1a2430",
+                  borderTop:"2px solid #304858", borderLeft:"2px solid #304858",
+                  borderRight:"2px solid #1a2430", borderBottom:"2px solid #1a2430",
+                  display:"flex", alignItems:"center", gap:8,
+                }}>
+                  <span>⏳ Reading file — chunk {chunkProgress.current}/{chunkProgress.total}</span>
+                  <span style={{flex:1, background:"#253545", borderRadius:2, height:6, overflow:"hidden"}}>
+                    <span style={{display:"block", height:"100%", background:"#4a8898",
+                      width:`${(chunkProgress.current/chunkProgress.total*100).toFixed(0)}%`,
+                      transition:"width 0.2s"}}/>
+                  </span>
+                  <span style={{color:"#507890", fontSize:11}}>
+                    Increase num_ctx in Settings for larger chunks
+                  </span>
+                </div>
+              )}
+
+              {/* Status bar */}
+              <div style={{
+                borderTop:"1px solid #7f7f7f",
+                paddingTop:4,
+                fontSize:11, color:"#404040",
+                display:"flex", justifyContent:"space-between", alignItems:"center",
+              }}>
+                <span>
+                  {contextTokens
+                    ? <>
+                        context:{" "}
+                        {contextTokens.prompt != null
+                          ? <><b style={{color: contextTokens.prompt / numCtx > 0.8 ? "#a04000" : "inherit"}}>{contextTokens.prompt.toLocaleString()}</b> / {numCtx.toLocaleString()}</>
+                          : "?"}
+                        {contextTokens.generated != null ? <> · <b>{contextTokens.generated.toLocaleString()}</b> generated</> : ""} tokens
+                        {contextTokens.prompt != null && contextTokens.prompt / numCtx > 0.8
+                          ? <span style={{color:"#a04000", marginLeft:6}}>⚠ context near limit</span>
+                          : null}
+                      </>
+                    : "Ollama Chat — full conversation context sent each message"}
+                </span>
+                <div style={{display:"flex", alignItems:"center", gap:8}}>
+                  {selectedModel && <span style={{color:"#4a7888"}}>{selectedModel}</span>}
+                  <button
+                    className="motif-btn"
+                    style={{padding:"1px 8px", fontSize:11, minWidth:"unset"}}
+                    onClick={handleCompress}
+                    disabled={messages.length <= COMPRESS_KEEP || streaming || !!summaryModal}
+                    title="Summarise older messages to free up context"
+                  >Compress</button>
+                  <button
+                    className="motif-btn"
+                    style={{padding:"1px 8px", fontSize:11, minWidth:"unset"}}
+                    onClick={handleNewChat}
+                    disabled={messages.length === 0 && !input.trim() && !attachment && webResults.length === 0}
+                    title="Clear conversation and start fresh"
+                  >New Chat</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* Summary modal */}
+        {summaryModal && (
+          <div style={{
+            position:"fixed", inset:0,
+            background:"rgba(0,0,0,0.6)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            zIndex:1000,
+          }}>
+            <div style={{
+              background:"#aeb2c3",
+              borderTop:"2px solid #dfdfdf", borderLeft:"2px solid #dfdfdf",
+              borderRight:"2px solid #3f3f3f", borderBottom:"2px solid #3f3f3f",
+              width:"min(680px, 92vw)", maxHeight:"80vh",
+              display:"flex", flexDirection:"column",
+            }}>
+              <div style={{
+                background:"#4a7888", color:"#fff",
+                padding:"4px 10px", fontSize:13, fontWeight:"bold",
+                display:"flex", justifyContent:"space-between", alignItems:"center",
+              }}>
+                <span>📋 Conversation Summary Preview</span>
+                {summaryModal.streaming && <span style={{fontSize:11, fontWeight:"normal"}}>generating…</span>}
+              </div>
+              <div style={{
+                flex:1, overflowY:"auto",
+                padding:10, fontSize:12,
+                background:"#1a2e20", color:"#c8e8d0",
+                whiteSpace:"pre-wrap", wordBreak:"break-word",
+                fontFamily:"monospace",
+              }}>
+                {summaryModal.text || (summaryModal.streaming ? "" : "(empty)")}
+                {summaryModal.streaming && <span style={{color:"#4a9860"}}>▋</span>}
+                {summaryModal.error && (
+                  <div style={{color:"#e87070", marginTop:8}}>Error: {summaryModal.error}</div>
+                )}
+              </div>
+              <div style={{
+                padding:"6px 10px", borderTop:"1px solid #7f7f7f",
+                display:"flex", gap:6, justifyContent:"flex-end",
+                fontSize:12, color:"#505050",
+              }}>
+                <span style={{flex:1, alignSelf:"center"}}>
+                  Applying will replace {messages.length - summaryModal.toKeep.length} messages with this summary,
+                  keeping the last {summaryModal.toKeep.length} messages verbatim.
+                </span>
+                <button
+                  className="motif-btn primary"
+                  onClick={applySummary}
+                  disabled={summaryModal.streaming || !!summaryModal.error || !summaryModal.text}
+                >Apply</button>
+                <button
+                  className="motif-btn"
+                  onClick={() => { summaryAbortRef.current?.abort(); setSummaryModal(null); }}
+                >Discard</button>
+              </div>
+            </div>
+          </div>
+        )}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<OllamaChat/>);
+  </script>
+</body>
+</html>
