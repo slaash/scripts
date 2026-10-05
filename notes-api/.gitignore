@@ -1,3 +1,4 @@
 notes.json
 __pycache__/
 .notes.json.*.tmp
+notes-server.log

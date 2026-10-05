@@ -24,8 +24,13 @@
      append elements to <body>, which would become extra grid rows. */
   #app {
     height: 100vh;
+    /* Mobile 100vh assumes the address bar is hidden; dvh is the visible
+       height, so the bottom row isn't covered while the bar is shown. */
+    height: 100dvh;
     display: grid;
-    grid-template-columns: 280px 1fr;
+    /* minmax(0, ...) lets the column shrink below its content's natural
+       width; plain 1fr would widen the page past a narrow screen. */
+    grid-template-columns: 280px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
   aside {
@@ -103,6 +108,7 @@
   .row label { font-size: 0.9em; }
   input[type="password"], input[type="text"] {
     flex: 1;
+    min-width: 0;  /* flex items default to their natural width; allow shrinking */
     max-width: 360px;
     padding: 6px 8px;
     border: 1px solid var(--border);
@@ -133,8 +139,14 @@
   #status { margin-left: auto; color: var(--muted); font-size: 0.85em; }
   #status.error { color: var(--danger); }
   @media (max-width: 640px) {
-    #app { grid-template-columns: 1fr; grid-template-rows: 40vh minmax(0, 1fr); }
+    /* List 40%, editor 60% of the visible height. */
+    #app {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
+    }
     aside { border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 12px 16px; }
+    input[type="password"], input[type="text"] { max-width: none; }
   }
 </style>
 </head>
