@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>421 Dice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function rollDie() {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return (arr[0] % 6) + 1;
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    const HAND_RANKS = [
+      { rank: 0, label: "High Dice", chips: "1" },
+      { rank: 1, label: "One Pair", chips: "1" },
+      { rank: 2, label: "Straight", chips: "2" },
+      { rank: 3, label: "Three of a Kind", chips: "2–6" },
+      { rank: 4, label: "111", chips: "1" },
+      { rank: 5, label: "421", chips: "10" },
+    ];
+
+    function evaluateHand(dice) {
+      if (!dice || dice.length < 3) return { rank: -1, label: "—" };
+      const sorted = [...dice].sort((a, b) => a - b);
+      const [a, b, c] = sorted;
+      if (a === 1 && b === 2 && c === 4) return { rank: 5, label: "421" };
+      if (a === 1 && b === 1 && c === 1) return { rank: 4, label: "111" };
+      if (a === b && b === c) return { rank: 3, label: "Three of a Kind" };
+      if (b === a + 1 && c === b + 1) return { rank: 2, label: "Straight" };
+      if (a === b || b === c || a === c) return { rank: 1, label: "One Pair" };
+      return { rank: 0, label: "High Dice" };
+    }
+
+    // Tie-break value within the same rank — higher wins.
+    function handValue(dice, hand) {
+      const sorted = [...dice].sort((a, b) => a - b);
+      switch (hand.rank) {
+        case 5:
+        case 4:
+          return 1000;
+        case 3:
+          return sorted[0] * 10;
+        case 2:
+          return sorted[2];
+        case 1: {
+          const counts = {};
+          dice.forEach(d => counts[d] = (counts[d] || 0) + 1);
+          const pairVal = Number(Object.keys(counts).find(k => counts[k] >= 2));
+          const kicker = dice.find(d => counts[d] === 1) || 0;
+          return pairVal * 10 + kicker;
+        }
+        default:
+          return sorted[2] * 100 + sorted[1] * 10 + sorted[0];
+      }
+    }
+
+    // Tokens awarded/taken for a round, based on the winning hand.
+    function tokenValue(dice, hand) {
+      const sorted = [...dice].sort((a, b) => a - b);
+      switch (hand.rank) {
+        case 5: return 10;        // 421
+        case 4: return sorted[0]; // 111 -> 1
+        case 3: return sorted[0]; // other triples -> face value
+        case 2: return 2;         // straight
+        case 1: return 1;         // pair
+        default: return 1;        // high dice
+      }
+    }
+
+    // Returns boolean[] — which dice the CPU wants to keep
+    function cpuDecideKeep(dice) {
+      const hand = evaluateHand(dice);
+      if (hand.rank >= 4) return dice.map(() => true); // 421 or triple ones
+
+      // Chase the 421: keep dice that uniquely match 1, 2 or 4
+      const target = [1, 2, 4];
+      const used = new Set();
+      const keepTarget = dice.map(v => {
+        if (target.includes(v) && !used.has(v)) { used.add(v); return true; }
+        return false;
+      });
+      if (used.size >= 2) return keepTarget;
+
+      // Chase a triple: keep an existing pair
+      const counts = {};
+      dice.forEach(v => counts[v] = (counts[v] || 0) + 1);
+      const pairVal = Object.keys(counts).find(k => counts[k] >= 2);
+      if (pairVal) {
+        let seen = 0;
+        return dice.map(v => {
+          if (String(v) === pairVal && seen < 2) { seen++; return true; }
+          return false;
+        });
+      }
+
+      if (used.size === 1) return keepTarget; // keep the lone 421 piece
+
+      // Nothing going — keep the single highest die, reroll the rest
+      const maxV = Math.max(...dice);
+      let kept = false;
+      return dice.map(v => {
+        if (v === maxV && !kept) { kept = true; return true; }
+        return false;
+      });
+    }
+
+    const DieFace = ({ value, selected, onClick }) => {
+      const dots = {
+        1: [[50,50]],
+        2: [[25,25],[75,75]],
+        3: [[25,25],[50,50],[75,75]],
+        4: [[25,25],[75,25],[25,75],[75,75]],
+        5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+        6: [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]],
+      };
+      return (
+        <div
+          onClick={onClick}
+          style={{
+            width:60, height:60, background:"#1a1a1a", borderRadius:10,
+            border: selected ? "2px solid #fde68a" : "2px solid #000",
+            display:"inline-block", cursor: onClick ? "pointer" : "default",
+            boxShadow: selected
+              ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)"
+              : "2px 3px 8px rgba(0,0,0,0.3)",
+            transition:"box-shadow 0.15s, border-color 0.15s",
+          }}
+        >
+          <svg width="60" height="60" viewBox="0 0 100 100">
+            {(dots[value]||[]).map(([cx,cy],i) => (
+              <circle key={i} cx={cx} cy={cy} r={10} fill="#ef4444"/>
+            ))}
+          </svg>
+        </div>
+      );
+    };
+
+    const HAND_COLORS = ["#475569","#22c55e","#f59e0b","#8b5cf6","#ec4899","#fbbf24"];
+    const HAND_TEXT   = ["white",  "white",  "white",  "white",  "white",  "#1a1a1a"];
+
+    const HandBadge = ({ label, rank }) => (
+      <span style={{
+        display:"inline-block", padding:"3px 14px", borderRadius:20,
+        background: rank >= 0 ? HAND_COLORS[rank] : "#475569",
+        color: rank >= 0 ? HAND_TEXT[rank] : "white",
+        fontWeight:"bold", fontSize:16, marginTop:4,
+      }}>{label}</span>
+    );
+
+    function compareHands(dA, dB) {
+      const hA = evaluateHand(dA), hB = evaluateHand(dB);
+      if (hA.rank !== hB.rank) return hA.rank - hB.rank;
+      return handValue(dA, hA) - handValue(dB, hB);
+    }
+
+    function DiceDice() {
+      const [playerDice, setPlayerDice] = useState([]);
+      const [cpuDice,    setCpuDice]    = useState([]);
+      const [kept,       setKept]       = useState([false,false,false]);
+      const [phase,      setPhase]      = useState("idle");
+      const [rollsLeft,  setRollsLeft]  = useState(2);
+      const [message,    setMessage]    = useState("");
+      const [busy,       setBusy]       = useState(false);
+      const [cpuHidden,    setCpuHidden]    = useState(true);
+      const [cpuRollNum,   setCpuRollNum]   = useState(0);
+      const [cpuHandHist,  setCpuHandHist]  = useState([]);
+
+      const [centerTokens, setCenterTokens] = useState(21);
+      const [playerTokens, setPlayerTokens] = useState(0);
+      const [cpuTokens,    setCpuTokens]    = useState(0);
+      const [matchStage,   setMatchStage]   = useState("charge"); // charge | decharge
+      const [matchOver,    setMatchOver]    = useState(false);
+      const [matchWinner,  setMatchWinner]  = useState(null);
+      const [transferMsg,  setTransferMsg]  = useState("");
+
+      const playerHand = evaluateHand(playerDice);
+      const cpuHand    = evaluateHand(cpuDice);
+
+      const resolveGame = (pDice, cDice) => {
+        const ph = evaluateHand(pDice);
+        const ch = evaluateHand(cDice);
+        const cmp = compareHands(pDice, cDice);
+        let msg, winner, winnerHand, winnerDice;
+        if      (cmp > 0) { msg = `🎉 You win the round! ${ph.label} beats ${ch.label}!`; winner = "player"; winnerHand = ph; winnerDice = pDice; }
+        else if (cmp < 0) { msg = `😞 CPU wins the round! ${ch.label} beats ${ph.label}!`; winner = "cpu"; winnerHand = ch; winnerDice = cDice; }
+        else               { msg = `🤝 Tie! Both have ${ph.label}. No tokens move.`; winner = null; }
+        setMessage(msg);
+        setPhase("end");
+        if (!winner) return;
+
+        const loser = winner === "player" ? "cpu" : "player";
+        const amt = tokenValue(winnerDice, winnerHand);
+        let newCenter = centerTokens, newPlayerT = playerTokens, newCpuT = cpuTokens;
+        let newStage = matchStage;
+        let transfer;
+
+        if (matchStage === "charge") {
+          const take = Math.min(amt, newCenter);
+          newCenter -= take;
+          if (loser === "player") newPlayerT += take; else newCpuT += take;
+          transfer = `${loser === "player" ? "You take" : "CPU takes"} ${take} token${take===1?"":"s"} from the center (${newCenter} left).`;
+          if (newCenter === 0) { newStage = "decharge"; transfer += " The center's empty — La Décharge begins!"; }
+        } else {
+          const giverHas = winner === "player" ? newPlayerT : newCpuT;
+          const give = Math.min(amt, giverHas);
+          if (winner === "player") { newPlayerT -= give; newCpuT += give; }
+          else                     { newCpuT -= give; newPlayerT += give; }
+          transfer = `${winner === "player" ? "You give" : "CPU gives"} ${give} token${give===1?"":"s"} to the loser.`;
+        }
+
+        setCenterTokens(newCenter);
+        setPlayerTokens(newPlayerT);
+        setCpuTokens(newCpuT);
+        setMatchStage(newStage);
+        setTransferMsg(transfer);
+
+        if (newStage === "decharge") {
+          if (newPlayerT === 0) { setMatchOver(true); setMatchWinner("player"); }
+          else if (newCpuT === 0) { setMatchOver(true); setMatchWinner("cpu"); }
+        }
+      };
+
+      const startRound = () => {
+        const p = Array.from({length:3}, rollDie);
+        const c = Array.from({length:3}, rollDie);
+        setPlayerDice(p); setCpuDice(c);
+        setKept([false,false,false]);
+        setRollsLeft(2); setPhase("cpu"); setBusy(false);
+        setCpuHidden(true); setCpuRollNum(1); setCpuHandHist([]);
+        setMessage("CPU goes first..."); setTransferMsg("");
+        runCpuTurn(c);
+      };
+
+      const toggleKeep = (i) => {
+        if (phase !== "player" || busy) return;
+        setKept(k => k.map((v, j) => j === i ? !v : v));
+      };
+
+      const doRoll = () => {
+        if (phase !== "player" || busy || rollsLeft <= 0) return;
+        const next = playerDice.map((d, i) => kept[i] ? d : rollDie());
+        setPlayerDice(next);
+        const rem = rollsLeft - 1;
+        setRollsLeft(rem);
+        if (rem <= 0) {
+          setMessage("No rolls left — standing automatically...");
+          resolveGame(next, cpuDice);
+        } else {
+          setMessage(`${rem} roll${rem === 1 ? "" : "s"} left — click dice to keep.`);
+        }
+      };
+
+      const doStand = () => {
+        if (phase !== "player" || busy) return;
+        resolveGame(playerDice, cpuDice);
+      };
+
+      const runCpuTurn = async (initialCDice) => {
+        setBusy(true);
+        let cDice = [...initialCDice];
+        let rolls = 2; // initial deal used 1 of 3
+        const hist = [evaluateHand(cDice).label];
+
+        while (rolls > 0) {
+          setMessage("CPU is thinking...");
+          await sleep(600);
+          const keep = cpuDecideKeep(cDice);
+          if (keep.every(Boolean)) break; // happy with hand
+          cDice = cDice.map((d, i) => keep[i] ? d : rollDie());
+          setCpuDice([...cDice]);
+          setCpuRollNum(n => n + 1);
+          hist.push(evaluateHand(cDice).label);
+          rolls--;
+          setMessage("CPU rolled...");
+          await sleep(300);
+        }
+
+        setCpuHandHist(hist);
+        setCpuDice([...cDice]);
+        setCpuHidden(false);
+        await sleep(400);
+        setBusy(false);
+        setPhase("player");
+        setMessage("Your turn — click dice to keep, then Roll or Stand.");
+      };
+
+      const newMatch = () => {
+        setPlayerDice([]); setCpuDice([]);
+        setPhase("idle"); setMessage(""); setTransferMsg("");
+        setKept([false,false,false]);
+        setBusy(false); setCpuHidden(true); setRollsLeft(2); setCpuRollNum(0); setCpuHandHist([]);
+        setCenterTokens(21); setPlayerTokens(0); setCpuTokens(0);
+        setMatchStage("charge"); setMatchOver(false); setMatchWinner(null);
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding:"12px 28px", fontSize:17, fontWeight:"bold", borderRadius:10,
+        border:"none", background: disabled ? "#94a3b8" : color,
+        color:"white", cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+      });
+
+      const turnRing = active => active ? { boxShadow:"0 0 0 3px #fde68a" } : {};
+
+      const renderStats = () => {
+        if ((phase !== "player" && phase !== "end") || cpuHidden || cpuDice.length < 3) return null;
+        const beatingCount = HAND_RANKS.filter(h => h.rank > cpuHand.rank).length;
+        return (
+          <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 16px",marginTop:12}}>
+            <div style={{fontSize:13,color:"#94a3b8",marginBottom:8,textAlign:"center",letterSpacing:1}}>
+              HAND RANKINGS — WHAT BEATS THE CPU
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {[...HAND_RANKS].reverse().map(h => {
+                const isCpu  = h.rank === cpuHand.rank;
+                const beats  = h.rank > cpuHand.rank;
+                const isPlayer = h.rank === playerHand.rank && !isCpu;
+                return (
+                  <div key={h.rank} style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    borderRadius:8, padding:"5px 12px",
+                    background: isCpu  ? "rgba(239,68,68,0.2)"
+                              : beats  ? "rgba(34,197,94,0.15)"
+                              : "rgba(255,255,255,0.04)",
+                    border: isCpu  ? "1px solid rgba(239,68,68,0.6)"
+                          : beats  ? "1px solid rgba(34,197,94,0.4)"
+                          : "1px solid transparent",
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{
+                        fontSize:14, fontWeight:(beats||isCpu)?"bold":"normal",
+                        color: isCpu  ? "#fca5a5"
+                             : beats  ? "#86efac"
+                             : "#64748b",
+                      }}>
+                        {h.label}
+                      </span>
+                      <span style={{fontSize:11,color:"#fde68a",background:"rgba(253,230,138,0.12)",padding:"1px 7px",borderRadius:99,border:"1px solid rgba(253,230,138,0.25)"}}>🪙 {h.chips}</span>
+                      {isPlayer && (
+                        <span style={{fontSize:11,color:"#fde68a",background:"rgba(253,230,138,0.15)",padding:"1px 7px",borderRadius:99,border:"1px solid rgba(253,230,138,0.3)"}}>your hand</span>
+                      )}
+                    </div>
+                    <span style={{fontSize:12,color: beats?"#22c55e":isCpu?"#ef4444":"#475569"}}>
+                      {isCpu ? "← CPU's hand" : beats ? "✅ beats CPU" : ""}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{marginTop:8,fontSize:12,textAlign:"center",color: beatingCount>0?"#86efac":"#fca5a5"}}>
+              {beatingCount > 0
+                ? `${beatingCount} hand${beatingCount>1?"s":""} beat${beatingCount===1?"s":""} the CPU's ${cpuHand.label}`
+                : "Nothing beats the 421 — unbeatable hand!"}
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif",padding:16}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"20px 24px",width:"100%",maxWidth:500,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white",display:"flex",flexDirection:"column"}}>
+
+            <h1 style={{textAlign:"center",margin:"0 0 2px",fontSize:26,letterSpacing:1}}>🎲 421 Dice</h1>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:12,fontSize:13}}>
+              {matchStage === "charge" ? "🔥 La Charge — losers take tokens from the center" : "💨 La Décharge — winners give tokens to the loser"}
+            </p>
+
+            {/* Token track */}
+            <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:20,marginBottom:12}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>You</div>
+                <div style={{fontSize:28,fontWeight:"bold",color:"#fde68a"}}>{playerTokens}</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:12,color:"#94a3b8"}}>Center</div>
+                <div style={{fontSize:20,fontWeight:"bold",color:"#86efac"}}>🪙 {centerTokens}</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>CPU</div>
+                <div style={{fontSize:28,fontWeight:"bold",color:"#fde68a"}}>{cpuTokens}</div>
+              </div>
+            </div>
+
+            {/* CPU area */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:10,textAlign:"center",transition:"box-shadow 0.3s",...turnRing(phase==="cpu")}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>CPU {phase==="cpu" ? "🎲" : ""}</div>
+                {cpuRollNum > 0 && (
+                  <div style={{fontSize:12,color:"#fde68a"}}>Roll {cpuRollNum} of 3</div>
+                )}
+              </div>
+              {cpuDice.length > 0
+                ? <>
+                    <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+                      {cpuDice.map((v,i) => cpuHidden
+                        ? <div key={i} style={{width:60,height:60,borderRadius:10,background:"#1e40af",border:"2px solid #334155",boxShadow:"2px 3px 8px rgba(0,0,0,0.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>🎲</div>
+                        : <DieFace key={i} value={v}/>
+                      )}
+                    </div>
+                    {!cpuHidden && (
+                      <div style={{marginTop:6}}>
+                        <HandBadge label={cpuHand.label} rank={cpuHand.rank}/>
+                        <div style={{fontSize:11,color:"#64748b",marginTop:5}}>
+                          {cpuHandHist.map((l,i) => `Roll ${i+1}: ${l}`).join(" → ")}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Player area */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:8,textAlign:"center",transition:"box-shadow 0.3s",...turnRing(phase==="player")}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>YOU {phase==="player" ? "🎲" : ""}</div>
+                {phase==="player" && (
+                  <div style={{fontSize:12,color:"#fde68a"}}>
+                    {rollsLeft > 0 ? `${rollsLeft} roll${rollsLeft===1?"":"s"} left` : "No rolls left"}
+                  </div>
+                )}
+              </div>
+              {playerDice.length > 0
+                ? <>
+                    <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+                      {playerDice.map((v,i) => (
+                        <DieFace
+                          key={i} value={v}
+                          selected={kept[i]}
+                          onClick={phase==="player" ? () => toggleKeep(i) : undefined}
+                        />
+                      ))}
+                    </div>
+                    {phase==="player" && (
+                      <div style={{fontSize:11,color:"#94a3b8",marginTop:5}}>
+                        Click dice to keep them highlighted in gold
+                      </div>
+                    )}
+                    <div style={{marginTop:6}}><HandBadge label={playerHand.label} rank={playerHand.rank}/></div>
+                  </>
+                : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+              }
+            </div>
+
+            {/* Message */}
+            <div style={{textAlign:"center",minHeight:26,marginBottom:2,fontSize:17,fontWeight:"bold",color:"#fde68a"}}>{message}</div>
+            {transferMsg && (
+              <div style={{textAlign:"center",minHeight:18,marginBottom:10,fontSize:13,color:"#86efac"}}>{transferMsg}</div>
+            )}
+            {matchOver && (
+              <div style={{textAlign:"center",marginBottom:10,fontSize:20,fontWeight:"bold",color:"#fbbf24"}}>
+                {matchWinner==="player" ? "🏆 You win the match!" : "💀 CPU wins the match!"}
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+              {phase==="idle"||phase==="end"
+                ? <button style={btnStyle("#2563eb",false)} onClick={matchOver ? newMatch : startRound}>
+                    {matchOver ? "🏆 New Match" : phase==="end" ? "▶️ Next Round" : "🎲 Deal"}
+                  </button>
+                : <>
+                    <button
+                      style={btnStyle("#16a34a", phase!=="player"||busy||rollsLeft<=0)}
+                      onClick={doRoll}
+                      disabled={phase!=="player"||busy||rollsLeft<=0}
+                    >🎲 Roll</button>
+                    <button
+                      style={btnStyle("#dc2626", phase!=="player"||busy)}
+                      onClick={doStand}
+                      disabled={phase!=="player"||busy}
+                    >✋ Stand</button>
+                  </>
+              }
+            </div>
+
+            {/* Reset */}
+            <div style={{textAlign:"center",marginTop:10}}>
+              <button
+                style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}}
+                onClick={newMatch}
+              >🔁 Reset Match</button>
+            </div>
+
+            {/* Stats — what beats the CPU */}
+            {renderStats()}
+
+            <p style={{textAlign:"center",color:"#475569",fontSize:11,marginTop:12,marginBottom:0}}>
+              Rules: 21 tokens start in the center · La Charge: losers take tokens · La Décharge (center empty): winners give tokens ·
+              421 = 10 · triples = face value · straight = 2 · pair = 1 · first to 0 tokens wins
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<DiceDice/>);
+  </script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes</title>
+<style>
+  :root {
+    --border: #ddd;
+    --muted: #777;
+    --accent: #2563eb;
+    --selected: #e8efff;
+    --danger: #c62828;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    color: #222;
+    background: #fafafa;
+  }
+  /* Grid lives on a wrapper, not <body>: extensions such as password managers
+     append elements to <body>, which would become extra grid rows. */
+  #app {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  aside {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: #fff;
+    border-right: 1px solid var(--border);
+  }
+  aside header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  aside h1 { margin: 0; font-size: 1.1em; }
+  #count { color: var(--muted); font-size: 0.85em; }
+  #search {
+    margin: 8px 16px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+  }
+  #list { flex: 1; margin: 0; padding: 0; list-style: none; overflow-y: auto; }
+  #list li {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  #list li:hover { background: #f5f5f5; }
+  #list li.selected { background: var(--selected); }
+  #list li.selected .ts { font-weight: 600; }
+  #list .preview {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #list .preview.encrypted { font-style: italic; }
+  #list .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .tag {
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--selected);
+    color: var(--accent);
+    font-size: 0.8em;
+  }
+  .tag:hover { text-decoration: underline; }
+  #more { margin: 8px 16px; }
+  main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    padding: 16px 24px;
+  }
+  #meta { min-height: 1.2em; color: var(--muted); font-size: 0.85em; }
+  #meta a { margin-left: 8px; color: var(--accent); }
+  textarea {
+    flex: 1;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    line-height: 1.5;
+    resize: none;
+  }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row label { font-size: 0.9em; }
+  input[type="password"], input[type="text"] {
+    flex: 1;
+    max-width: 360px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+  }
+  #pass-show-label { color: var(--muted); font-size: 0.85em; }
+  #unlock {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+  }
+  button {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #new { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #delete { border-color: var(--danger); color: var(--danger); }
+  #status { margin-left: auto; color: var(--muted); font-size: 0.85em; }
+  #status.error { color: var(--danger); }
+  @media (max-width: 640px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 40vh minmax(0, 1fr); }
+    aside { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+<aside>
+  <header>
+    <h1>Notes</h1>
+    <span id="count"></span>
+  </header>
+  <input id="search" type="search" placeholder="Search text or #tag" autocomplete="off"
+         title="Text match is case-insensitive and skips encrypted notes; #tag matches tags (all must match)">
+  <ul id="list"></ul>
+  <button id="more" hidden>Load more</button>
+</aside>
+
+<main>
+  <div id="meta">
+    <span id="meta-text">New note</span>
+    <a id="link" target="_blank" rel="noopener" hidden>Share link</a>
+  </div>
+
+  <div id="unlock" hidden>
+    <div>This note is encrypted. Enter its passphrase to open it.</div>
+    <div class="row">
+      <input id="unlock-pass" type="password" autocomplete="off"
+             placeholder="Passphrase">
+      <button id="unlock-btn">Unlock</button>
+    </div>
+  </div>
+
+  <textarea id="editor" placeholder="Write a note..." autocomplete="off"></textarea>
+  <div id="tags-row" class="row">
+    <label for="tags">Tags</label>
+    <input id="tags" type="text" autocomplete="off"
+           placeholder="e.g. work, ideas (tags are not encrypted)">
+  </div>
+  <div id="pass-row" class="row">
+    <label for="pass">Passphrase</label>
+    <input id="pass" type="password" autocomplete="new-password"
+           placeholder="Leave empty for no encryption">
+    <label id="pass-show-label">
+      <input id="pass-show" type="checkbox"> show
+    </label>
+  </div>
+
+  <div class="row">
+    <button id="new" disabled>New</button>
+    <button id="update" hidden>Update</button>
+    <button id="delete" hidden>Delete</button>
+    <span id="status"></span>
+  </div>
+</main>
+
+</div>
+
+<script>
+// Same origin when served by the API; fallback for opening the file directly.
+const API = location.protocol === "file:" ? "http://localhost:8080" : location.origin;
+const PAGE_SIZE = 50;
+const PREVIEW_LENGTH = 20;
+const KDF_ITERATIONS = 600000;
+
+const $ = (id) => document.getElementById(id);
+const editor = $("editor");
+const passInput = $("pass");
+const tagsInput = $("tags");
+
+// Loaded notes (newest first) are kept in sync locally after each change,
+// so "Load more" offsets stay aligned with the server's ordering.
+let notes = [];
+let total = 0;
+let selected = null;
+// True while the selected note is encrypted and not yet unlocked.
+let locked = false;
+let savedText = "";
+let savedPass = "";
+let savedTags = "";
+let busy = false;
+// Current search box text ("words #tag ..."); empty means list all notes.
+let query = "";
+let searchTimer = null;
+
+// ---- Encryption (client-side only; the server never sees plaintext) ----
+// Stored text for an encrypted note is a JSON envelope:
+//   {v, kdf, iter, salt, iv, ct}  with base64 salt/iv/ciphertext.
+
+const utf8 = new TextEncoder();
+
+function toB64(bytes) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s);
+}
+
+function fromB64(s) {
+  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+
+async function deriveKey(passphrase, salt, iterations) {
+  if (!window.crypto?.subtle) {
+    throw new Error(
+      "Encryption needs a secure context: open via https, localhost, or a local file");
+  }
+  const base = await crypto.subtle.importKey(
+    "raw", utf8.encode(passphrase.normalize("NFC")), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    base,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]);
+}
+
+async function encryptText(text, passphrase) {
+  // Fresh salt and IV on every save; AES-GCM must never reuse an IV per key.
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(passphrase, salt, KDF_ITERATIONS);
+  const ct = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv }, key, utf8.encode(text));
+  return JSON.stringify({
+    v: 1,
+    kdf: "PBKDF2-SHA256",
+    iter: KDF_ITERATIONS,
+    salt: toB64(salt),
+    iv: toB64(iv),
+    ct: toB64(new Uint8Array(ct)),
+  });
+}
+
+async function decryptText(envelope, passphrase) {
+  const e = JSON.parse(envelope);
+  const key = await deriveKey(passphrase, fromB64(e.salt), e.iter);
+  const pt = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: fromB64(e.iv) }, key, fromB64(e.ct));
+  return new TextDecoder().decode(pt);
+}
+
+async function payload(text, passphrase, tags) {
+  return passphrase
+    ? { text: await encryptText(text, passphrase), encrypted: true, tags }
+    : { text, encrypted: false, tags };
+}
+
+// ---- API ----
+
+async function api(path, options = {}) {
+  const res = await fetch(API + path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === "string") detail = body.detail;
+    } catch {}
+    throw new Error(`${res.status} ${detail}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+// ---- Rendering ----
+
+function fmt(ts) {
+  return new Date(ts).toLocaleString();
+}
+
+// "work, #Ideas  home" -> ["work", "ideas", "home"]; the server validates.
+function parseTags(value) {
+  const tags = value.split(/[\s,]+/)
+    .map((t) => t.replace(/^#+/, "").toLowerCase())
+    .filter(Boolean);
+  return [...new Set(tags)];
+}
+
+function isDirty() {
+  return !locked
+    && (editor.value !== savedText || passInput.value !== savedPass
+        || parseTags(tagsInput.value).join(" ") !== savedTags);
+}
+
+function setEditor(text, pass, tags = []) {
+  editor.value = savedText = text;
+  passInput.value = savedPass = pass;
+  tagsInput.value = tags.join(", ");
+  savedTags = tags.join(" ");
+}
+
+function setStatus(message, isError = false) {
+  $("status").textContent = message;
+  $("status").classList.toggle("error", isError);
+}
+
+function preview(text) {
+  // Spread into code points so emoji aren't cut in half.
+  const chars = [...text.replace(/\s+/g, " ").trim()];
+  if (chars.length === 0) return "(empty)";
+  return chars.length > PREVIEW_LENGTH
+    ? chars.slice(0, PREVIEW_LENGTH).join("") + "…"
+    : chars.join("");
+}
+
+function renderList() {
+  $("list").replaceChildren(...notes.map((note) => {
+    const li = document.createElement("li");
+    const ts = document.createElement("div");
+    ts.className = "ts";
+    ts.textContent = fmt(note.timestamp);
+    const pv = document.createElement("div");
+    pv.className = note.encrypted ? "preview encrypted" : "preview";
+    pv.textContent = note.encrypted ? "Encrypted" : preview(note.text);
+    li.append(ts, pv);
+    if (note.tags.length) {
+      const tags = document.createElement("div");
+      tags.className = "tags";
+      for (const tag of note.tags) {
+        const chip = document.createElement("span");
+        chip.className = "tag";
+        chip.textContent = `#${tag}`;
+        chip.title = `Show notes tagged #${tag}`;
+        chip.onclick = (e) => {
+          e.stopPropagation();  // don't also select the note
+          $("search").value = `#${tag}`;
+          applySearch();
+        };
+        tags.append(chip);
+      }
+      li.append(tags);
+    }
+    li.title = `Note #${note.id}`;
+    li.classList.toggle("selected", note.id === selected?.id);
+    // Clicking the selected note again deselects it (back to a blank editor).
+    li.onclick = () => select(note.id === selected?.id ? null : note);
+    return li;
+  }));
+  $("count").textContent = query
+    ? `${total} match${total === 1 ? "" : "es"}`
+    : `${total} note${total === 1 ? "" : "s"}`;
+  $("more").hidden = notes.length >= total;
+}
+
+function renderEditor() {
+  const hasSelection = selected !== null;
+  $("unlock").hidden = !locked;
+  editor.hidden = locked;
+  $("pass-row").hidden = locked;
+  $("tags-row").hidden = locked;
+  $("new").hidden = locked;
+  $("update").hidden = !hasSelection || locked;
+  $("delete").hidden = !hasSelection;
+  // The share page can't decrypt, so don't offer a link for encrypted notes.
+  $("link").hidden = !hasSelection || selected.encrypted;
+  if (hasSelection) {
+    $("meta-text").textContent = `Note #${selected.id} · created `
+      + fmt(selected.timestamp) + (selected.encrypted ? " · encrypted" : "");
+    $("link").href = selected.url;
+  } else {
+    $("meta-text").textContent = "New note";
+  }
+  renderButtons();
+}
+
+function renderButtons() {
+  const empty = editor.value.trim() === "";
+  $("new").disabled = busy || empty;
+  $("update").disabled = busy || empty || !isDirty();
+  $("delete").disabled = busy;
+  $("more").disabled = busy;
+  $("unlock-btn").disabled = busy;
+  editor.readOnly = busy;
+  passInput.readOnly = busy;
+  tagsInput.readOnly = busy;
+  $("unlock-pass").readOnly = busy;
+}
+
+function select(note) {
+  if (isDirty() && !confirm("Discard unsaved changes?")) return;
+  selected = note;
+  locked = Boolean(note?.encrypted);
+  setEditor(note && !note.encrypted ? note.text : "", "", note?.tags);
+  $("unlock-pass").value = "";
+  setStatus("");
+  renderList();
+  renderEditor();
+  (locked ? $("unlock-pass") : editor).focus();
+}
+
+// ---- Actions ----
+
+async function run(pending, done, fn) {
+  busy = true;
+  renderButtons();
+  setStatus(pending);
+  try {
+    await fn();
+    setStatus(done);
+  } catch (err) {
+    setStatus(err.message, true);
+  } finally {
+    busy = false;
+    renderButtons();
+  }
+}
+
+async function loadNotes(append) {
+  const q = query;
+  const params = new URLSearchParams({
+    limit: PAGE_SIZE, offset: append ? notes.length : 0 });
+  // "#word" tokens are tag filters; everything else is the text query.
+  const words = q.split(/\s+/).filter(Boolean);
+  const text = words.filter((w) => !w.startsWith("#")).join(" ");
+  const tags = words.filter((w) => w.startsWith("#"))
+    .map((w) => w.slice(1).toLowerCase()).filter(Boolean);
+  if (text) params.set("q", text);
+  for (const tag of tags) params.append("tag", tag);
+  const page = await api(text || tags.length
+    ? `/notes/search?${params}`
+    : `/notes?${params}`);
+  if (q !== query) return;  // a newer search superseded this response
+  total = page.total;
+  notes = append ? notes.concat(page.items) : page.items;
+  renderList();
+}
+
+async function unlockNote() {
+  const pass = $("unlock-pass").value;
+  let text;
+  try {
+    text = await decryptText(selected.text, pass);
+  } catch (err) {
+    if (err.message.startsWith("Encryption needs")) throw err;
+    $("unlock-pass").select();
+    throw new Error("Wrong passphrase");
+  }
+  locked = false;
+  setEditor(text, pass, selected.tags);
+  $("unlock-pass").value = "";
+  renderEditor();
+  editor.focus();
+}
+
+async function createNote() {
+  const text = editor.value;
+  const pass = passInput.value;
+  const note = await api("/notes", {
+    method: "POST",
+    body: JSON.stringify(await payload(text, pass, parseTags(tagsInput.value))),
+  });
+  notes.unshift(note);
+  total++;
+  // Keep the new note open (already unlocked) rather than re-selecting it.
+  selected = note;
+  locked = false;
+  setEditor(text, pass, note.tags);
+  renderList();
+  renderEditor();
+}
+
+async function updateNote() {
+  const text = editor.value;
+  const pass = passInput.value;
+  const note = await api(`/notes/${selected.id}`, {
+    method: "PUT",
+    body: JSON.stringify(await payload(text, pass, parseTags(tagsInput.value))),
+  });
+  const i = notes.findIndex((n) => n.id === note.id);
+  if (i !== -1) notes[i] = note;
+  selected = note;
+  setEditor(text, pass, note.tags);
+  renderList();
+  renderEditor();
+}
+
+async function deleteNote() {
+  const id = selected.id;
+  await api(`/notes/${id}`, { method: "DELETE" });
+  notes = notes.filter((n) => n.id !== id);
+  total--;
+  locked = false;
+  setEditor("", "", []);
+  select(null);
+}
+
+$("new").onclick = () => run(
+  passInput.value ? "Encrypting..." : "Creating...", "Created", createNote);
+$("update").onclick = () => run(
+  passInput.value ? "Encrypting..." : "Saving...", "Saved", updateNote);
+$("delete").onclick = () => {
+  if (!confirm(`Delete note from ${fmt(selected.timestamp)}?`)) return;
+  run("Deleting...", "Deleted", deleteNote);
+};
+$("unlock-btn").onclick = () => run("Decrypting...", "", unlockNote);
+$("unlock-pass").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !busy) $("unlock-btn").click();
+});
+$("pass-show").addEventListener("change", (e) => {
+  passInput.type = e.target.checked ? "text" : "password";
+});
+$("more").onclick = () => run("Loading...", "", () => loadNotes(true));
+function applySearch() {
+  clearTimeout(searchTimer);
+  query = $("search").value.trim();
+  run("Searching...", "", () => loadNotes(false));
+}
+$("search").addEventListener("input", () => {
+  // Debounce so each keystroke doesn't fire a request.
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applySearch, 250);
+});
+editor.addEventListener("input", renderButtons);
+passInput.addEventListener("input", renderButtons);
+tagsInput.addEventListener("input", renderButtons);
+window.addEventListener("beforeunload", (e) => {
+  if (isDirty()) e.preventDefault();
+});
+
+// Browsers may restore form fields on reload, which would otherwise look
+// like unsaved changes since no note is selected yet.
+editor.value = "";
+passInput.value = "";
+tagsInput.value = "";
+$("unlock-pass").value = "";
+$("search").value = "";
+$("pass-show").checked = false;
+run("Loading...", "", () => loadNotes(false));
+</script>
+
+</body>
+</html>
