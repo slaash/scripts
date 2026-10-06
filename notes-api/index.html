@@ -425,6 +425,15 @@ function renderButtons() {
   $("unlock-pass").readOnly = busy;
 }
 
+// On touch screens focusing a field pops up the keyboard, so only move focus
+// automatically where there's a mouse or trackpad; on phones the note opens
+// for reading and the keyboard appears only when a field is tapped.
+const hasFinePointer = matchMedia("(pointer: fine)").matches;
+
+function autoFocus(el) {
+  if (hasFinePointer) el.focus();
+}
+
 function select(note) {
   if (isDirty() && !confirm("Discard unsaved changes?")) return;
   selected = note;
@@ -434,7 +443,7 @@ function select(note) {
   setStatus("");
   renderList();
   renderEditor();
-  (locked ? $("unlock-pass") : editor).focus();
+  autoFocus(locked ? $("unlock-pass") : editor);
 }
 
 // ---- Actions ----
@@ -488,7 +497,10 @@ async function unlockNote() {
   setEditor(text, pass, selected.tags);
   $("unlock-pass").value = "";
   renderEditor();
-  editor.focus();
+  autoFocus(editor);
+  // The passphrase field had focus; drop it so the phone keyboard closes and
+  // the decrypted note can be read.
+  if (!hasFinePointer) document.activeElement?.blur();
 }
 
 async function createNote() {
