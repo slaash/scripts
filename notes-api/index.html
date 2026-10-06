@@ -49,6 +49,20 @@
   }
   aside h1 { margin: 0; font-size: 1.1em; }
   #count { color: var(--muted); font-size: 0.85em; }
+  aside header .row { gap: 10px; }
+  .small { padding: 2px 10px; font-size: 0.85em; }
+  #bulk {
+    margin: 0 16px 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--selected);
+    font-size: 0.9em;
+  }
+  #bulk-count { margin-right: auto; }
+  #list li { display: flex; gap: 10px; align-items: flex-start; }
+  #list li .body { flex: 1; min-width: 0; }
+  #list li input[type="checkbox"] { margin-top: 3px; pointer-events: none; }
+  #list li.picked { background: var(--selected); }
   #search {
     margin: 8px 16px;
     padding: 6px 8px;
@@ -135,7 +149,7 @@
   }
   button:disabled { opacity: 0.5; cursor: default; }
   #new { background: var(--accent); border-color: var(--accent); color: #fff; }
-  #delete { border-color: var(--danger); color: var(--danger); }
+  #delete, #bulk-delete { border-color: var(--danger); color: var(--danger); }
   #status { margin-left: auto; color: var(--muted); font-size: 0.85em; }
   #status.error { color: var(--danger); }
   @media (max-width: 640px) {
@@ -156,10 +170,19 @@
 <aside>
   <header>
     <h1>Notes</h1>
-    <span id="count"></span>
+    <div class="row">
+      <span id="count"></span>
+      <button id="pick" class="small" title="Select several notes to delete">Select</button>
+    </div>
   </header>
   <input id="search" type="search" placeholder="Search text or #tag" autocomplete="off"
          title="Text match is case-insensitive and skips encrypted notes; #tag matches tags (all must match)">
+  <div id="bulk" class="row" hidden>
+    <span id="bulk-count"></span>
+    <button id="bulk-all" class="small">All</button>
+    <button id="bulk-delete" class="small" disabled>Delete</button>
+    <button id="bulk-cancel" class="small">Cancel</button>
+  </div>
   <ul id="list"></ul>
   <button id="more" hidden>Load more</button>
 </aside>
@@ -230,6 +253,9 @@ let busy = false;
 // Current search box text ("words #tag ..."); empty means list all notes.
 let query = "";
 let searchTimer = null;
+// Multi-select mode: tapping a note toggles it in `picked` instead of opening.
+let picking = false;
+const picked = new Set();
 
 // ---- Encryption (client-side only; the server never sees plaintext) ----
 // Stored text for an encrypted note is a JSON envelope:
@@ -361,7 +387,18 @@ function renderList() {
     const pv = document.createElement("div");
     pv.className = note.encrypted ? "preview encrypted" : "preview";
     pv.textContent = note.encrypted ? "Encrypted" : preview(note.text);
-    li.append(ts, pv);
+    const body = document.createElement("div");
+    body.className = "body";
+    body.append(ts, pv);
+    if (picking) {
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = picked.has(note.id);
+      box.tabIndex = -1;  // the whole row is the click target
+      li.append(box);
+      li.classList.toggle("picked", box.checked);
+    }
+    li.append(body);
     if (note.tags.length) {
       const tags = document.createElement("div");
       tags.className = "tags";
@@ -371,24 +408,38 @@ function renderList() {
         chip.textContent = `#${tag}`;
         chip.title = `Show notes tagged #${tag}`;
         chip.onclick = (e) => {
+          if (picking) return;  // let the row toggle instead
           e.stopPropagation();  // don't also select the note
           $("search").value = `#${tag}`;
           applySearch();
         };
         tags.append(chip);
       }
-      li.append(tags);
+      body.append(tags);
     }
     li.title = `Note #${note.id}`;
     li.classList.toggle("selected", note.id === selected?.id);
-    // Clicking the selected note again deselects it (back to a blank editor).
-    li.onclick = () => select(note.id === selected?.id ? null : note);
+    li.onclick = () => {
+      if (picking) {
+        if (!picked.delete(note.id)) picked.add(note.id);
+        renderList();
+        return;
+      }
+      // Clicking the selected note again deselects it (back to a blank editor).
+      select(note.id === selected?.id ? null : note);
+    };
     return li;
   }));
   $("count").textContent = query
     ? `${total} match${total === 1 ? "" : "es"}`
     : `${total} note${total === 1 ? "" : "s"}`;
   $("more").hidden = notes.length >= total;
+  $("pick").hidden = picking || notes.length === 0;
+  $("bulk").hidden = !picking;
+  $("bulk-count").textContent = `${picked.size} selected`;
+  $("bulk-all").textContent =
+    notes.length && notes.every((n) => picked.has(n.id)) ? "None" : "All";
+  renderButtons();
 }
 
 function renderEditor() {
@@ -418,6 +469,7 @@ function renderButtons() {
   $("update").disabled = busy || empty || !isDirty();
   $("delete").disabled = busy;
   $("more").disabled = busy;
+  $("bulk-delete").disabled = busy || picked.size === 0;
   $("unlock-btn").disabled = busy;
   editor.readOnly = busy;
   passInput.readOnly = busy;
@@ -480,6 +532,11 @@ async function loadNotes(append) {
   if (q !== query) return;  // a newer search superseded this response
   total = page.total;
   notes = append ? notes.concat(page.items) : page.items;
+  // A new search replaces the list; drop picks that are no longer shown.
+  if (!append) {
+    const shown = new Set(notes.map((n) => n.id));
+    for (const id of picked) if (!shown.has(id)) picked.delete(id);
+  }
   renderList();
 }
 
@@ -544,6 +601,48 @@ async function deleteNote() {
   setEditor("", "", []);
   select(null);
 }
+
+function setPicking(on) {
+  picking = on;
+  picked.clear();
+  renderList();
+}
+
+async function deletePicked() {
+  const { deleted } = await api("/notes/delete", {
+    method: "POST",
+    body: JSON.stringify({ ids: [...picked] }),
+  });
+  const gone = new Set(deleted);
+  // Already-deleted IDs (e.g. removed from another device) also leave the list.
+  for (const id of picked) gone.add(id);
+  notes = notes.filter((n) => !gone.has(n.id));
+  total -= deleted.length;
+  if (selected && gone.has(selected.id)) {
+    // The open note was deleted: close it without the unsaved-changes prompt.
+    selected = null;
+    locked = false;
+    setEditor("", "", []);
+    renderEditor();
+  }
+  setPicking(false);
+  return deleted.length;
+}
+
+$("pick").onclick = () => setPicking(true);
+$("bulk-cancel").onclick = () => setPicking(false);
+$("bulk-all").onclick = () => {
+  const all = notes.every((n) => picked.has(n.id));
+  for (const n of notes) all ? picked.delete(n.id) : picked.add(n.id);
+  renderList();
+};
+$("bulk-delete").onclick = () => {
+  const n = picked.size;
+  if (!confirm(`Delete ${n} note${n === 1 ? "" : "s"}? This can't be undone.`)) return;
+  let count = 0;
+  run("Deleting...", "", async () => { count = await deletePicked(); })
+    .then(() => { if (count) setStatus(`Deleted ${count} note${count === 1 ? "" : "s"}`); });
+};
 
 $("new").onclick = () => run(
   passInput.value ? "Encrypting..." : "Creating...", "Created", createNote);

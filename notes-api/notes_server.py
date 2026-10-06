@@ -118,6 +118,7 @@ BASE_URL = os.getenv("BASE_URL", "http://localhost:8080").rstrip("/")
 # those as separators and as the search prefix).
 TAG_PATTERN = re.compile(r"[^\s,#]{1,40}")
 MAX_TAGS = 20
+MAX_BULK_DELETE = 500
 
 
 def normalize_tag(tag: str) -> str:
@@ -159,6 +160,12 @@ class NoteOut(BaseModel):
     encrypted: bool
     tags: list[str]
     url: str
+
+
+class DeleteIn(BaseModel):
+    """Request body for deleting several notes at once."""
+
+    ids: list[int] = Field(min_length=1, max_length=MAX_BULK_DELETE)
 
 
 class Page(BaseModel):
@@ -312,6 +319,22 @@ def delete_note(note_id: int) -> None:
         if db.get(doc_id=note_id) is None:
             raise HTTPException(status_code=404, detail="Note not found")
         db.remove(doc_ids=[note_id])
+
+
+# Not under DELETE /notes/{note_id}: a body on DELETE is poorly supported by
+# proxies and clients, so the bulk version is a POST.
+@app.post("/notes/delete")
+def delete_notes(body: DeleteIn) -> dict[str, list[int]]:
+    """Delete several notes in a single write.
+
+    IDs that don't exist (e.g. already deleted) are skipped rather than
+    failing the whole request; the response lists what was deleted.
+    """
+    with DB_LOCK:
+        deleted = [i for i in dict.fromkeys(body.ids) if db.contains(doc_id=i)]
+        if deleted:
+            db.remove(doc_ids=deleted)
+    return {"deleted": deleted}
 
 
 @app.get("/", include_in_schema=False)
