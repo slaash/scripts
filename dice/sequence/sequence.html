@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sequence</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+    @keyframes pulse { 0%,100% { box-shadow: inset 0 0 0 2px #fde68a; } 50% { box-shadow: inset 0 0 0 4px #f59e0b; } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Official 10x10 board; "F" = free corner (counts as a chip for both players).
+    const BOARD = `F 2S 3S 4S 5S 6S 7S 8S 9S F
+6C 5C 4C 3C 2C AH KH QH 10H 10S
+7C AS 2D 3D 4D 5D 6D 7D 9H QS
+8C KS 6C 5C 4C 3C 2C 8D 8H KS
+9C QS 7C 6H 5H 4H AH 9D 7H AS
+10C 10S 8C 7H 2H 3H KH 10D 6H 2D
+QC 9S 9C 8H 9H 10H QH QD 5H 3D
+KC 8S 10C QC KC AC AD KD 4H 4D
+AC 7S 6S 5S 4S 3S 2S 2H 3H 5D
+F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
+
+    const N = 10, HAND = 7, WIN_SEQS = 2;
+    const DIRS = [[0,1],[1,0],[1,1],[1,-1]];
+    const SUIT = { S:"♠", H:"♥", D:"♦", C:"♣" };
+    const RED = { H:true, D:true };
+    const OPP = { p:"c", c:"p" };
+
+    const rnd = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+
+    const rankOf = c => c.slice(0, -1);
+    const suitOf = c => c.slice(-1);
+    const isJack = c => rankOf(c) === "J";
+    const isTwoEyed = c => isJack(c) && (suitOf(c) === "D" || suitOf(c) === "C");
+    const isOneEyed = c => isJack(c) && !isTwoEyed(c);
+    const isOwned = (board, i, who) => BOARD[i] === "F" || board[i] === who;
+
+    function makeDeck() {
+      const d = [];
+      for (let k = 0; k < 2; k++)
+        for (const s of "SHDC")
+          for (const r of ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]) d.push(r + s);
+      return shuffle(d);
+    }
+
+    const lockedCells = g => new Set([...g.seqs.p, ...g.seqs.c].flat());
+
+    // Cells a card can act on right now.
+    function targets(g, who, card) {
+      const out = [];
+      const locked = lockedCells(g);
+      for (let i = 0; i < N * N; i++) {
+        if (BOARD[i] === "F") continue;
+        if (isTwoEyed(card)) { if (g.board[i] === null) out.push(i); }
+        else if (isOneEyed(card)) { if (g.board[i] === OPP[who] && !locked.has(i)) out.push(i); }
+        else if (BOARD[i] === card && g.board[i] === null) out.push(i);
+      }
+      return out;
+    }
+
+    // A non-jack card whose two board spaces are both taken can be swapped.
+    const isDead = (g, card) => !isJack(card) && targets(g, "p", card).length === 0;
+
+    function drawFor(g, who) {
+      if (g.deck.length === 0) { g.deck = shuffle(g.discard); g.discard = []; }
+      if (g.deck.length) g.hands[who].push(g.deck.pop());
+    }
+
+    // Find newly completed 5-windows: ours/corners only, sharing at most 1 cell with existing sequences.
+    function findNewSeqs(board, who, existing) {
+      const found = [];
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) for (const [dr, dc] of DIRS) {
+        const er = r + 4 * dr, ec = c + 4 * dc;
+        if (er < 0 || er >= N || ec < 0 || ec >= N) continue;
+        const cells = [0,1,2,3,4].map(k => (r + k * dr) * N + c + k * dc);
+        if (!cells.every(i => isOwned(board, i, who))) continue;
+        if ([...existing, ...found].every(s => s.filter(i => cells.includes(i)).length <= 1)) found.push(cells);
+      }
+      return found;
+    }
+
+    function cloneGame(g) {
+      return { ...g, board:[...g.board], deck:[...g.deck], discard:[...g.discard],
+               hands:{ p:[...g.hands.p], c:[...g.hands.c] }, seqs:{ p:[...g.seqs.p], c:[...g.seqs.c] } };
+    }
+
+    function discardCard(g, who, card) {
+      g.hands[who].splice(g.hands[who].indexOf(card), 1);
+      g.discard.push(card);
+    }
+
+    function endTurn(g, who) {
+      drawFor(g, who);
+      g.turn = OPP[who];
+      g.swapped = false;
+    }
+
+    function playCard(g0, who, card, idx) {
+      const g = cloneGame(g0);
+      const name = who === "p" ? "You" : "CPU";
+      discardCard(g, who, card);
+      g.last = idx;
+      if (isOneEyed(card)) {
+        g.board[idx] = null;
+        g.msg = `${name} removed a chip with ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+      } else {
+        g.board[idx] = who;
+        g.msg = `${name} played ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+        const fresh = findNewSeqs(g.board, who, g.seqs[who]);
+        if (fresh.length) {
+          g.seqs[who] = [...g.seqs[who], ...fresh];
+          g.msg = `${who === "p" ? "🎉 You" : "CPU"} completed a sequence!`;
+          if (g.seqs[who].length >= WIN_SEQS) { g.winner = who; g.turn = null; return g; }
+        }
+      }
+      endTurn(g, who);
+      return g;
+    }
+
+    function swapDead(g0, who, card) {
+      const g = cloneGame(g0);
+      discardCard(g, who, card);
+      drawFor(g, who);
+      g.swapped = true;
+      g.msg = `${who === "p" ? "You" : "CPU"} swapped a dead ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+      return g;
+    }
+
+    function passTurn(g0, who) {
+      const g = cloneGame(g0);
+      g.turn = OPP[who]; g.swapped = false;
+      g.msg = `${who === "p" ? "You have" : "CPU has"} no playable card — turn skipped.`;
+      return g;
+    }
+
+    function newGame(scores) {
+      const g = { board:Array(N * N).fill(null), deck:makeDeck(), discard:[], hands:{ p:[], c:[] },
+                  seqs:{ p:[], c:[] }, turn:"p", swapped:false, winner:null, last:null,
+                  msg:"Your move — pick a card, then a highlighted space.", scores };
+      for (let i = 0; i < HAND; i++) { drawFor(g, "p"); drawFor(g, "c"); }
+      return g;
+    }
+
+    // ---------- CPU heuristics ----------
+    const OFF = [1, 3, 9, 40, 1000];   // my chips already in an open window (excluding target)
+    const DEF = [0, 1, 3, 12, 500];    // opponent chips in a window I would block
+    const REM = [0, 1, 3, 12, 80];     // opponent chips (incl. the removed one) in a window
+
+    function scoreCell(g, who, idx, removing) {
+      const opp = OPP[who];
+      let score = 0;
+      const r = Math.floor(idx / N), c = idx % N;
+      for (const [dr, dc] of DIRS) for (let k = 0; k < 5; k++) {
+        const sr = r - k * dr, sc = c - k * dc, er = sr + 4 * dr, ec = sc + 4 * dc;
+        if (sr < 0 || sr >= N || sc < 0 || sc >= N || er < 0 || er >= N || ec < 0 || ec >= N) continue;
+        let mine = 0, theirs = 0;
+        for (let j = 0; j < 5; j++) {
+          const i = (sr + j * dr) * N + sc + j * dc;
+          if (i === idx) continue;
+          if (isOwned(g.board, i, who)) mine++;
+          if (isOwned(g.board, i, opp)) theirs++;
+        }
+        if (removing) { if (mine === 0) score += REM[theirs + 1] || 0; }
+        else {
+          if (theirs === 0) score += OFF[mine];
+          if (mine === 0) score += DEF[theirs];
+        }
+      }
+      return score;
+    }
+
+    function cpuMove(g) {
+      let best = null;
+      for (const card of new Set(g.hands.c)) for (const idx of targets(g, "c", card)) {
+        let s = scoreCell(g, "c", idx, isOneEyed(card));
+        if (isJack(card) && s < 400) s -= 15;       // save jacks unless the move matters
+        s += Math.random() * 0.5;
+        if (!best || s > best.s) best = { card, idx, s };
+      }
+      return best;
+    }
+
+    // ---------- UI ----------
+    const Chip = ({ who, locked }) => (
+      <div style={{
+        position:"absolute", inset:"12%", borderRadius:"50%",
+        background: who === "p" ? "radial-gradient(circle at 35% 30%,#93c5fd,#2563eb 70%)" : "radial-gradient(circle at 35% 30%,#fca5a5,#dc2626 70%)",
+        border: locked ? "3px solid #fde68a" : "2px solid rgba(0,0,0,0.5)",
+        boxShadow:"1px 2px 4px rgba(0,0,0,0.5)",
+      }}/>
+    );
+
+    const Card = ({ card, selected, dead, onClick }) => {
+      const s = suitOf(card);
+      const tag = isTwoEyed(card) ? "wild" : isOneEyed(card) ? "remove" : dead ? "dead" : "";
+      return (
+        <div onClick={onClick} style={{
+          width:54, height:76, borderRadius:8, background:"#f8fafc", cursor:"pointer",
+          color: RED[s] ? "#dc2626" : "#111827", display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center", fontWeight:"bold", fontSize:22,
+          opacity: dead ? 0.55 : 1, transform: selected ? "translateY(-8px)" : "none",
+          border: selected ? "2px solid #fde68a" : "2px solid #000",
+          boxShadow: selected ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)" : "2px 3px 8px rgba(0,0,0,0.3)",
+          transition:"transform 0.15s, box-shadow 0.15s",
+        }}>
+          <div>{rankOf(card)}</div><div style={{fontSize:26,lineHeight:1}}>{SUIT[s]}</div>
+          <div style={{fontSize:9,height:11,color:"#64748b",textTransform:"uppercase"}}>{tag}</div>
+        </div>
+      );
+    };
+
+    function SequenceGame() {
+      const [g, setG] = useState(() => newGame({ wins:0, losses:0 }));
+      const [sel, setSel] = useState(null);
+
+      const hints = g.turn === "p" && sel ? new Set(targets(g, "p", sel)) : new Set();
+      const locked = lockedCells(g);
+      const playable = g.hands.p.some(c => targets(g, "p", c).length > 0);
+      const canSwap = g.turn === "p" && !g.swapped && sel && isDead(g, sel);
+      const mustPass = g.turn === "p" && !playable && (g.swapped || !g.hands.p.some(c => isDead(g, c)));
+
+      // CPU turn
+      useEffect(() => {
+        if (g.turn !== "c") return;
+        let alive = true;
+        (async () => {
+          await sleep(900);
+          if (!alive) return;
+          let cur = g;
+          if (!cur.swapped) {
+            const dead = cur.hands.c.find(c => !isJack(c) && targets(cur, "c", c).length === 0);
+            if (dead) { cur = swapDead(cur, "c", dead); setG(cur); await sleep(700); if (!alive) return; }
+          }
+          const m = cpuMove(cur);
+          if (!m) { setG(passTurn(cur, "c")); return; }
+          const next = playCard(cur, "c", m.card, m.idx);
+          if (next.winner === "c") next.scores = { ...next.scores, losses: next.scores.losses + 1 };
+          setG(next);
+        })();
+        return () => { alive = false; };
+      }, [g.turn]);
+
+      const clickCell = i => {
+        if (!sel || !hints.has(i)) return;
+        const next = playCard(g, "p", sel, i);
+        if (next.winner === "p") next.scores = { ...next.scores, wins: next.scores.wins + 1 };
+        setSel(null); setG(next);
+      };
+
+      const doSwap = () => { setG(swapDead(g, "p", sel)); setSel(null); };
+      const doPass = () => { setSel(null); setG(passTurn(g, "p")); };
+      const reset = () => { setSel(null); setG(newGame({ wins:0, losses:0 })); };
+      const again = () => { setSel(null); setG(newGame(g.scores)); };
+
+      const btn = (color, extra) => ({
+        padding:"10px 22px", fontSize:15, fontWeight:"bold", borderRadius:10, border:"none",
+        background:color, color:"white", cursor:"pointer", boxShadow:"0 3px 8px rgba(0,0,0,0.25)", ...extra,
+      });
+
+      return (
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:12}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"16px 14px",width:"100%",maxWidth:640,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white"}}>
+
+            <h1 style={{textAlign:"center",fontSize:26,letterSpacing:1}}>🔵 Sequence</h1>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:10,fontSize:13}}>Make {WIN_SEQS} sequences of 5 chips in a row before the CPU does</p>
+
+            {/* Scoreboard */}
+            <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:10,flexWrap:"wrap"}}>
+              {[["You","#60a5fa",g.seqs.p.length],["CPU","#f87171",g.seqs.c.length]].map(([label,color,n]) => (
+                <div key={label} style={{textAlign:"center"}}>
+                  <div style={{fontSize:13,color}}>{label}</div>
+                  <div style={{fontSize:26,fontWeight:"bold",color:"#fde68a"}}>{n}/{WIN_SEQS}</div>
+                </div>
+              ))}
+              <div style={{textAlign:"center",borderLeft:"1px solid #475569",paddingLeft:20}}>
+                <div style={{fontSize:13,color:"#94a3b8"}}>Games won</div>
+                <div style={{fontSize:26,fontWeight:"bold",color:"#fde68a"}}>{g.scores.wins} – {g.scores.losses}</div>
+              </div>
+            </div>
+
+            {/* Board */}
+            <div style={{display:"grid",gridTemplateColumns:`repeat(${N}, 1fr)`,gap:2,background:"#052e16",padding:3,borderRadius:8}}>
+              {BOARD.map((card, i) => {
+                const free = card === "F", s = free ? "" : suitOf(card);
+                const hint = hints.has(i);
+                return (
+                  <div key={i} onClick={() => clickCell(i)} style={{
+                    position:"relative", aspectRatio:"1", borderRadius:4,
+                    background: free ? "#fde68a" : "#f1f5f9", color: RED[s] ? "#dc2626" : "#111827",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:"clamp(8px, 2.5vw, 15px)", fontWeight:"bold", lineHeight:1, textAlign:"center",
+                    cursor: hint ? "pointer" : "default",
+                    animation: hint ? "pulse 1s infinite" : "none",
+                    outline: g.last === i ? "2px solid #fff" : "none", outlineOffset:-2,
+                  }}>
+                    {free ? "★" : <span>{rankOf(card)}{SUIT[s]}</span>}
+                    {g.board[i] && <Chip who={g.board[i]} locked={locked.has(i)}/>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Message */}
+            <div style={{textAlign:"center",minHeight:44,margin:"10px 0 6px",fontSize:16,fontWeight:"bold",color: g.winner === "c" ? "#fca5a5" : "#fde68a"}}>
+              {g.winner === "p" ? "🏆 You win!" : g.winner === "c" ? "😞 CPU wins." : g.turn === "c" ? "CPU is thinking…" : g.msg}
+              {g.turn === "c" && <div style={{fontSize:12,color:"#94a3b8",fontWeight:"normal"}}>{g.msg}</div>}
+            </div>
+
+            {/* Hand */}
+            <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"14px 8px 8px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#94a3b8",marginBottom:10}}>
+                <span>YOUR HAND</span><span>Deck: {g.deck.length} · CPU holds {g.hands.c.length}</span>
+              </div>
+              <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+                {g.hands.p.map((card, i) => (
+                  <Card key={card + i} card={card} selected={sel === card && g.turn === "p"} dead={isDead(g, card)}
+                        onClick={() => g.turn === "p" && setSel(sel === card ? null : card)}/>
+                ))}
+              </div>
+              <div style={{textAlign:"center",marginTop:10,minHeight:40}}>
+                {canSwap && <button style={btn("#d97706")} onClick={doSwap}>♻️ Swap dead card</button>}
+                {mustPass && <button style={btn("#64748b")} onClick={doPass}>⏭ Skip turn</button>}
+                {g.winner && <button style={btn("#2563eb")} onClick={again}>🔄 New Game</button>}
+              </div>
+            </div>
+
+            <div style={{textAlign:"center",marginTop:12}}>
+              <button style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}} onClick={reset}>🔁 Reset Scores</button>
+            </div>
+
+            <p style={{textAlign:"center",color:"#64748b",fontSize:11,marginTop:12,lineHeight:1.5}}>
+              Play a card, put a chip on a matching space · ★ corners are free for both · J♦ J♣ = wild (any empty space) ·
+              J♠ J♥ = remove an opponent chip (not in a finished sequence) · dead card (both spaces taken) = swap once per turn ·
+              gold-ringed chips are locked in a sequence
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<SequenceGame/>);
+  </script>
+</body>
+</html>

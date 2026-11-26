@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Guess the Dice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function rollDie() {
+      const arr = new Uint32Array(1);
+      crypto.getRandomValues(arr);
+      return (arr[0] % 6) + 1;
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    const DieFace = ({ value, selected, size = 60, onClick }) => {
+      const dots = {
+        1: [[50,50]],
+        2: [[25,25],[75,75]],
+        3: [[25,25],[50,50],[75,75]],
+        4: [[25,25],[75,25],[25,75],[75,75]],
+        5: [[25,25],[75,25],[50,50],[25,75],[75,75]],
+        6: [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]],
+      };
+      return (
+        <div
+          onClick={onClick}
+          style={{
+            width:size, height:size, background:"#1a1a1a", borderRadius:10,
+            border: selected ? "2px solid #fde68a" : "2px solid #000",
+            display:"inline-block", cursor: onClick ? "pointer" : "default",
+            boxShadow: selected
+              ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)"
+              : "2px 3px 8px rgba(0,0,0,0.3)",
+            transition:"box-shadow 0.15s, border-color 0.15s",
+          }}
+        >
+          <svg width={size} height={size} viewBox="0 0 100 100">
+            {(dots[value]||[]).map(([cx,cy],i) => (
+              <circle key={i} cx={cx} cy={cy} r={10} fill="#ef4444"/>
+            ))}
+          </svg>
+        </div>
+      );
+    };
+
+    const MAX_TRIES = 3;
+
+    const SumPicker = ({ value, onPick, disabled }) => (
+      <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",textAlign:"center"}}>
+        <div style={{fontSize:13,color:"#94a3b8",marginBottom:8}}>Guess the sum</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(6, 1fr)",gap:6}}>
+          {[2,3,4,5,6,7,8,9,10,11,12].map(n => {
+            const sel = value === n;
+            return (
+              <div
+                key={n}
+                onClick={disabled ? undefined : () => onPick(sel ? null : n)}
+                style={{
+                  padding:"8px 0", borderRadius:8, fontSize:18, fontWeight:"bold",
+                  background:"#1a1a1a", color:"#ef4444",
+                  border: sel ? "2px solid #fde68a" : "2px solid #000",
+                  boxShadow: sel ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)" : "2px 3px 8px rgba(0,0,0,0.3)",
+                  cursor: disabled ? "default" : "pointer", transition:"box-shadow 0.15s, border-color 0.15s",
+                }}
+              >{n}</div>
+            );
+          })}
+        </div>
+      </div>
+    );
+
+    function GuessDice() {
+      const [pick,    setPick]    = useState(null);
+      const [rolled,  setRolled]  = useState([]);
+      const [busy,    setBusy]    = useState(false);
+      const [tries,   setTries]   = useState(0);      // rolls used this round
+      const [over,    setOver]    = useState(true);   // round finished (or not started)
+      const [message, setMessage] = useState("Pick a sum from 2 to 12, then roll.");
+      const [result,  setResult]  = useState(null);   // "win" | "lose" | "close" | null
+      const [scores,  setScores]  = useState({ wins:0, losses:0 });
+
+      const doRoll = async () => {
+        if (pick === null || busy) return;
+        const attempt = over ? 1 : tries + 1;
+        setBusy(true); setResult(null); setTries(attempt); setOver(false);
+        setMessage("Rolling...");
+        for (let i = 0; i < 6; i++) { setRolled([rollDie(), rollDie()]); await sleep(80); }
+        const final = [rollDie(), rollDie()];
+        setRolled(final);
+        const sum = final[0] + final[1];
+        const diff = Math.abs(sum - pick);
+        if (diff === 0) {
+          setResult("win"); setOver(true);
+          setMessage(`🎉 You win! ${sum} on try ${attempt}.`);
+          setScores(s => ({ ...s, wins: s.wins + 1 }));
+        } else if (diff === 1 && attempt < MAX_TRIES) {
+          setResult("close");
+          setMessage(`So close — rolled ${sum}, off by 1. Try again (${MAX_TRIES - attempt} left).`);
+        } else {
+          setResult("lose"); setOver(true);
+          setMessage(diff === 1
+            ? `😞 Rolled ${sum}, off by 1 — out of tries.`
+            : `😞 Rolled ${sum}, off by ${diff} — you lose.`);
+          setScores(s => ({ ...s, losses: s.losses + 1 }));
+        }
+        setBusy(false);
+      };
+
+      const reset = () => {
+        setPick(null); setRolled([]); setResult(null); setTries(0); setOver(true);
+        setScores({ wins:0, losses:0 });
+        setMessage("Pick a sum from 2 to 12, then roll.");
+      };
+
+      const btnStyle = (color, disabled) => ({
+        padding:"12px 28px", fontSize:17, fontWeight:"bold", borderRadius:10,
+        border:"none", background: disabled ? "#94a3b8" : color,
+        color:"white", cursor: disabled ? "not-allowed" : "pointer",
+        boxShadow: disabled ? "none" : "0 3px 8px rgba(0,0,0,0.25)",
+      });
+
+      const ring = result === "win" ? { boxShadow:"0 0 0 3px #22c55e" }
+                 : result === "lose" ? { boxShadow:"0 0 0 3px #ef4444" }
+                 : result === "close" ? { boxShadow:"0 0 0 3px #f59e0b" } : {};
+      const msgColor = result === "lose" ? "#fca5a5" : result === "close" ? "#fcd34d" : "#fde68a";
+      const canRoll = pick !== null && !busy;
+
+      return (
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",fontFamily:"'Segoe UI',sans-serif",padding:16}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"20px 24px",width:"100%",maxWidth:560,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white"}}>
+
+            <h1 style={{textAlign:"center",margin:"0 0 2px",fontSize:26,letterSpacing:1}}>🎲 Guess the Sum</h1>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:12,fontSize:13}}>Hit the sum of two dice — off by 1 earns a retry, up to {MAX_TRIES} tries</p>
+
+            {/* Scoreboard */}
+            <div style={{display:"flex",justifyContent:"center",gap:32,marginBottom:12}}>
+              {[["Wins",scores.wins],["Losses",scores.losses]].map(([label,s]) => (
+                <div key={label} style={{textAlign:"center"}}>
+                  <div style={{fontSize:13,color:"#94a3b8"}}>{label}</div>
+                  <div style={{fontSize:28,fontWeight:"bold",color:"#fde68a"}}>{s}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {/* Top: sum picker */}
+              <SumPicker value={pick} onPick={setPick} disabled={busy}/>
+
+              {/* Below: roll area */}
+              <div>
+                <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"10px 12px",marginBottom:10,textAlign:"center",transition:"box-shadow 0.3s",...ring}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <div style={{fontSize:13,color:"#94a3b8"}}>ROLL</div>
+                    {tries > 0 && <div style={{fontSize:12,color:"#fde68a"}}>Try {tries} of {MAX_TRIES}</div>}
+                  </div>
+                  {rolled.length > 0
+                    ? <>
+                        <div style={{display:"flex",gap:12,justifyContent:"center"}}>
+                          {rolled.map((v,i) => <DieFace key={i} value={v}/>)}
+                        </div>
+                        <div style={{fontSize:20,fontWeight:"bold",color:"#fde68a",marginTop:6}}>= {rolled[0] + rolled[1]}</div>
+                      </>
+                    : <div style={{color:"#475569",height:70,display:"flex",alignItems:"center",justifyContent:"center"}}>Waiting...</div>
+                  }
+                  <div style={{fontSize:12,color:"#94a3b8",marginTop:8}}>Your guess: {pick ?? "?"}</div>
+                </div>
+
+                <div style={{textAlign:"center",minHeight:44,marginBottom:10,fontSize:17,fontWeight:"bold",color:msgColor}}>{message}</div>
+
+                <div style={{textAlign:"center"}}>
+                  <button style={btnStyle("#2563eb", !canRoll)} onClick={doRoll} disabled={!canRoll}>
+                    {over && tries > 0 ? "🔄 New Round" : result === "close" ? "🎲 Try Again" : "🎲 Roll"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{textAlign:"center",marginTop:12}}>
+              <button
+                style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}}
+                onClick={reset}
+              >🔁 Reset Scores</button>
+            </div>
+
+            <p style={{textAlign:"center",color:"#475569",fontSize:11,marginTop:12,marginBottom:0}}>
+              Rules: pick a sum 2–12 · exact hit wins · off by 1 = retry (max {MAX_TRIES} tries) · off by 2+ loses
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<GuessDice/>);
+  </script>
+</body>
+</html>
