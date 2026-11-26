@@ -49,6 +49,16 @@
   }
   aside h1 { margin: 0; font-size: 1.1em; }
   #count { color: var(--muted); font-size: 0.85em; }
+  #banner {
+    margin: 8px 16px;
+    padding: 8px 10px;
+    border: 1px solid var(--danger);
+    border-radius: 6px;
+    background: #fdecea;
+    color: var(--danger);
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
   aside header .row { gap: 10px; }
   .small { padding: 2px 10px; font-size: 0.85em; }
   #bulk {
@@ -98,7 +108,41 @@
     font-size: 0.8em;
   }
   .tag:hover { text-decoration: underline; }
-  #more { margin: 8px 16px; }
+  #list li.folder { align-items: center; gap: 6px; font-weight: 600; background: #fafafa; }
+  #list li.folder .caret { width: 1em; color: var(--muted); }
+  #list li.folder .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #list li.folder .n { color: var(--muted); font-size: 0.85em; font-weight: 400; }
+  #list li.nested { padding-left: 32px; }
+  #list li.more { justify-content: center; color: var(--accent); }
+  .folder-label { color: var(--muted); font-size: 0.8em; }
+  #tags-row { flex-wrap: wrap; align-items: flex-start; }
+  #tags-row label { padding-top: 4px; }
+  #folder, #folder-new { flex: 1 1 140px; max-width: 200px; }
+  select {
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    font: inherit;
+  }
+  #tag-picker {
+    flex: 1 1 200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-height: 6em;
+    overflow-y: auto;
+  }
+  .chip {
+    padding: 2px 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    font-size: 0.85em;
+  }
+  .chip.on { border-color: var(--accent); background: var(--selected); color: var(--accent); }
+  #tag-new { flex: 0 1 140px; }
   main {
     display: flex;
     flex-direction: column;
@@ -153,14 +197,20 @@
   #status { margin-left: auto; color: var(--muted); font-size: 0.85em; }
   #status.error { color: var(--danger); }
   @media (max-width: 640px) {
-    /* List 40%, editor 60% of the visible height. */
-    #app {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: minmax(0, 2fr) minmax(0, 3fr);
-    }
+    /* Natural flow: the page scrolls and nothing depends on the viewport
+       height being right. A fixed 100dvh layout stays clipped at the
+       keyboard-open height on some phones after the keyboard is dismissed
+       with Back (no resize event), hiding the lower fields and buttons. */
+    #app { display: block; height: auto; min-height: 100dvh; }
+    aside { min-height: 0; }
+    #list { flex: none; max-height: 38vh; }
+    main { min-height: 0; }
+    textarea { flex: none; height: 30vh; min-height: 140px; }
+    #unlock { flex: none; }
     aside { border-right: none; border-bottom: 1px solid var(--border); }
     main { padding: 12px 16px; }
     input[type="password"], input[type="text"] { max-width: none; }
+    #folder, #folder-new { max-width: none; }
   }
 </style>
 </head>
@@ -175,6 +225,7 @@
       <button id="pick" class="small" title="Select several notes to delete">Select</button>
     </div>
   </header>
+  <div id="banner" role="alert" hidden></div>
   <input id="search" type="search" placeholder="Search text or #tag" autocomplete="off"
          title="Text match is case-insensitive and skips encrypted notes; #tag matches tags (all must match)">
   <div id="bulk" class="row" hidden>
@@ -184,7 +235,6 @@
     <button id="bulk-cancel" class="small">Cancel</button>
   </div>
   <ul id="list"></ul>
-  <button id="more" hidden>Load more</button>
 </aside>
 
 <main>
@@ -203,10 +253,17 @@
   </div>
 
   <textarea id="editor" placeholder="Write a note..." autocomplete="off"></textarea>
+  <div id="folder-row" class="row">
+    <label for="folder" title="Folders are not encrypted">Folder</label>
+    <select id="folder"></select>
+    <input id="folder-new" type="text" maxlength="60" autocomplete="off"
+           placeholder="new folder name" hidden>
+  </div>
   <div id="tags-row" class="row">
-    <label for="tags">Tags</label>
-    <input id="tags" type="text" autocomplete="off"
-           placeholder="e.g. work, ideas (tags are not encrypted)">
+    <label for="tag-new" title="Tags are not encrypted">Tags</label>
+    <div id="tag-picker"></div>
+    <input id="tag-new" type="text" autocomplete="off"
+           placeholder="new tag, Enter">
   </div>
   <div id="pass-row" class="row">
     <label for="pass">Passphrase</label>
@@ -233,22 +290,40 @@ const API = location.protocol === "file:" ? "http://localhost:8080" : location.o
 const PAGE_SIZE = 50;
 const PREVIEW_LENGTH = 20;
 const KDF_ITERATIONS = 600000;
+const PAD_BLOCK = 256;
+// Prefilled in the Tags field of a new note; the user can edit or clear it.
+const DEFAULT_TAGS = ["default"];
+// Value of the "New folder..." option; real names are whitespace-collapsed,
+// so none can equal a newline.
+const NEW_FOLDER = "\n";
 
 const $ = (id) => document.getElementById(id);
 const editor = $("editor");
 const passInput = $("pass");
-const tagsInput = $("tags");
+const tagNew = $("tag-new");
+const folderSelect = $("folder");
+const folderNew = $("folder-new");
 
-// Loaded notes (newest first) are kept in sync locally after each change,
-// so "Load more" offsets stay aligned with the server's ordering.
-let notes = [];
-let total = 0;
+// Tree view (no search): `groups` holds the loaded notes (newest first) of
+// the unfiled notes ("") and of each expanded folder. Search view: `flat`.
+// Every change reloads the view from the server rather than patching it.
+const MAX_PAGE = 200;  // server limit per request
+const groups = new Map();
+const expanded = new Set();
+let folders = [];  // [{name, count}] from the server, sorted by name
+let flat = [];
+let flatTotal = 0;
+let loadSeq = 0;
 let selected = null;
 // True while the selected note is encrypted and not yet unlocked.
 let locked = false;
 let savedText = "";
 let savedPass = "";
 let savedTags = "";
+// Tags chosen for the open note (chips), and every tag in use (from /tags).
+const chosenTags = new Set();
+let knownTags = [];
+let savedFolder = "";
 let busy = false;
 // Current search box text ("words #tag ..."); empty means list all notes.
 let query = "";
@@ -260,6 +335,9 @@ const picked = new Set();
 // ---- Encryption (client-side only; the server never sees plaintext) ----
 // Stored text for an encrypted note is a JSON envelope:
 //   {v, kdf, iter, salt, iv, ct}  with base64 salt/iv/ciphertext.
+// v2 pads the plaintext so the ciphertext length only reveals the note's size
+// to the nearest PAD_BLOCK bytes: 4-byte big-endian length, the UTF-8 text,
+// then zeros. v1 (no padding, text only) is still readable.
 
 const utf8 = new TextEncoder();
 
@@ -288,15 +366,30 @@ async function deriveKey(passphrase, salt, iterations) {
     ["encrypt", "decrypt"]);
 }
 
+function pad(text) {
+  const body = utf8.encode(text);
+  const framed = new Uint8Array(
+    Math.ceil((4 + body.length) / PAD_BLOCK) * PAD_BLOCK);  // zero-filled
+  new DataView(framed.buffer).setUint32(0, body.length);
+  framed.set(body, 4);
+  return framed;
+}
+
+function unpad(framed) {
+  const length = new DataView(framed.buffer, framed.byteOffset).getUint32(0);
+  if (4 + length > framed.length) throw new Error("corrupt padding");
+  return new TextDecoder().decode(framed.subarray(4, 4 + length));
+}
+
 async function encryptText(text, passphrase) {
   // Fresh salt and IV on every save; AES-GCM must never reuse an IV per key.
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(passphrase, salt, KDF_ITERATIONS);
   const ct = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv }, key, utf8.encode(text));
+    { name: "AES-GCM", iv }, key, pad(text));
   return JSON.stringify({
-    v: 1,
+    v: 2,
     kdf: "PBKDF2-SHA256",
     iter: KDF_ITERATIONS,
     salt: toB64(salt),
@@ -310,13 +403,13 @@ async function decryptText(envelope, passphrase) {
   const key = await deriveKey(passphrase, fromB64(e.salt), e.iter);
   const pt = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: fromB64(e.iv) }, key, fromB64(e.ct));
-  return new TextDecoder().decode(pt);
+  return e.v === 1 ? new TextDecoder().decode(pt) : unpad(new Uint8Array(pt));
 }
 
-async function payload(text, passphrase, tags) {
+async function payload(text, passphrase, tags, folder) {
   return passphrase
-    ? { text: await encryptText(text, passphrase), encrypted: true, tags }
-    : { text, encrypted: false, tags };
+    ? { text: await encryptText(text, passphrase), encrypted: true, tags, folder }
+    : { text, encrypted: false, tags, folder };
 }
 
 // ---- API ----
@@ -332,7 +425,7 @@ async function api(path, options = {}) {
       const body = await res.json();
       if (typeof body.detail === "string") detail = body.detail;
     } catch {}
-    throw new Error(`${res.status} ${detail}`);
+    throw Object.assign(new Error(`${res.status} ${detail}`), { status: res.status });
   }
   return res.status === 204 ? null : res.json();
 }
@@ -351,17 +444,82 @@ function parseTags(value) {
   return [...new Set(tags)];
 }
 
+// Chosen chips plus any text still sitting in the new-tag box.
+function tagsValue() {
+  return [...new Set([...chosenTags, ...parseTags(tagNew.value)])];
+}
+
+function renderTagPicker() {
+  const names = [...new Set([...knownTags, ...chosenTags])]
+    .sort((a, b) => a.localeCompare(b));
+  $("tag-picker").replaceChildren(...names.map((name) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = chosenTags.has(name) ? "chip on" : "chip";
+    chip.textContent = `#${name}`;
+    chip.setAttribute("aria-pressed", chosenTags.has(name));
+    chip.onclick = () => {
+      if (busy) return;
+      if (!chosenTags.delete(name)) chosenTags.add(name);
+      renderTagPicker();
+      renderButtons();
+    };
+    return chip;
+  }));
+}
+
 function isDirty() {
   return !locked
     && (editor.value !== savedText || passInput.value !== savedPass
-        || parseTags(tagsInput.value).join(" ") !== savedTags);
+        || [...tagsValue()].sort().join(" ") !== savedTags
+        || folderValue() !== savedFolder);
 }
 
-function setEditor(text, pass, tags = []) {
+function setEditor(text, pass, tags = [], folder = "") {
   editor.value = savedText = text;
   passInput.value = savedPass = pass;
-  tagsInput.value = tags.join(", ");
-  savedTags = tags.join(" ");
+  chosenTags.clear();
+  for (const tag of tags) chosenTags.add(tag);
+  tagNew.value = "";
+  savedTags = [...chosenTags].sort().join(" ");
+  renderTagPicker();
+  savedFolder = folder;
+  setFolder(folder);
+}
+
+// The chosen folder: "" = none, or the name typed after "New folder...".
+function folderValue() {
+  return folderSelect.value === NEW_FOLDER ? folderNew.value.trim() : folderSelect.value;
+}
+
+function setFolder(name) {
+  // A folder missing from the list (e.g. just emptied elsewhere) is added.
+  if (name && ![...folderSelect.options].some((o) => o.value === name)) {
+    folderSelect.add(new Option(name, name), folderSelect.options.length - 1);
+  }
+  folderSelect.value = name;
+  folderNew.value = "";
+  folderNew.hidden = true;
+}
+
+// Rebuild the dropdown from `folders`, keeping what the user has chosen.
+function renderFolderOptions() {
+  const choice = folderSelect.value;
+  const typed = folderNew.value;
+  folderSelect.replaceChildren(
+    new Option("(no folder)", ""),
+    ...folders.map((f) => new Option(f.name, f.name)),
+    new Option("New folder…", NEW_FOLDER));
+  if (choice === NEW_FOLDER) {
+    folderSelect.value = NEW_FOLDER;
+    folderNew.value = typed;
+  } else {
+    setFolder(choice);
+  }
+}
+
+function shownNotes() {
+  return query ? flat : [...groups.values()].flatMap((g) => g.items);
 }
 
 function setStatus(message, isError = false) {
@@ -378,67 +536,135 @@ function preview(text) {
     : chars.join("");
 }
 
-function renderList() {
-  $("list").replaceChildren(...notes.map((note) => {
-    const li = document.createElement("li");
-    const ts = document.createElement("div");
-    ts.className = "ts";
-    ts.textContent = fmt(note.timestamp);
-    const pv = document.createElement("div");
-    pv.className = note.encrypted ? "preview encrypted" : "preview";
-    pv.textContent = note.encrypted ? "Encrypted" : preview(note.text);
-    const body = document.createElement("div");
-    body.className = "body";
-    body.append(ts, pv);
+function noteRow(note, nested) {
+  const li = document.createElement("li");
+  const ts = document.createElement("div");
+  ts.className = "ts";
+  ts.textContent = fmt(note.timestamp);
+  const pv = document.createElement("div");
+  pv.className = note.encrypted ? "preview encrypted" : "preview";
+  pv.textContent = note.encrypted ? "Encrypted" : preview(note.text);
+  const body = document.createElement("div");
+  body.className = "body";
+  body.append(ts, pv);
+  if (picking) {
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = picked.has(note.id);
+    box.tabIndex = -1;  // the whole row is the click target
+    li.append(box);
+    li.classList.toggle("picked", box.checked);
+  }
+  li.append(body);
+  if (note.tags.length) {
+    const tags = document.createElement("div");
+    tags.className = "tags";
+    for (const tag of note.tags) {
+      const chip = document.createElement("span");
+      chip.className = "tag";
+      chip.textContent = `#${tag}`;
+      chip.title = `Show notes tagged #${tag}`;
+      chip.onclick = (e) => {
+        if (picking) return;  // let the row toggle instead
+        e.stopPropagation();  // don't also select the note
+        $("search").value = `#${tag}`;
+        applySearch();
+      };
+      tags.append(chip);
+    }
+    body.append(tags);
+  }
+  // Search results are flat, so say which folder each one is in.
+  if (query && note.folder) {
+    const label = document.createElement("div");
+    label.className = "folder-label";
+    label.textContent = `📁 ${note.folder}`;
+    body.append(label);
+  }
+  li.title = `Note #${note.id}`;
+  li.classList.toggle("nested", nested);
+  li.classList.toggle("selected", note.id === selected?.id);
+  li.onclick = () => {
     if (picking) {
-      const box = document.createElement("input");
-      box.type = "checkbox";
-      box.checked = picked.has(note.id);
-      box.tabIndex = -1;  // the whole row is the click target
-      li.append(box);
-      li.classList.toggle("picked", box.checked);
+      if (!picked.delete(note.id)) picked.add(note.id);
+      renderList();
+      return;
     }
-    li.append(body);
-    if (note.tags.length) {
-      const tags = document.createElement("div");
-      tags.className = "tags";
-      for (const tag of note.tags) {
-        const chip = document.createElement("span");
-        chip.className = "tag";
-        chip.textContent = `#${tag}`;
-        chip.title = `Show notes tagged #${tag}`;
-        chip.onclick = (e) => {
-          if (picking) return;  // let the row toggle instead
-          e.stopPropagation();  // don't also select the note
-          $("search").value = `#${tag}`;
-          applySearch();
-        };
-        tags.append(chip);
-      }
-      body.append(tags);
-    }
-    li.title = `Note #${note.id}`;
-    li.classList.toggle("selected", note.id === selected?.id);
-    li.onclick = () => {
-      if (picking) {
-        if (!picked.delete(note.id)) picked.add(note.id);
-        renderList();
-        return;
-      }
-      // Clicking the selected note again deselects it (back to a blank editor).
-      select(note.id === selected?.id ? null : note);
-    };
-    return li;
-  }));
+    // Clicking the selected note again deselects it (back to a blank editor).
+    select(note.id === selected?.id ? null : note);
+  };
+  return li;
+}
+
+function folderRow(folder) {
+  const li = document.createElement("li");
+  li.className = "folder";
+  const caret = document.createElement("span");
+  caret.className = "caret";
+  caret.textContent = expanded.has(folder.name) ? "▾" : "▸";
+  const name = document.createElement("span");
+  name.className = "name";
+  name.textContent = folder.name;
+  const n = document.createElement("span");
+  n.className = "n";
+  n.textContent = folder.count;
+  li.append(caret, name, n);
+  li.title = folder.name;
+  li.onclick = () => toggleFolder(folder.name);
+  return li;
+}
+
+function moreRow(key) {
+  const li = document.createElement("li");
+  li.className = key ? "more nested" : "more";
+  li.textContent = "Load more";
+  li.onclick = () => { if (!busy) run("Loading...", "", () => loadView(key)); };
+  return li;
+}
+
+function groupRows(key, nested) {
+  const group = groups.get(key);
+  if (!group) return [];
+  const rows = group.items.map((n) => noteRow(n, nested));
+  if (group.items.length < group.total) rows.push(moreRow(key));
+  return rows;
+}
+
+function toggleFolder(name) {
+  if (expanded.delete(name)) {
+    groups.delete(name);
+    renderList();
+    return;
+  }
+  expanded.add(name);
+  run("Loading...", "", () => loadView());
+}
+
+function renderList() {
+  let rows;
+  if (query) {
+    rows = flat.map((n) => noteRow(n, false));
+    if (flat.length < flatTotal) rows.push(moreRow(""));
+  } else {
+    rows = folders.flatMap((f) => [
+      folderRow(f),
+      ...(expanded.has(f.name) ? groupRows(f.name, true) : []),
+    ]);
+    rows.push(...groupRows("", false));
+  }
+  $("list").replaceChildren(...rows);
+  const everything = (groups.get("")?.total ?? 0)
+    + folders.reduce((sum, f) => sum + f.count, 0);
+  const count = query ? flatTotal : everything;
   $("count").textContent = query
-    ? `${total} match${total === 1 ? "" : "es"}`
-    : `${total} note${total === 1 ? "" : "s"}`;
-  $("more").hidden = notes.length >= total;
-  $("pick").hidden = picking || notes.length === 0;
+    ? `${count} match${count === 1 ? "" : "es"}`
+    : `${count} note${count === 1 ? "" : "s"}`;
+  const shown = shownNotes();
+  $("pick").hidden = picking || shown.length === 0;
   $("bulk").hidden = !picking;
   $("bulk-count").textContent = `${picked.size} selected`;
   $("bulk-all").textContent =
-    notes.length && notes.every((n) => picked.has(n.id)) ? "None" : "All";
+    shown.length && shown.every((n) => picked.has(n.id)) ? "None" : "All";
   renderButtons();
 }
 
@@ -447,6 +673,7 @@ function renderEditor() {
   $("unlock").hidden = !locked;
   editor.hidden = locked;
   $("pass-row").hidden = locked;
+  $("folder-row").hidden = locked;
   $("tags-row").hidden = locked;
   $("new").hidden = locked;
   $("update").hidden = !hasSelection || locked;
@@ -468,12 +695,13 @@ function renderButtons() {
   $("new").disabled = busy || empty;
   $("update").disabled = busy || empty || !isDirty();
   $("delete").disabled = busy;
-  $("more").disabled = busy;
   $("bulk-delete").disabled = busy || picked.size === 0;
   $("unlock-btn").disabled = busy;
   editor.readOnly = busy;
   passInput.readOnly = busy;
-  tagsInput.readOnly = busy;
+  tagNew.readOnly = busy;
+  folderSelect.disabled = busy;
+  folderNew.readOnly = busy;
   $("unlock-pass").readOnly = busy;
 }
 
@@ -490,7 +718,8 @@ function select(note) {
   if (isDirty() && !confirm("Discard unsaved changes?")) return;
   selected = note;
   locked = Boolean(note?.encrypted);
-  setEditor(note && !note.encrypted ? note.text : "", "", note?.tags);
+  setEditor(note && !note.encrypted ? note.text : "", "",
+            note ? note.tags : DEFAULT_TAGS, note?.folder);
   $("unlock-pass").value = "";
   setStatus("");
   renderList();
@@ -509,32 +738,74 @@ async function run(pending, done, fn) {
     setStatus(done);
   } catch (err) {
     setStatus(err.message, true);
+    // 503 = the server can't use its data file; say so where it can't be missed.
+    if (err.status === 503) {
+      $("banner").textContent = err.message.replace(/^503 /, "");
+      $("banner").hidden = false;
+    }
   } finally {
     busy = false;
     renderButtons();
   }
 }
 
-async function loadNotes(append) {
+async function fetchGroup(key, offset, limit) {
+  const params = new URLSearchParams({ folder: key, limit, offset });
+  return api(`/notes?${params}`);
+}
+
+// (Re)load whatever is on screen. `more`, if given, is the group whose
+// "Load more" was clicked ("" = unfiled notes, or the search results).
+async function loadView(more) {
+  const mine = ++loadSeq;
   const q = query;
-  const params = new URLSearchParams({
-    limit: PAGE_SIZE, offset: append ? notes.length : 0 });
-  // "#word" tokens are tag filters; everything else is the text query.
-  const words = q.split(/\s+/).filter(Boolean);
-  const text = words.filter((w) => !w.startsWith("#")).join(" ");
-  const tags = words.filter((w) => w.startsWith("#"))
-    .map((w) => w.slice(1).toLowerCase()).filter(Boolean);
-  if (text) params.set("q", text);
-  for (const tag of tags) params.append("tag", tag);
-  const page = await api(text || tags.length
-    ? `/notes/search?${params}`
-    : `/notes?${params}`);
-  if (q !== query) return;  // a newer search superseded this response
-  total = page.total;
-  notes = append ? notes.concat(page.items) : page.items;
-  // A new search replaces the list; drop picks that are no longer shown.
-  if (!append) {
-    const shown = new Set(notes.map((n) => n.id));
+  const [{ folders: names }, { tags: tagList }] = await Promise.all(
+    [api("/folders"), api("/tags")]);
+  if (q) {
+    // "#word" tokens are tag filters; everything else is the text query.
+    const words = q.split(/\s+/).filter(Boolean);
+    const text = words.filter((w) => !w.startsWith("#")).join(" ");
+    const tags = words.filter((w) => w.startsWith("#"))
+      .map((w) => w.slice(1).toLowerCase()).filter(Boolean);
+    const append = more !== undefined;
+    const params = new URLSearchParams({
+      limit: append ? PAGE_SIZE : Math.min(MAX_PAGE, Math.max(PAGE_SIZE, flat.length)),
+      offset: append ? flat.length : 0 });
+    if (text) params.set("q", text);
+    for (const tag of tags) params.append("tag", tag);
+    const page = await api(text || tags.length
+      ? `/notes/search?${params}` : `/notes?${params}`);
+    if (mine !== loadSeq) return;  // a newer load superseded this response
+    flatTotal = page.total;
+    flat = append ? flat.concat(page.items) : page.items;
+  } else {
+    for (const name of [...expanded]) {
+      if (!names.some((f) => f.name === name)) expanded.delete(name);
+    }
+    const keys = ["", ...names.map((f) => f.name).filter((n) => expanded.has(n))];
+    const pages = await Promise.all(keys.map((key) => {
+      const have = groups.get(key)?.items.length ?? 0;
+      return key === more
+        ? fetchGroup(key, have, PAGE_SIZE)
+        : fetchGroup(key, 0, Math.min(MAX_PAGE, Math.max(PAGE_SIZE, have)));
+    }));
+    if (mine !== loadSeq) return;
+    const next = keys.map((key, i) => [key, {
+      items: key === more
+        ? groups.get(key).items.concat(pages[i].items) : pages[i].items,
+      total: pages[i].total,
+    }]);
+    groups.clear();
+    for (const [key, group] of next) groups.set(key, group);
+  }
+  folders = names;
+  renderFolderOptions();
+  knownTags = tagList.map((t) => t.name);
+  renderTagPicker();
+  $("banner").hidden = true;
+  // Drop picks that are no longer shown.
+  if (more === undefined) {
+    const shown = new Set(shownNotes().map((n) => n.id));
     for (const id of picked) if (!shown.has(id)) picked.delete(id);
   }
   renderList();
@@ -551,7 +822,7 @@ async function unlockNote() {
     throw new Error("Wrong passphrase");
   }
   locked = false;
-  setEditor(text, pass, selected.tags);
+  setEditor(text, pass, selected.tags, selected.folder);
   $("unlock-pass").value = "";
   renderEditor();
   autoFocus(editor);
@@ -560,21 +831,26 @@ async function unlockNote() {
   if (!hasFinePointer) document.activeElement?.blur();
 }
 
+// Show the folder a note was just filed in, so it doesn't seem to vanish.
+function revealFolder(note) {
+  if (note.folder && !query) expanded.add(note.folder);
+}
+
 async function createNote() {
   const text = editor.value;
   const pass = passInput.value;
   const note = await api("/notes", {
     method: "POST",
-    body: JSON.stringify(await payload(text, pass, parseTags(tagsInput.value))),
+    body: JSON.stringify(await payload(
+      text, pass, tagsValue(), folderValue())),
   });
-  notes.unshift(note);
-  total++;
   // Keep the new note open (already unlocked) rather than re-selecting it.
   selected = note;
   locked = false;
-  setEditor(text, pass, note.tags);
-  renderList();
+  setEditor(text, pass, note.tags, note.folder);
+  revealFolder(note);
   renderEditor();
+  await loadView();
 }
 
 async function updateNote() {
@@ -582,24 +858,23 @@ async function updateNote() {
   const pass = passInput.value;
   const note = await api(`/notes/${selected.id}`, {
     method: "PUT",
-    body: JSON.stringify(await payload(text, pass, parseTags(tagsInput.value))),
+    body: JSON.stringify(await payload(
+      text, pass, tagsValue(), folderValue())),
   });
-  const i = notes.findIndex((n) => n.id === note.id);
-  if (i !== -1) notes[i] = note;
   selected = note;
-  setEditor(text, pass, note.tags);
-  renderList();
+  setEditor(text, pass, note.tags, note.folder);
+  revealFolder(note);
   renderEditor();
+  await loadView();
 }
 
 async function deleteNote() {
   const id = selected.id;
   await api(`/notes/${id}`, { method: "DELETE" });
-  notes = notes.filter((n) => n.id !== id);
-  total--;
   locked = false;
-  setEditor("", "", []);
+  setEditor("", "", DEFAULT_TAGS);
   select(null);
+  await loadView();
 }
 
 function setPicking(on) {
@@ -613,27 +888,26 @@ async function deletePicked() {
     method: "POST",
     body: JSON.stringify({ ids: [...picked] }),
   });
-  const gone = new Set(deleted);
   // Already-deleted IDs (e.g. removed from another device) also leave the list.
-  for (const id of picked) gone.add(id);
-  notes = notes.filter((n) => !gone.has(n.id));
-  total -= deleted.length;
+  const gone = new Set([...deleted, ...picked]);
   if (selected && gone.has(selected.id)) {
     // The open note was deleted: close it without the unsaved-changes prompt.
     selected = null;
     locked = false;
-    setEditor("", "", []);
+    setEditor("", "", DEFAULT_TAGS);
     renderEditor();
   }
   setPicking(false);
+  await loadView();
   return deleted.length;
 }
 
 $("pick").onclick = () => setPicking(true);
 $("bulk-cancel").onclick = () => setPicking(false);
 $("bulk-all").onclick = () => {
-  const all = notes.every((n) => picked.has(n.id));
-  for (const n of notes) all ? picked.delete(n.id) : picked.add(n.id);
+  const shown = shownNotes();
+  const all = shown.every((n) => picked.has(n.id));
+  for (const n of shown) all ? picked.delete(n.id) : picked.add(n.id);
   renderList();
 };
 $("bulk-delete").onclick = () => {
@@ -659,11 +933,10 @@ $("unlock-pass").addEventListener("keydown", (e) => {
 $("pass-show").addEventListener("change", (e) => {
   passInput.type = e.target.checked ? "text" : "password";
 });
-$("more").onclick = () => run("Loading...", "", () => loadNotes(true));
 function applySearch() {
   clearTimeout(searchTimer);
   query = $("search").value.trim();
-  run("Searching...", "", () => loadNotes(false));
+  run("Searching...", "", () => loadView());
 }
 $("search").addEventListener("input", () => {
   // Debounce so each keystroke doesn't fire a request.
@@ -672,20 +945,33 @@ $("search").addEventListener("input", () => {
 });
 editor.addEventListener("input", renderButtons);
 passInput.addEventListener("input", renderButtons);
-tagsInput.addEventListener("input", renderButtons);
+tagNew.addEventListener("input", renderButtons);
+// Enter or comma turns the typed words into chips.
+tagNew.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" && e.key !== ",") return;
+  e.preventDefault();
+  for (const tag of parseTags(tagNew.value)) chosenTags.add(tag);
+  tagNew.value = "";
+  renderTagPicker();
+  renderButtons();
+});
+folderSelect.addEventListener("change", () => {
+  folderNew.hidden = folderSelect.value !== NEW_FOLDER;
+  if (!folderNew.hidden) folderNew.focus();
+  renderButtons();
+});
+folderNew.addEventListener("input", renderButtons);
 window.addEventListener("beforeunload", (e) => {
   if (isDirty()) e.preventDefault();
 });
 
 // Browsers may restore form fields on reload, which would otherwise look
 // like unsaved changes since no note is selected yet.
-editor.value = "";
-passInput.value = "";
-tagsInput.value = "";
+setEditor("", "", DEFAULT_TAGS);
 $("unlock-pass").value = "";
 $("search").value = "";
 $("pass-show").checked = false;
-run("Loading...", "", () => loadNotes(false));
+run("Loading...", "", () => loadView());
 </script>
 
 </body>

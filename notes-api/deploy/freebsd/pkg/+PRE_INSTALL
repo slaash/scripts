@@ -1,0 +1,11 @@
+#!/bin/sh
+# Create the unprivileged service account before files are installed.
+set -eu
+
+if ! pw groupshow notes > /dev/null 2>&1; then
+  pw groupadd notes
+fi
+if ! pw usershow notes > /dev/null 2>&1; then
+  pw useradd notes -g notes -d /var/empty -s /usr/sbin/nologin \
+    -c "notes-api service"
+fi

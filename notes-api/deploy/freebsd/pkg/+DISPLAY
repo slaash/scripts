@@ -1,0 +1,28 @@
+notes-api installed. One-time setup (as root):
+
+1. Let the unprivileged service bind port 443:
+     kldload mac_portacl
+     echo 'mac_portacl_load="YES"' >> /boot/loader.conf
+     sysctl net.inet.ip.portrange.reservedhigh=0
+     sysctl security.mac.portacl.port_high=1023
+     sysctl security.mac.portacl.rules="uid:$(id -u notes):tcp:443"
+   and put the same three sysctl settings in /etc/sysctl.conf.
+
+2. Create the CA and the TLS certificate (IP the clients will use):
+     notes-cert init 192.168.88.60
+   Then install the printed public ca.crt on your client devices.
+
+3. Set the login (Basic auth over TLS; the file is not part of the package).
+   Pick a password of 12+ characters; this one is generated:
+     ( umask 077; printf 'notes:%s\n' "$(openssl rand -base64 18)" \
+         > /usr/local/etc/notes-api.auth )
+     chown notes /usr/local/etc/notes-api.auth
+   Read it yourself with: cat /usr/local/etc/notes-api.auth
+
+4. Enable and start:
+     sysrc notes_api_enable=YES
+     sysrc notes_api_baseurl="https://192.168.88.60:8443"
+     service notes_api start
+
+Data: /var/db/notes-api/notes.json (kept on pkg delete).
+Log:  /var/log/notes-api.log

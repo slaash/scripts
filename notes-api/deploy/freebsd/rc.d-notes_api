@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# rc.d script for the notes API (FastAPI + TinyDB), served over TLS by uvicorn.
+# Installed as /usr/local/etc/rc.d/notes_api.
+#
+# PROVIDE: notes_api
+# REQUIRE: LOGIN NETWORKING
+# KEYWORD: shutdown
+#
+# rc.conf variables (defaults shown):
+#   notes_api_enable="NO"
+#   notes_api_user="notes"
+#   notes_api_baseurl="https://localhost"      # origin used in share links
+#   notes_api_db="/var/db/notes-api/notes.json"
+#   notes_api_host="0.0.0.0"
+#   notes_api_port="443"
+#   notes_api_cert="/usr/local/etc/ssl/notes/notes.crt"
+#   notes_api_key="/usr/local/etc/ssl/notes/notes.key"
+#   notes_api_auth="/usr/local/etc/notes-api.auth"  # one line: user:password
+#   notes_api_log="/var/log/notes-api.log"
+#
+# Exactly one uvicorn worker: the app serialises DB access with an in-process
+# lock, so more workers would corrupt notes.json.
+
+. /etc/rc.subr
+
+name="notes_api"
+rcvar="notes_api_enable"
+
+load_rc_config "${name}"
+
+: "${notes_api_enable:=NO}"
+: "${notes_api_user:=notes}"
+: "${notes_api_baseurl:=https://localhost}"
+: "${notes_api_db:=/var/db/notes-api/notes.json}"
+: "${notes_api_host:=0.0.0.0}"
+: "${notes_api_port:=443}"
+: "${notes_api_cert:=/usr/local/etc/ssl/notes/notes.crt}"
+: "${notes_api_key:=/usr/local/etc/ssl/notes/notes.key}"
+: "${notes_api_auth:=/usr/local/etc/notes-api.auth}"
+: "${notes_api_log:=/var/log/notes-api.log}"
+
+pidfile="/var/run/${name}.pid"
+procname="/usr/sbin/daemon"
+command="/usr/sbin/daemon"
+required_files="${notes_api_cert} ${notes_api_key} ${notes_api_auth}"
+start_precmd="notes_api_precmd"
+
+# daemon(8): -r restart the child if it dies (after -R seconds), -H reopen the
+# log on SIGHUP (newsyslog), -P supervisor pidfile (what rc.subr signals).
+# No -u: rc.subr already runs this as ${notes_api_user} via su(1).
+command_args="-r -R 5 -H -P ${pidfile} \
+  -o ${notes_api_log} \
+  /usr/bin/env \
+  NOTES_DB_PATH=${notes_api_db} \
+  BASE_URL=${notes_api_baseurl} \
+  NOTES_AUTH_FILE=${notes_api_auth} \
+  PYTHONDONTWRITEBYTECODE=1 \
+  /usr/local/bin/python3.12 -m uvicorn notes_server:app \
+  --app-dir /usr/local/share/notes-api \
+  --host ${notes_api_host} --port ${notes_api_port} \
+  --ssl-keyfile ${notes_api_key} --ssl-certfile ${notes_api_cert} \
+  --no-server-header"
+
+notes_api_precmd()
+{
+  local db_dir
+  db_dir="$(dirname "${notes_api_db}")"
+  if [ ! -d "${db_dir}" ]; then
+    err 1 "data directory ${db_dir} does not exist"
+  fi
+  # daemon(8) opens the log and pidfile after dropping privileges, so they
+  # must pre-exist and be writable by the service user.
+  [ -f "${pidfile}" ] || install -m 0600 -o "${notes_api_user}" \
+    /dev/null "${pidfile}"
+  [ -f "${notes_api_log}" ] || install -m 0600 -o "${notes_api_user}" \
+    /dev/null "${notes_api_log}"
+}
+
+run_rc_command "$1"

@@ -1,0 +1,13 @@
+name: "notes-api"
+version: "@VERSION@"
+origin: "local/notes-api"
+comment: "Personal notes API and web page (FastAPI + TinyDB, TLS via uvicorn)"
+maintainer: "root@localhost"
+www: "https://localhost/"
+prefix: "/usr/local"
+desc: "Single-user notes service: FastAPI + TinyDB, serves its own web page and API over TLS with uvicorn. Data lives in /var/db/notes-api and is not part of the package."
+deps: {
+  python312: { origin: "lang/python312", version: "@PY_VER@" },
+  py312-fastapi: { origin: "www/py-fastapi", version: "@FASTAPI_VER@" },
+  py312-uvicorn: { origin: "www/py-uvicorn", version: "@UVICORN_VER@" }
+}

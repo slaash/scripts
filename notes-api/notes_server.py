@@ -1,7 +1,7 @@
 """
 TinyDB + FastAPI Notes API
 --------------------------
-Each note: { id, timestamp, text, encrypted, tags, url }
+Each note: { id, timestamp, text, encrypted, tags, folder, url }
 
 Install deps:
     pip install -r requirements.txt
@@ -15,21 +15,27 @@ Run:
 Docs: http://localhost:8080/docs
 """
 
+import base64
+import binascii
 import json
 import operator
 import os
 import re
+import secrets
+import sys
 import tempfile
 import threading
+from collections import Counter
 from datetime import datetime, timezone
 from functools import reduce
 from html import escape
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
-from fastapi import FastAPI, HTTPException, Query as QueryParam
+from fastapi import FastAPI, HTTPException, Query as QueryParam, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field, field_validator
 from tinydb import TinyDB, Query
 from tinydb.storages import Storage
@@ -43,6 +49,56 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _load_credentials() -> bytes | None:
+    """Read the single ``user:password`` line from NOTES_AUTH_FILE.
+
+    Unset means auth is off (local development). A set but unusable file is
+    fatal, so a typo cannot silently leave the service open.
+    """
+    path = os.environ.get("NOTES_AUTH_FILE")
+    if not path:
+        print("WARNING: NOTES_AUTH_FILE not set; authentication is OFF",
+              file=sys.stderr)
+        return None
+    creds = Path(path).read_text(encoding="utf-8").strip()
+    user, sep, password = creds.partition(":")
+    if not user or not sep or len(password) < 12:
+        raise SystemExit(
+            f"{path}: expected 'user:password' with a password of 12+ chars")
+    return creds.encode("utf-8")
+
+
+CREDENTIALS = _load_credentials()
+
+
+@app.middleware("http")
+async def require_basic_auth(request: Request, call_next):
+    """HTTP Basic auth on every route; only meaningful behind TLS."""
+    if CREDENTIALS is None or request.method == "OPTIONS":
+        return await call_next(request)
+    scheme, _, token = request.headers.get("authorization", "").partition(" ")
+    try:
+        given = base64.b64decode(token.strip(), validate=True)
+    except (binascii.Error, ValueError):
+        given = b""
+    if scheme.lower() == "basic" and secrets.compare_digest(given, CREDENTIALS):
+        return await call_next(request)
+    return JSONResponse(
+        {"detail": "Authentication required"},
+        status_code=401,
+        headers={"WWW-Authenticate": 'Basic realm="notes", charset="UTF-8"'},
+    )
+
+
+class CorruptDatabaseError(Exception):
+    """The database file exists but is not valid JSON (e.g. a hand-edit typo).
+
+    Raised instead of a bare JSONDecodeError so the API can answer with a
+    readable message. The file is never overwritten while it is unreadable:
+    every write starts with a read, which raises this first.
+    """
 
 
 class AtomicJSONStorage(Storage):
@@ -70,7 +126,14 @@ class AtomicJSONStorage(Storage):
             text = self.path.read_text(encoding="utf-8")
         except FileNotFoundError:
             return None
-        return json.loads(text) if text else None
+        try:
+            return json.loads(text) if text else None
+        except json.JSONDecodeError as err:
+            raise CorruptDatabaseError(
+                f"{self.path.name} is not valid JSON ({err.msg}, line "
+                f"{err.lineno}, column {err.colno}). Fix the file and "
+                "reload; nothing has been changed."
+            ) from err
 
     def write(self, data: dict[str, dict[str, Any]]) -> None:
         """Atomically replace the database file with ``data``."""
@@ -79,7 +142,9 @@ class AtomicJSONStorage(Storage):
         )
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
-                json.dump(data, f)
+                # Indented and unescaped so the file can be edited by hand.
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.write("\n")
                 f.flush()
                 os.fsync(f.fileno())
             # mkstemp creates the file 0600; keep the original's permissions.
@@ -95,6 +160,14 @@ class AtomicJSONStorage(Storage):
             os.fsync(dir_fd)
         finally:
             os.close(dir_fd)
+
+
+@app.exception_handler(CorruptDatabaseError)
+def corrupt_database(request: Request, err: CorruptDatabaseError):
+    """Answer 503 with the reason, as JSON for the API or HTML for /n/."""
+    if request.url.path.startswith("/n/"):
+        return HTMLResponse(f"<h1>{escape(str(err))}</h1>", status_code=503)
+    return JSONResponse({"detail": str(err)}, status_code=503)
 
 
 DB_PATH = Path(
@@ -113,11 +186,16 @@ META = db.table("meta")
 # Public origin used to build shareable links; set to wherever clients reach
 # the server (e.g. "https://notes.example.com").
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8080").rstrip("/")
+# Behind a proxy that strips a path prefix (nginx serves us under
+# /notes-api/), FastAPI must know that prefix or /docs asks for
+# /openapi.json at the site root. Taken from BASE_URL's path ("" if none).
+app.root_path = urlparse(BASE_URL).path
 
 # A tag is one lowercase word: no whitespace, commas or "#" (the UI uses
 # those as separators and as the search prefix).
 TAG_PATTERN = re.compile(r"[^\s,#]{1,40}")
 MAX_TAGS = 20
+MAX_FOLDER_LENGTH = 60
 MAX_BULK_DELETE = 500
 
 
@@ -129,6 +207,30 @@ def normalize_tag(tag: str) -> str:
             f"invalid tag {tag!r}: 1-40 characters, no spaces, commas or #"
         )
     return tag
+
+
+def normalize_folder(name: str) -> str:
+    """Tidy a folder name; "" means the note is not in a folder."""
+    name = " ".join(name.split())
+    if len(name) > MAX_FOLDER_LENGTH:
+        raise ValueError(
+            f"folder name too long: at most {MAX_FOLDER_LENGTH} characters"
+        )
+    return name
+
+
+def canonical_folder(name: str) -> str:
+    """Reuse the spelling of an existing folder that differs only in case.
+
+    Stops "Work" and "work" becoming two folders. Call with DB_LOCK held.
+    """
+    if not name:
+        return name
+    for doc in db.all():
+        existing = doc.get("folder", "")
+        if existing.casefold() == name.casefold():
+            return existing
+    return name
 
 
 class NoteIn(BaseModel):
@@ -143,6 +245,14 @@ class NoteIn(BaseModel):
     # Tags are always stored in plain text, even on encrypted notes, so the
     # server can search them.
     tags: list[str] = Field(default_factory=list, max_length=MAX_TAGS)
+    # Plain text too. One level only: a folder exists while it has notes.
+    folder: str = ""
+
+    @field_validator("folder")
+    @classmethod
+    def clean_folder(cls, folder: str) -> str:
+        """Collapse whitespace and enforce the length limit."""
+        return normalize_folder(folder)
 
     @field_validator("tags")
     @classmethod
@@ -159,7 +269,15 @@ class NoteOut(BaseModel):
     text: str
     encrypted: bool
     tags: list[str]
+    folder: str
     url: str
+
+
+class NameCount(BaseModel):
+    """A folder or tag name and how many notes use it."""
+
+    name: str
+    count: int
 
 
 class DeleteIn(BaseModel):
@@ -190,6 +308,7 @@ def to_out(doc: Document) -> dict[str, Any]:
         "text": doc["text"],
         "encrypted": doc.get("encrypted", False),
         "tags": doc.get("tags", []),
+        "folder": doc.get("folder", ""),
         "url": note_url(doc.doc_id),
     }
 
@@ -206,14 +325,44 @@ def next_note_id() -> int:
     return max([last_issued, *(d.doc_id for d in db.all())]) + 1
 
 
+@app.get("/folders")
+def list_folders() -> dict[str, list[NameCount]]:
+    """List folders (sorted by name) with their note counts."""
+    with DB_LOCK:
+        names = [d.get("folder", "") for d in db.all()]
+    counts = Counter(n for n in names if n)
+    return {"folders": [
+        {"name": n, "count": counts[n]}
+        for n in sorted(counts, key=str.casefold)
+    ]}
+
+
+@app.get("/tags")
+def list_tags() -> dict[str, list[NameCount]]:
+    """List every tag in use (sorted by name) with its note count."""
+    with DB_LOCK:
+        counts = Counter(t for d in db.all() for t in d.get("tags", []))
+    return {"tags": [
+        {"name": n, "count": counts[n]}
+        for n in sorted(counts, key=str.casefold)
+    ]}
+
+
 @app.get("/notes", response_model=Page)
 def list_notes(
     limit: int = QueryParam(20, ge=1, le=200),
     offset: int = QueryParam(0, ge=0),
+    folder: str | None = None,
 ) -> dict[str, Any]:
-    """List notes, newest first, paginated."""
+    """List notes, newest first, paginated.
+
+    ``folder`` limits the list to one folder; an empty value (``?folder=``)
+    means the notes that are in no folder. Omit it to list everything.
+    """
     with DB_LOCK:
         all_docs = db.all()
+    if folder is not None:
+        all_docs = [d for d in all_docs if d.get("folder", "") == folder]
     all_docs.sort(key=lambda d: d["timestamp"], reverse=True)  # newest first
     page = all_docs[offset: offset + limit]
     return {
@@ -285,8 +434,10 @@ def add_note(note: NoteIn) -> dict[str, Any]:
         "text": note.text,
         "encrypted": note.encrypted,
         "tags": note.tags,
+        "folder": note.folder,
     }
     with DB_LOCK:
+        record["folder"] = canonical_folder(note.folder)
         doc_id = next_note_id()
         db.insert(Document(record, doc_id=doc_id))
         # Written after the note: if we crash in between, next_note_id()
@@ -297,7 +448,7 @@ def add_note(note: NoteIn) -> dict[str, Any]:
 
 @app.put("/notes/{note_id}", response_model=NoteOut)
 def update_note(note_id: int, note: NoteIn) -> dict[str, Any]:
-    """Replace a note's text and tags, keeping its creation timestamp."""
+    """Replace a note's text, tags and folder, keeping its creation timestamp."""
     with DB_LOCK:
         existing = db.get(doc_id=note_id)
         if existing is None:
@@ -307,6 +458,7 @@ def update_note(note_id: int, note: NoteIn) -> dict[str, Any]:
             "text": note.text,
             "encrypted": note.encrypted,
             "tags": note.tags,
+            "folder": canonical_folder(note.folder),
         }
         db.update(updated, doc_ids=[note_id])
     return {"id": note_id, "url": note_url(note_id), **updated}

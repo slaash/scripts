@@ -1,0 +1,174 @@
+#!/bin/sh
+#
+# Manage the private CA and the TLS leaf certificate for the notes API.
+# Installed as /usr/local/sbin/notes-cert.
+#
+# Usage:
+#   notes-cert init <ip>     Create the CA if missing, then issue a leaf for <ip>.
+#   notes-cert renew [<ip>]  Re-issue the leaf (same IP as last time unless given).
+#   notes-cert show          Print CA and leaf details and the CA fingerprint.
+#
+# The CA is name-constrained: it can only vouch for addresses inside
+# NOTES_CA_NET (default 192.168.88.0/24), so a stolen CA key cannot be used to
+# impersonate other hosts. Install only the public ca.crt on client devices.
+#
+# The leaf CN is notes.invalid on purpose: OpenSSL checks a hostname-like CN
+# against DNS name constraints, so the CN must sit inside the permitted DNS
+# subtree. Clients match the IP SAN, never the CN.
+
+set -eu
+
+readonly CA_DIR="${NOTES_CA_DIR:-/usr/local/etc/ssl/notes-ca}"
+readonly LEAF_DIR="${NOTES_LEAF_DIR:-/usr/local/etc/ssl/notes}"
+readonly SVC_USER="${NOTES_SVC_USER:-notes}"
+readonly CA_NET="${NOTES_CA_NET:-192.168.88.0/255.255.255.0}"
+readonly CA_DAYS=3650
+readonly LEAF_DAYS=825
+
+work=""
+
+die() {
+  echo "notes-cert: $*" >&2
+  exit 1
+}
+
+usage() {
+  die "usage: notes-cert init <ip> | renew [<ip>] | show"
+}
+
+cleanup() {
+  if [ -n "${work}" ]; then
+    rm -rf "${work}"
+  fi
+}
+
+# chown only when running as root (lets the script be tested unprivileged).
+own() {
+  if [ "$(id -u)" -eq 0 ]; then
+    chown "$@"
+  fi
+}
+
+check_ip() {
+  case "$1" in
+    "" | *[!0-9.]* | .* | *. | *..*) die "invalid IPv4 address: '$1'" ;;
+  esac
+}
+
+# Create the CA unless one already exists.
+make_ca() {
+  if [ -f "${CA_DIR}/ca.crt" ]; then
+    return 0
+  fi
+  echo "Creating CA in ${CA_DIR}"
+  install -d -m 0700 "${CA_DIR}"
+  cat > "${work}/ca.cnf" <<EOF
+[req]
+distinguished_name = dn
+prompt = no
+x509_extensions = ca_ext
+[dn]
+O = notes-api
+CN = notes-api private CA
+[ca_ext]
+basicConstraints = critical,CA:TRUE,pathlen:0
+keyUsage = critical,keyCertSign,cRLSign
+subjectKeyIdentifier = hash
+nameConstraints = critical,permitted;IP:${CA_NET},permitted;DNS:notes.invalid
+EOF
+  openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes \
+    -config "${work}/ca.cnf" -days "${CA_DAYS}" \
+    -keyout "${CA_DIR}/ca.key" -out "${CA_DIR}/ca.crt"
+  chmod 0600 "${CA_DIR}/ca.key"
+  chmod 0644 "${CA_DIR}/ca.crt"
+}
+
+# Issue a leaf for the given IP, verify it, then swap it into place.
+issue_leaf() {
+  local ip="$1"
+  check_ip "${ip}"
+  cat > "${work}/leaf.cnf" <<EOF
+[req]
+distinguished_name = dn
+prompt = no
+[dn]
+CN = notes.invalid
+[leaf_ext]
+basicConstraints = critical,CA:FALSE
+keyUsage = critical,digitalSignature
+extendedKeyUsage = serverAuth
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid
+subjectAltName = IP:${ip}
+EOF
+  openssl req -new -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes \
+    -config "${work}/leaf.cnf" \
+    -keyout "${work}/notes.key" -out "${work}/notes.csr"
+  openssl x509 -req -in "${work}/notes.csr" \
+    -CA "${CA_DIR}/ca.crt" -CAkey "${CA_DIR}/ca.key" \
+    -CAserial "${CA_DIR}/ca.srl" -CAcreateserial \
+    -days "${LEAF_DAYS}" -extfile "${work}/leaf.cnf" -extensions leaf_ext \
+    -out "${work}/notes.crt"
+
+  # Verify against the CA, including its name constraints, before touching the
+  # live files: a bad certificate must never replace a working one.
+  openssl verify -CAfile "${CA_DIR}/ca.crt" -purpose sslserver \
+    -verify_ip "${ip}" "${work}/notes.crt" > /dev/null \
+    || die "new certificate failed verification; nothing was changed"
+
+  chmod 0600 "${work}/notes.key"
+  chmod 0644 "${work}/notes.crt"
+  own "${SVC_USER}:${SVC_USER}" "${work}/notes.key"
+  mv -f "${work}/notes.crt" "${LEAF_DIR}/notes.crt"
+  mv -f "${work}/notes.key" "${LEAF_DIR}/notes.key"
+  echo "${ip}" > "${LEAF_DIR}/ip"
+  echo "Issued ${LEAF_DIR}/notes.crt for IP ${ip} (valid ${LEAF_DAYS} days)"
+
+  if command -v service > /dev/null 2>&1 \
+    && service notes_api onestatus > /dev/null 2>&1; then
+    echo "Restarting notes_api to load the new certificate"
+    service notes_api restart
+  fi
+}
+
+show_cert() {
+  [ -f "${CA_DIR}/ca.crt" ] || die "no CA at ${CA_DIR}"
+  [ -f "${LEAF_DIR}/notes.crt" ] || die "no leaf at ${LEAF_DIR}"
+  echo "== CA ${CA_DIR}/ca.crt"
+  openssl x509 -in "${CA_DIR}/ca.crt" -noout -subject -enddate \
+    -fingerprint -sha256 -ext nameConstraints
+  echo "== Leaf ${LEAF_DIR}/notes.crt"
+  openssl x509 -in "${LEAF_DIR}/notes.crt" -noout -subject -enddate \
+    -ext subjectAltName
+}
+
+main() {
+  umask 077
+  local cmd="${1:-}"
+  case "${cmd}" in
+    init | renew)
+      install -d -m 0750 "${LEAF_DIR}"
+      own "root:${SVC_USER}" "${LEAF_DIR}"
+      work="$(mktemp -d "${LEAF_DIR}/.work.XXXXXX")"
+      trap cleanup EXIT
+      local ip="${2:-}"
+      if [ "${cmd}" = "init" ]; then
+        [ $# -eq 2 ] || usage
+        make_ca
+      else
+        [ -f "${CA_DIR}/ca.crt" ] || die "no CA at ${CA_DIR}; run init first"
+        if [ -z "${ip}" ] && [ -f "${LEAF_DIR}/ip" ]; then
+          ip="$(cat "${LEAF_DIR}/ip")"
+        fi
+      fi
+      issue_leaf "${ip}"
+      echo "CA fingerprint:"
+      openssl x509 -in "${CA_DIR}/ca.crt" -noout -fingerprint -sha256
+      echo "Install ${CA_DIR}/ca.crt (public) on client devices."
+      ;;
+    show) show_cert ;;
+    *) usage ;;
+  esac
+}
+
+main "$@"

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Create the data directory. It is deliberately not owned by the package, so
+# pkg delete never removes the notes.
+set -eu
+
+install -d -m 0700 -o notes -g notes /var/db/notes-api
