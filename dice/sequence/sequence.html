@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -35,6 +35,9 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
     const SUIT = { S:"♠", H:"♥", D:"♦", C:"♣" };
     const RED = { H:true, D:true };
     const OPP = { p:"c", c:"p" };
+    const nameOf = (g, who) => g.mode === "2p" ? (who === "p" ? "Jucător 1" : "Jucător 2") : (who === "p" ? "Tu" : "CPU");
+    // Romanian verb agreement: "Tu ai ...", otherwise "a ..."
+    const V = (g, who, you, he) => (g.mode !== "2p" && who === "p") ? you : he;
 
     const rnd = n => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -76,7 +79,7 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
     }
 
     // A non-jack card whose two board spaces are both taken can be swapped.
-    const isDead = (g, card) => !isJack(card) && targets(g, "p", card).length === 0;
+    const isDead = (g, card, who = "p") => !isJack(card) && targets(g, who, card).length === 0;
 
     function drawFor(g, who) {
       if (g.deck.length === 0) { g.deck = shuffle(g.discard); g.discard = []; }
@@ -114,19 +117,19 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
 
     function playCard(g0, who, card, idx) {
       const g = cloneGame(g0);
-      const name = who === "p" ? "You" : "CPU";
+      const name = nameOf(g, who);
       discardCard(g, who, card);
       g.last = idx;
       if (isOneEyed(card)) {
         g.board[idx] = null;
-        g.msg = `${name} removed a chip with ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+        g.msg = `${name} ${V(g, who, "ai scos", "a scos")} un jeton cu ${rankOf(card)}${SUIT[suitOf(card)]}.`;
       } else {
         g.board[idx] = who;
-        g.msg = `${name} played ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+        g.msg = `${name} ${V(g, who, "ai jucat", "a jucat")} ${rankOf(card)}${SUIT[suitOf(card)]}.`;
         const fresh = findNewSeqs(g.board, who, g.seqs[who]);
         if (fresh.length) {
           g.seqs[who] = [...g.seqs[who], ...fresh];
-          g.msg = `${who === "p" ? "🎉 You" : "CPU"} completed a sequence!`;
+          g.msg = `🎉 ${nameOf(g, who)} ${V(g, who, "ai completat", "a completat")} o secvență!`;
           if (g.seqs[who].length >= WIN_SEQS) { g.winner = who; g.turn = null; return g; }
         }
       }
@@ -139,21 +142,21 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
       discardCard(g, who, card);
       drawFor(g, who);
       g.swapped = true;
-      g.msg = `${who === "p" ? "You" : "CPU"} swapped a dead ${rankOf(card)}${SUIT[suitOf(card)]}.`;
+      g.msg = `${nameOf(g, who)} ${V(g, who, "ai schimbat", "a schimbat")} o carte moartă ${rankOf(card)}${SUIT[suitOf(card)]}.`;
       return g;
     }
 
     function passTurn(g0, who) {
       const g = cloneGame(g0);
       g.turn = OPP[who]; g.swapped = false;
-      g.msg = `${who === "p" ? "You have" : "CPU has"} no playable card — turn skipped.`;
+      g.msg = `${nameOf(g, who)} ${V(g, who, "nu ai", "nu are")} nicio carte jucabilă — tura a fost sărită.`;
       return g;
     }
 
-    function newGame(scores) {
+    function newGame(scores, mode = "cpu") {
       const g = { board:Array(N * N).fill(null), deck:makeDeck(), discard:[], hands:{ p:[], c:[] },
-                  seqs:{ p:[], c:[] }, turn:"p", swapped:false, winner:null, last:null,
-                  msg:"Your move — pick a card, then a highlighted space.", scores };
+                  seqs:{ p:[], c:[] }, turn:"p", swapped:false, winner:null, last:null, mode,
+                  msg: mode === "2p" ? "Jucător 1 — alege o carte, apoi o căsuță evidențiată." : "Rândul tău — alege o carte, apoi o căsuță evidențiată.", scores };
       for (let i = 0; i < HAND; i++) { drawFor(g, "p"); drawFor(g, "c"); }
       return g;
     }
@@ -209,19 +212,19 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
 
     const Card = ({ card, selected, dead, onClick }) => {
       const s = suitOf(card);
-      const tag = isTwoEyed(card) ? "wild" : isOneEyed(card) ? "remove" : dead ? "dead" : "";
+      const tag = isTwoEyed(card) ? "joker" : isOneEyed(card) ? "scoate" : dead ? "moartă" : "";
       return (
         <div onClick={onClick} style={{
-          width:54, height:76, borderRadius:8, background:"#f8fafc", cursor:"pointer",
+          width:"clamp(60px, 17vw, 84px)", aspectRatio:"0.7", borderRadius:8, background:"#f8fafc", cursor:"pointer",
           color: RED[s] ? "#dc2626" : "#111827", display:"flex", flexDirection:"column",
-          alignItems:"center", justifyContent:"center", fontWeight:"bold", fontSize:22,
+          alignItems:"center", justifyContent:"center", fontWeight:"bold", fontSize:"clamp(26px, 7.5vw, 36px)", lineHeight:1.05,
           opacity: dead ? 0.55 : 1, transform: selected ? "translateY(-8px)" : "none",
           border: selected ? "2px solid #fde68a" : "2px solid #000",
           boxShadow: selected ? "0 0 0 3px #fde68a, 2px 3px 8px rgba(0,0,0,0.3)" : "2px 3px 8px rgba(0,0,0,0.3)",
           transition:"transform 0.15s, box-shadow 0.15s",
         }}>
-          <div>{rankOf(card)}</div><div style={{fontSize:26,lineHeight:1}}>{SUIT[s]}</div>
-          <div style={{fontSize:9,height:11,color:"#64748b",textTransform:"uppercase"}}>{tag}</div>
+          <div>{rankOf(card)}</div><div style={{fontSize:"clamp(30px, 8.5vw, 42px)",lineHeight:1}}>{SUIT[s]}</div>
+          <div style={{fontSize:11,height:13,color:"#64748b",textTransform:"uppercase"}}>{tag}</div>
         </div>
       );
     };
@@ -229,16 +232,23 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
     function SequenceGame() {
       const [g, setG] = useState(() => newGame({ wins:0, losses:0 }));
       const [sel, setSel] = useState(null);
+      const [cover, setCover] = useState(false);   // 2P hot-seat: hide the hand while the device changes hands
+      const two = g.mode === "2p";
+      const me = two ? g.turn : "p";               // whose hand is on screen / acting
+      const humanTurn = two ? g.turn !== null : g.turn === "p";
 
-      const hints = g.turn === "p" && sel ? new Set(targets(g, "p", sel)) : new Set();
+      useEffect(() => { setCover(two && g.turn !== null); }, [g.turn]);
+
+      const hints = humanTurn && sel ? new Set(targets(g, me, sel)) : new Set();
       const locked = lockedCells(g);
-      const playable = g.hands.p.some(c => targets(g, "p", c).length > 0);
-      const canSwap = g.turn === "p" && !g.swapped && sel && isDead(g, sel);
-      const mustPass = g.turn === "p" && !playable && (g.swapped || !g.hands.p.some(c => isDead(g, c)));
+      const hand = g.hands[me || "p"];
+      const playable = me && hand.some(c => targets(g, me, c).length > 0);
+      const canSwap = humanTurn && !g.swapped && sel && isDead(g, sel, me);
+      const mustPass = humanTurn && !playable && (g.swapped || !hand.some(c => isDead(g, c, me)));
 
       // CPU turn
       useEffect(() => {
-        if (g.turn !== "c") return;
+        if (g.mode === "2p" || g.turn !== "c") return;
         let alive = true;
         (async () => {
           await sleep(900);
@@ -259,15 +269,16 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
 
       const clickCell = i => {
         if (!sel || !hints.has(i)) return;
-        const next = playCard(g, "p", sel, i);
-        if (next.winner === "p") next.scores = { ...next.scores, wins: next.scores.wins + 1 };
+        const next = playCard(g, me, sel, i);
+        if (next.winner) next.scores = next.winner === "p" ? { ...next.scores, wins: next.scores.wins + 1 } : { ...next.scores, losses: next.scores.losses + 1 };
         setSel(null); setG(next);
       };
 
-      const doSwap = () => { setG(swapDead(g, "p", sel)); setSel(null); };
-      const doPass = () => { setSel(null); setG(passTurn(g, "p")); };
-      const reset = () => { setSel(null); setG(newGame({ wins:0, losses:0 })); };
-      const again = () => { setSel(null); setG(newGame(g.scores)); };
+      const doSwap = () => { setG(swapDead(g, me, sel)); setSel(null); };
+      const doPass = () => { setSel(null); setG(passTurn(g, me)); };
+      const reset = () => { setSel(null); setG(newGame({ wins:0, losses:0 }, g.mode)); };
+      const again = () => { setSel(null); setG(newGame(g.scores, g.mode)); };
+      const setMode = m => { if (m !== g.mode) { setSel(null); setG(newGame({ wins:0, losses:0 }, m)); } };
 
       const btn = (color, extra) => ({
         padding:"10px 22px", fontSize:15, fontWeight:"bold", borderRadius:10, border:"none",
@@ -275,28 +286,36 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
       });
 
       return (
-        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:12}}>
-          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"16px 14px",width:"100%",maxWidth:640,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white"}}>
+        <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0f4c2a 0%,#166534 60%,#14532d 100%)",display:"flex",alignItems:"flex-start",justifyContent:"center",padding:6}}>
+          <div style={{background:"rgba(0,0,0,0.45)",borderRadius:20,padding:"14px 6px",width:"100%",maxWidth:640,boxShadow:"0 8px 40px rgba(0,0,0,0.5)",color:"white"}}>
 
             <h1 style={{textAlign:"center",fontSize:26,letterSpacing:1}}>🔵 Sequence</h1>
-            <p style={{textAlign:"center",color:"#86efac",marginBottom:10,fontSize:13}}>Make {WIN_SEQS} sequences of 5 chips in a row before the CPU does</p>
+            <p style={{textAlign:"center",color:"#86efac",marginBottom:10,fontSize:13}}>Fă {WIN_SEQS} secvențe de 5 jetoane la rând înaintea {two ? "adversarului" : "CPU-ului"}</p>
+
+            {/* Mode */}
+            <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:10}}>
+              {[["cpu","🤖 contra CPU"],["2p","👥 2 Jucători"]].map(([m,label]) => (
+                <button key={m} onClick={() => setMode(m)} style={{padding:"6px 14px",fontSize:13,fontWeight:"bold",borderRadius:8,cursor:"pointer",
+                  border:"1px solid #475569",background: g.mode === m ? "#fde68a" : "transparent",color: g.mode === m ? "#14532d" : "#94a3b8"}}>{label}</button>
+              ))}
+            </div>
 
             {/* Scoreboard */}
             <div style={{display:"flex",justifyContent:"center",gap:20,marginBottom:10,flexWrap:"wrap"}}>
-              {[["You","#60a5fa",g.seqs.p.length],["CPU","#f87171",g.seqs.c.length]].map(([label,color,n]) => (
+              {[[nameOf(g,"p"),"#60a5fa",g.seqs.p.length],[nameOf(g,"c"),"#f87171",g.seqs.c.length]].map(([label,color,n]) => (
                 <div key={label} style={{textAlign:"center"}}>
                   <div style={{fontSize:13,color}}>{label}</div>
                   <div style={{fontSize:26,fontWeight:"bold",color:"#fde68a"}}>{n}/{WIN_SEQS}</div>
                 </div>
               ))}
               <div style={{textAlign:"center",borderLeft:"1px solid #475569",paddingLeft:20}}>
-                <div style={{fontSize:13,color:"#94a3b8"}}>Games won</div>
+                <div style={{fontSize:13,color:"#94a3b8"}}>Jocuri câștigate</div>
                 <div style={{fontSize:26,fontWeight:"bold",color:"#fde68a"}}>{g.scores.wins} – {g.scores.losses}</div>
               </div>
             </div>
 
             {/* Board */}
-            <div style={{display:"grid",gridTemplateColumns:`repeat(${N}, 1fr)`,gap:2,background:"#052e16",padding:3,borderRadius:8}}>
+            <div style={{display:"grid",gridTemplateColumns:`repeat(${N}, 1fr)`,gap:2,background:"#052e16",padding:2,borderRadius:8}}>
               {BOARD.map((card, i) => {
                 const free = card === "F", s = free ? "" : suitOf(card);
                 const hint = hints.has(i);
@@ -305,12 +324,14 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
                     position:"relative", aspectRatio:"1", borderRadius:4,
                     background: free ? "#fde68a" : "#f1f5f9", color: RED[s] ? "#dc2626" : "#111827",
                     display:"flex", alignItems:"center", justifyContent:"center",
-                    fontSize:"clamp(8px, 2.5vw, 15px)", fontWeight:"bold", lineHeight:1, textAlign:"center",
+                    flexDirection:"column", fontWeight:"bold", lineHeight:1.05, textAlign:"center",
                     cursor: hint ? "pointer" : "default",
                     animation: hint ? "pulse 1s infinite" : "none",
                     outline: g.last === i ? "2px solid #fff" : "none", outlineOffset:-2,
                   }}>
-                    {free ? "★" : <span>{rankOf(card)}{SUIT[s]}</span>}
+                    {free ? <span style={{fontSize:"clamp(18px, 5vw, 30px)"}}>★</span> : <>
+                      <span style={{fontSize:"clamp(12px, 3.9vw, 26px)"}}>{rankOf(card)}</span>
+                      <span style={{fontSize:"clamp(13px, 4.3vw, 28px)"}}>{SUIT[s]}</span></>}
                     {g.board[i] && <Chip who={g.board[i]} locked={locked.has(i)}/>}
                   </div>
                 );
@@ -319,36 +340,46 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
 
             {/* Message */}
             <div style={{textAlign:"center",minHeight:44,margin:"10px 0 6px",fontSize:16,fontWeight:"bold",color: g.winner === "c" ? "#fca5a5" : "#fde68a"}}>
-              {g.winner === "p" ? "🏆 You win!" : g.winner === "c" ? "😞 CPU wins." : g.turn === "c" ? "CPU is thinking…" : g.msg}
-              {g.turn === "c" && <div style={{fontSize:12,color:"#94a3b8",fontWeight:"normal"}}>{g.msg}</div>}
+              {g.winner ? (two ? `🏆 ${nameOf(g, g.winner)} câștigă!` : g.winner === "p" ? "🏆 Ai câștigat!" : "😞 CPU câștigă.")
+                : two ? (g.msg.includes("—") && g.last === null ? g.msg : `${g.msg} Rândul: ${nameOf(g, g.turn)}.`)
+                : g.turn === "c" ? "CPU se gândește…" : g.msg}
+              {!two && g.turn === "c" && <div style={{fontSize:12,color:"#94a3b8",fontWeight:"normal"}}>{g.msg}</div>}
             </div>
 
             {/* Hand */}
             <div style={{background:"rgba(255,255,255,0.07)",borderRadius:14,padding:"14px 8px 8px"}}>
               <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#94a3b8",marginBottom:10}}>
-                <span>YOUR HAND</span><span>Deck: {g.deck.length} · CPU holds {g.hands.c.length}</span>
+                <span>{two ? (g.turn ? `MÂNA: ${nameOf(g, g.turn).toUpperCase()}` : "") : "MÂNA TA"}</span>
+                <span>Pachet: {g.deck.length}{!two && ` · CPU ține ${g.hands.c.length}`}</span>
               </div>
+              {two && (cover || g.winner) ? (
+                g.winner ? null : <div style={{textAlign:"center",padding:"18px 0"}}>
+                  <button style={btn(g.turn === "p" ? "#2563eb" : "#dc2626", {fontSize:18,padding:"16px 28px"})} onClick={() => setCover(false)}>
+                    👁 {nameOf(g, g.turn)}: apasă pentru a-ți arăta mâna
+                  </button>
+                </div>
+              ) : (
               <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
-                {g.hands.p.map((card, i) => (
-                  <Card key={card + i} card={card} selected={sel === card && g.turn === "p"} dead={isDead(g, card)}
-                        onClick={() => g.turn === "p" && setSel(sel === card ? null : card)}/>
+                {hand.map((card, i) => (
+                  <Card key={card + i} card={card} selected={sel === card && humanTurn} dead={isDead(g, card, me)}
+                        onClick={() => humanTurn && setSel(sel === card ? null : card)}/>
                 ))}
-              </div>
+              </div>)}
               <div style={{textAlign:"center",marginTop:10,minHeight:40}}>
-                {canSwap && <button style={btn("#d97706")} onClick={doSwap}>♻️ Swap dead card</button>}
-                {mustPass && <button style={btn("#64748b")} onClick={doPass}>⏭ Skip turn</button>}
-                {g.winner && <button style={btn("#2563eb")} onClick={again}>🔄 New Game</button>}
+                {!cover && canSwap && <button style={btn("#d97706")} onClick={doSwap}>♻️ Schimbă cartea moartă</button>}
+                {!cover && mustPass && <button style={btn("#64748b")} onClick={doPass}>⏭ Sari peste tură</button>}
+                {g.winner && <button style={btn("#2563eb")} onClick={again}>🔄 Joc nou</button>}
               </div>
             </div>
 
             <div style={{textAlign:"center",marginTop:12}}>
-              <button style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}} onClick={reset}>🔁 Reset Scores</button>
+              <button style={{padding:"8px 24px",fontSize:13,fontWeight:"bold",borderRadius:10,border:"1px solid #475569",background:"transparent",color:"#94a3b8",cursor:"pointer"}} onClick={reset}>🔁 Resetează scorul</button>
             </div>
 
             <p style={{textAlign:"center",color:"#64748b",fontSize:11,marginTop:12,lineHeight:1.5}}>
-              Play a card, put a chip on a matching space · ★ corners are free for both · J♦ J♣ = wild (any empty space) ·
-              J♠ J♥ = remove an opponent chip (not in a finished sequence) · dead card (both spaces taken) = swap once per turn ·
-              gold-ringed chips are locked in a sequence
+              Joacă o carte și pune un jeton pe căsuța potrivită · colțurile ★ sunt libere pentru amândoi · J♦ J♣ = joker (orice căsuță goală) ·
+              J♠ J♥ = scoate un jeton al adversarului (nu dintr-o secvență terminată) · carte moartă (ambele căsuțe ocupate) = schimb o dată pe tură ·
+              jetoanele cu inel auriu sunt blocate într-o secvență
             </p>
           </div>
         </div>
