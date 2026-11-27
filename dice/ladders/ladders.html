@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Șerpi și Scări</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0d0d14; color: #eee; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 10px; }
+  h1 { font-size: 1.6rem; letter-spacing: 1px; background: linear-gradient(90deg,#f43f5e,#f59e0b,#22c55e,#3b82f6,#a855f7); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 4px 0 8px; text-align: center; }
+  button { font: inherit; cursor: pointer; border: 2px solid #444; background: #1c1c28; color: #eee; padding: 8px 16px; border-radius: 10px; }
+  button:hover:not(:disabled) { border-color: #fde68a; }
+  button:disabled { opacity: .45; cursor: default; }
+  .sel { border-color: #fde68a !important; box-shadow: 0 0 0 2px #fde68a; }
+  #setup { max-width: 760px; width: 100%; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+  .pick { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 4px; width: 78px; font-size: .68rem; line-height: 1.1; }
+  .pick svg { width: 44px; height: 44px; }
+  .pick em { font-style: normal; font-size: .62rem; color: #fde68a; min-height: 1em; }
+  input { font: inherit; background: #15151f; color: #eee; border: 2px solid #444; border-radius: 8px; padding: 6px 10px; width: 170px; text-align: center; }
+  input:focus { outline: none; border-color: #fde68a; }
+  .lbl { text-align: center; font-weight: bold; margin-bottom: 4px; }
+
+  #game { display: none; width: 100%; max-width: 1100px; flex-direction: column; gap: 8px; }
+  #bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pl { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 10px; border: 2px solid transparent; background: #15151f; font-size: .9rem; }
+  .pl svg { width: 30px; height: 30px; }
+  .pl.on { border-color: #fde68a; }
+  #main { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: center; }
+  #left { flex: 0 1 min(100%, 82vh, 700px); display: flex; flex-direction: column; gap: 8px; }
+  #boardwrap { position: relative; width: 100%; aspect-ratio: 1; border: 3px solid #2a2a3a; border-radius: 8px; overflow: hidden; }
+  #board { display: grid; grid-template-columns: repeat(10,1fr); grid-template-rows: repeat(10,1fr); width: 100%; height: 100%; }
+  .cell { position: relative; border: 1px solid rgba(0,0,0,.45); }
+  .cell b { font-size: clamp(.5rem, 1.9vw, .85rem); padding: 1px 3px; color: #fff; text-shadow: 0 0 3px #000, 0 0 3px #000; position: relative; z-index: 1; }
+  .cell i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: clamp(.8rem, 3.6vw, 1.7rem); opacity: .9; }
+  #svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .piece { position: absolute; width: 8%; height: 8%; transition: left .22s, top .22s; z-index: 5; filter: drop-shadow(0 2px 2px rgba(0,0,0,.7)); }
+  .piece svg { width: 100%; height: 100%; display: block; }
+  #ctl { display: flex; align-items: center; gap: 12px; justify-content: center; }
+  #die { width: 56px; height: 56px; background: #1a1a1a; border: 2px solid #000; border-radius: 10px; }
+  #msg { min-height: 2.6em; text-align: center; font-size: .95rem; }
+  #roll { background: #b91c1c; border-color: #000; font-weight: bold; padding: 10px 22px; }
+
+  #rules { flex: 1 1 280px; max-width: 420px; background: #15151f; border: 2px solid #2a2a3a; border-radius: 10px; padding: 12px 14px; font-size: .88rem; line-height: 1.45; }
+  #rules h3 { font-size: .95rem; margin: 10px 0 4px; color: #fde68a; }
+  #rules h3:first-child { margin-top: 0; }
+  #rules ol { padding-left: 20px; }
+  #rules ul { list-style: none; }
+  #rules li small { color: #aaa; }
+</style>
+</head>
+<body>
+<h1>ȘERPI ȘI SCĂRI</h1>
+
+<div id="setup">
+  <div class="row">
+    <button id="m-cpu" class="sel">Contra calculatorului</button>
+    <button id="m-2p">2 jucători</button>
+  </div>
+  <div><div class="lbl"><input id="n1" maxlength="14" placeholder="Numele tău" autocomplete="off"> – alege personajul</div><div class="row" id="p1pick"></div></div>
+  <div id="p2wrap"><div class="lbl"><input id="n2" maxlength="14" placeholder="Numele jucătorului 2" autocomplete="off"> – alege personajul</div><div class="row" id="p2pick"></div></div>
+  <div id="swaphint" class="lbl" style="font-weight:normal;color:#aaa;font-size:.8rem"></div>
+  <button id="start" style="font-weight:bold">Start</button>
+</div>
+
+<div id="game">
+  <div id="bar"><div class="pl" id="pl0"></div><button id="restart">Meniu / Repornește</button><div class="pl" id="pl1"></div></div>
+  <div id="main">
+    <div id="left">
+      <div id="boardwrap"><div id="board"></div><svg id="svg" viewBox="0 0 100 100"></svg></div>
+      <div id="ctl"><canvas id="die" width="56" height="56"></canvas><button id="roll">Aruncă zarul</button></div>
+      <div id="msg"></div>
+    </div>
+    <div id="rules"></div>
+  </div>
+</div>
+
+<script>
+const CHARS = { // Sprunki Phase 1 roster
+  "Oren":"#fb923c", "Raddy":"#ef4444", "Clukr":"#cbd5e1", "Fun-Bot":"#94a3b8", "Vineria":"#4ade80",
+  "Gray":"#8b93a1", "Brud":"#9a6b3f", "Garnold":"#d4a017", "Owakcx":"#a3e635", "Sky":"#38bdf8",
+  "Mr. Sun":"#fde047", "Durple":"#a855f7", "Mr. Tree":"#6b4423", "Simon":"#facc15", "Tunner":"#e7c9a0",
+  "Mr. Fun Computer":"#d1d5db", "Wenda":"#f5f5f5", "Pinki":"#f472b6", "Jevin":"#f9a8d4", "Black":"#161616",
+};
+const LADDERS = {12:31, 51:70, 59:80, 71:90, 82:99};
+const SNAKES  = {98:84, 92:73, 89:72, 74:67, 53:33, 38:23, 19:2};
+const SNAKE_COL = {98:"#ec4899", 92:"#a855f7", 89:"#ef4444", 74:"#111", 53:"#16a34a", 38:"#eab308", 19:"#eab308"};
+const SPECIAL = {};
+const EXTRA_STAR = [7,26,42,49,56,60,73,94], EXTRA_NOTE = [5,9,18,20,27,35,43,46,54,58,65,68,75,77,88,96];
+const CROWN = [4,22,29,37,45,63,87], FLOWER = [3,14,36,85,99];
+EXTRA_STAR.forEach(n => SPECIAL[n] = "⭐");
+EXTRA_NOTE.forEach(n => SPECIAL[n] = "🎵");
+CROWN.forEach(n => SPECIAL[n] = "👑");
+FLOWER.forEach(n => SPECIAL[n] = "🌸");
+const CELL_COLS = ["#c0509a","#4aa8c8","#7bc46a","#c8a040","#9a60d0","#d8708a"];
+
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rollDie = () => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % 6 + 1; };
+
+/* ---------- Sprunki-style characters (SVG) ---------- */
+function charSVG(name) {
+  const c = CHARS[name], dark = name === "Black";
+  const S = `stroke="${dark ? "#c8c8c8" : "#000"}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+  const P = (pts, f = c) => `<polygon points="${pts}" fill="${f}" ${S}/>`;
+  const C = (x, y, r, f = c) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" ${S}/>`;
+  const E = (x, y, rx, ry, f = c) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}" ${S}/>`;
+  const R = (x, y, w, h, f = c, rx = 3) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${f}" ${S}/>`;
+  const L = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${S}/>`;
+  const dot = (x, y, f = "#555") => `<circle cx="${x}" cy="${y}" r="1.8" fill="${f}"/>`;
+  const visor = glow => R(20, 50, 60, 22, "#111", 10) + `<circle cx="37" cy="61" r="6" fill="${glow}"/><circle cx="63" cy="61" r="6" fill="${glow}"/>`;
+  const eye = (x, y = 62, r = 10) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#000" stroke-width="2"/><circle cx="${x}" cy="${y + 1}" r="${r * .45}" fill="#000"/>`;
+  let back = "", front = "", body = E(50, 62, 34, 32), eyes = eye(37) + eye(63);
+  switch (name) {
+    case "Wenda": back = P("20,48 24,6 46,30") + P("80,48 76,6 54,30"); break;
+    case "Gray": back = P("20,46 26,12 46,30") + P("80,46 74,12 54,30");
+      front = dot(28, 74) + dot(33, 77) + dot(72, 74) + dot(67, 77); break;
+    case "Pinki":
+      back = E(36, 22, 9, 20) + E(64, 22, 9, 20) + `<ellipse cx="36" cy="24" rx="4" ry="12" fill="#fbcfe8"/><ellipse cx="64" cy="24" rx="4" ry="12" fill="#fbcfe8"/>`;
+      front = P("62,40 76,32 76,48", "#ef4444") + P("90,32 76,40 90,48", "#ef4444") + `<circle cx="76" cy="40" r="3.5" fill="#b91c1c"/>`; break;
+    case "Jevin":
+      back = E(80, 44, 9, 18, "#92400e");
+      front = E(50, 36, 27, 9, "#92400e") + P("70,28 84,20 84,36", "#ef4444") + P("96,20 84,28 96,36", "#ef4444"); break;
+    case "Simon":
+      back = L(36, 34, 28, 10) + L(64, 34, 72, 10) + C(28, 9, 6) + C(72, 9, 6);
+      front = `<rect x="43" y="80" width="14" height="8" fill="#fff" stroke="#000" stroke-width="2"/>`; break;
+    case "Oren":
+      front = `<path d="M18 62 Q18 26 50 26 Q82 26 82 62" fill="none" stroke="#222" stroke-width="6" stroke-linecap="round"/>` +
+        `<rect x="8" y="50" width="16" height="26" rx="6" fill="#1f1f1f" stroke="${c}" stroke-width="3"/><rect x="76" y="50" width="16" height="26" rx="6" fill="#1f1f1f" stroke="${c}" stroke-width="3"/>`; break;
+    case "Sky":
+      back = C(22, 34, 13) + C(78, 34, 13) + `<circle cx="22" cy="34" r="6" fill="#bae6fd"/><circle cx="78" cy="34" r="6" fill="#bae6fd"/>`;
+      front = `<path d="M42 34 Q50 16 58 34" fill="none" stroke="#0369a1" stroke-width="5" stroke-linecap="round"/>`; break;
+    case "Black":
+      back = R(22, 26, 56, 8, "#111") + R(32, 2, 36, 28, "#111") + `<rect x="32" y="20" width="36" height="6" fill="#7c3aed"/>`; break;
+    case "Raddy": back = P("26,40 20,6 44,30", "#7f1d1d") + P("74,40 80,6 56,30", "#7f1d1d"); break;
+    case "Durple": back = P("28,40 22,8 46,30", "#581c87") + P("72,40 78,8 54,30", "#581c87"); break;
+    case "Clukr":
+      back = L(50, 34, 50, 10) + C(50, 9, 6, "#ef4444");
+      front = E(50, 34, 26, 6, "#d4a017"); break;
+    case "Fun-Bot":
+      back = L(50, 34, 50, 10) + C(50, 9, 6, "#ef4444");
+      eyes = visor("#22d3ee"); break;
+    case "Garnold": eyes = visor("#f97316"); front = R(40, 36, 20, 8, "#111", 2); break;
+    case "Vineria": back = E(28, 36, 13, 16, "#15803d") + E(72, 36, 13, 16, "#15803d") + E(50, 28, 16, 15, "#15803d"); break;
+    case "Brud": front = P("30,40 70,40 65,10 35,10", "#9ca3af") + R(27, 36, 46, 7, "#6b7280", 2); break;
+    case "Owakcx":
+      back = P("24,42 18,10 36,28 44,2 52,28 66,4 70,30 86,12 76,44", "#4d7c0f");
+      eyes = eye(35, 62, 13) + eye(66, 64, 6); break;
+    case "Mr. Sun": {
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, b = a + .26, d = a - .26, m = (x, y, r) => `${(x + Math.cos(y) * r).toFixed(1)},${(62 + Math.sin(y) * r).toFixed(1)}`;
+        back += `<polygon points="${m(50, d, 32)} ${m(50, a, 48)} ${m(50, b, 32)}" fill="#f59e0b" ${S}/>`;
+      }
+      break; }
+    case "Mr. Tree": back = C(32, 24, 14, "#16a34a") + C(68, 24, 14, "#16a34a") + C(50, 16, 16, "#16a34a"); break;
+    case "Tunner":
+      back = C(18, 62, 9) + C(82, 62, 9);
+      front = R(34, 8, 32, 28, "#92400e") + R(34, 24, 32, 7, "#451a03", 1) + E(50, 36, 38, 7, "#78350f"); break;
+    case "Mr. Fun Computer":
+      body = R(14, 30, 72, 62, "#d1d5db", 8);
+      front = R(34, 10, 32, 18, "#111") + R(26, 26, 48, 6, "#111", 2) +
+        `<rect x="18" y="86" width="22" height="5" fill="#ef4444"/><rect x="40" y="86" width="22" height="5" fill="#22c55e"/><rect x="62" y="86" width="20" height="5" fill="#3b82f6"/>`; break;
+  }
+  const mouth = `<path d="M42 82 Q50 87 58 82" fill="none" stroke="${dark ? "#c8c8c8" : "#000"}" stroke-width="2.5" stroke-linecap="round"/>`;
+  const hideMouth = name === "Simon";
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${back}${body}${eyes}${hideMouth ? "" : mouth}${front}</svg>`;
+}
+
+// square number -> centre in board percent
+function pos(n) {
+  const i = n - 1, row = Math.floor(i / 10), c = i % 10, col = row % 2 ? 9 - c : c;
+  return { x: (col + .5) * 10, y: (9 - row + .5) * 10 };
+}
+
+/* ---------- setup ---------- */
+let mode = "cpu", c1 = "Wenda", c2 = "Pinki";
+function drawPicks() {
+  const cpu = mode === "cpu";
+  for (const [id, who] of [["p1pick", 1], ["p2pick", 2]]) {
+    $(id).innerHTML = "";
+    for (const name of Object.keys(CHARS)) {
+      const mine = (who === 1 ? c1 : c2) === name;
+      const taken = !mine && (who === 1 ? c2 : c1) === name && !cpu;
+      const cpuChar = cpu && name === "Black";
+      const b = document.createElement("button");
+      b.className = "pick" + (mine ? " sel" : "");
+      b.disabled = cpuChar && who === 1;
+      b.innerHTML = charSVG(name) + `<span>${name}</span><em>${taken ? "(celălalt – schimbă)" : cpuChar ? "calculator" : ""}</em>`;
+      b.onclick = () => {
+        if (who === 1) { if (c2 === name) c2 = c1; c1 = name; }
+        else           { if (c1 === name) c1 = c2; c2 = name; }
+        drawPicks();
+      };
+      $(id).appendChild(b);
+    }
+  }
+  $("p2wrap").style.display = cpu ? "none" : "";
+  $("swaphint").textContent = cpu ? "Calculatorul joacă mereu cu Black." : "Dacă alegi personajul celuilalt jucător, vă schimbați între voi.";
+}
+$("m-cpu").onclick = () => { mode = "cpu"; $("m-cpu").classList.add("sel"); $("m-2p").classList.remove("sel"); if (c1 === "Black") c1 = c2 === "Wenda" ? "Pinki" : "Wenda"; drawPicks(); };
+$("m-2p").onclick  = () => { mode = "2p"; $("m-2p").classList.add("sel"); $("m-cpu").classList.remove("sel"); drawPicks(); };
+drawPicks();
+
+/* ---------- board + rules ---------- */
+function buildBoard() {
+  const b = $("board"); b.innerHTML = "";
+  for (let r = 9; r >= 0; r--) for (let c = 0; c < 10; c++) {
+    const n = r * 10 + (r % 2 ? 9 - c : c) + 1;
+    const d = document.createElement("div");
+    d.className = "cell";
+    d.style.background = n === 100 ? "#d4a017" : CELL_COLS[(r * 3 + c * 5 + n) % CELL_COLS.length];
+    d.innerHTML = `<b>${n === 100 ? "100 VICTORIE" : n}</b>` + (SPECIAL[n] ? `<i>${SPECIAL[n]}</i>` : "");
+    b.appendChild(d);
+  }
+  drawArt();
+}
+function buildRules() {
+  const li = o => Object.entries(o).map(([a, b]) => `${a}→${b}`).join(", ");
+  $("rules").innerHTML = `
+    <h3>Cum se joacă</h3>
+    <ol>
+      <li>Pe rând, arunci zarul și muți piesa cu atâtea pătrate.</li>
+      <li>Piesele pornesc de la pătratul 1 și merg în zigzag spre 100.</li>
+      <li>Primul care ajunge la <b>100</b> câștigă.</li>
+      <li>Dacă zarul te-ar duce peste 100, rămâi pe loc.</li>
+      <li>Doi jucători pot sta pe același pătrat.</li>
+    </ol>
+    <h3>🪜 Scări – urci repede</h3>
+    <ul><li>${li(LADDERS)}</li></ul>
+    <h3>🐍 Șerpi – aluneci în jos</h3>
+    <ul><li>${li(SNAKES)}</li></ul>
+    <h3>Pătrate speciale</h3>
+    <ul>
+      <li>⭐ <b>Zar extra</b> <small>(${EXTRA_STAR.join(", ")})</small></li>
+      <li>🎵 <b>Zar extra</b> <small>(${EXTRA_NOTE.join(", ")})</small></li>
+      <li>👑 <b>Ignori următorul șarpe</b> <small>(${CROWN.join(", ")})</small></li>
+      <li>🌸 <b>Înainte 2 pătrate</b> <small>(${FLOWER.join(", ")})</small></li>
+    </ul>
+    <h3>Reguli la combinații</h3>
+    <ul>
+      <li>Pătratele speciale se aplică doar când aterizezi direct pe ele, nu după o scară sau un șarpe.</li>
+      <li>Coroana se păstrează până întâlnești un șarpe (vezi 👑 lângă nume).</li>
+      <li>Zarul extra se poate înlănțui: dacă aterizezi iar pe ⭐/🎵, mai arunci o dată.</li>
+    </ul>`;
+}
+function drawArt() {
+  let s = "";
+  for (const [a, b] of Object.entries(LADDERS)) {
+    const p = pos(+a), q = pos(b), dx = q.x - p.x, dy = q.y - p.y, L = Math.hypot(dx, dy);
+    const nx = -dy / L * 1.4, ny = dx / L * 1.4;
+    s += `<g stroke="#f59e0b" stroke-width=".9" stroke-linecap="round">
+      <line x1="${p.x+nx}" y1="${p.y+ny}" x2="${q.x+nx}" y2="${q.y+ny}"/>
+      <line x1="${p.x-nx}" y1="${p.y-ny}" x2="${q.x-nx}" y2="${q.y-ny}"/>`;
+    for (let t = 3; t < L; t += 4.5) {
+      const k = t / L, cx = p.x + dx * k, cy = p.y + dy * k;
+      s += `<line x1="${cx+nx}" y1="${cy+ny}" x2="${cx-nx}" y2="${cy-ny}" stroke-width=".7"/>`;
+    }
+    s += `</g>`;
+  }
+  for (const [a, b] of Object.entries(SNAKES)) {
+    const h = pos(+a), t = pos(b), dx = t.x - h.x, dy = t.y - h.y, L = Math.hypot(dx, dy);
+    const nx = -dy / L, ny = dx / L, col = SNAKE_COL[a];
+    let d = "";
+    for (let i = 0; i <= 30; i++) {
+      const k = i / 30, off = Math.sin(k * Math.PI * 4) * 2.4 * (1 - k * .4);
+      d += (i ? "L" : "M") + (h.x + dx * k + nx * off).toFixed(2) + " " + (h.y + dy * k + ny * off).toFixed(2);
+    }
+    s += `<path d="${d}" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="${d}" fill="none" stroke="${col}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="${h.x}" cy="${h.y}" r="2.1" fill="${col}" stroke="#000" stroke-width=".4"/>
+          <circle cx="${h.x-.7}" cy="${h.y-.5}" r=".5" fill="#fff"/><circle cx="${h.x+.7}" cy="${h.y-.5}" r=".5" fill="#fff"/>`;
+  }
+  $("svg").innerHTML = s;
+}
+
+/* ---------- die ---------- */
+function drawDie(v) {
+  const g = $("die").getContext("2d");
+  g.fillStyle = "#1a1a1a"; g.fillRect(0, 0, 56, 56);
+  g.fillStyle = "#ef4444";
+  const P = { 1:[[.5,.5]], 2:[[.25,.25],[.75,.75]], 3:[[.25,.25],[.5,.5],[.75,.75]], 4:[[.25,.25],[.75,.25],[.25,.75],[.75,.75]],
+    5:[[.25,.25],[.75,.25],[.5,.5],[.25,.75],[.75,.75]], 6:[[.25,.25],[.75,.25],[.25,.5],[.75,.5],[.25,.75],[.75,.75]] };
+  for (const [x, y] of P[v]) { g.beginPath(); g.arc(x * 56, y * 56, 5.5, 0, 7); g.fill(); }
+}
+
+/* ---------- game ---------- */
+let players, turn, busy, over, gen = 0;
+function startGame() {
+  gen++;
+  const cpu = mode === "cpu";
+  players = [
+    { name: $("n1").value.trim() || "Jucător 1", ch: c1, pos: 1, immune: false, cpu: false },
+    { name: cpu ? "Calculator" : ($("n2").value.trim() || "Jucător 2"), ch: cpu ? "Black" : c2, pos: 1, immune: false, cpu },
+  ];
+  turn = 0; busy = false; over = false;
+  $("setup").style.display = "none"; $("game").style.display = "flex";
+  buildBoard(); buildRules();
+  document.querySelectorAll(".piece").forEach(e => e.remove());
+  players.forEach(p => {
+    p.el = document.createElement("div"); p.el.className = "piece"; p.el.innerHTML = charSVG(p.ch);
+    $("boardwrap").appendChild(p.el);
+  });
+  place(0); place(1);
+  drawDie(1); updateBar(); say(`${players[0].name} aruncă zarul.`);
+  maybeCpu();
+}
+function place(i) {
+  const p = players[i], q = pos(p.pos), same = players[1 - i].pos === p.pos;
+  const off = same ? (i ? 2.4 : -2.4) : 0;
+  p.el.style.left = (q.x - 4 + off) + "%"; p.el.style.top = (q.y - 4.5) + "%";
+  p.el.style.zIndex = 5 + (i === turn ? 1 : 0);
+}
+function updateBar() {
+  players.forEach((p, i) => {
+    const e = $("pl" + i);
+    e.className = "pl" + (i === turn && !over ? " on" : "");
+    e.innerHTML = `${charSVG(p.ch)}<span>${esc(p.name)} · pătrat ${p.pos}${p.immune ? " 👑" : ""}</span>`;
+  });
+}
+const esc = t => t.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const say = t => $("msg").textContent = t;
+
+async function walkTo(i, target) {
+  const p = players[i];
+  while (p.pos !== target) { p.pos += p.pos < target ? 1 : -1; place(i); await sleep(170); }
+}
+
+async function doTurn() {
+  if (busy || over) return;
+  busy = true; $("roll").disabled = true;
+  const my = gen, i = turn, p = players[i];
+  for (let k = 0; k < 8; k++) { drawDie(rollDie()); await sleep(70); }
+  const v = rollDie(); drawDie(v);
+  let note = `${p.name} a dat ${v}. `, again = false;
+  if (p.pos + v <= 100) {
+    await walkTo(i, p.pos + v); if (my !== gen) return;
+    const sp = SPECIAL[p.pos];
+    if (sp === "⭐" || sp === "🎵") { again = true; note += `${sp} Zar extra! `; }
+    if (sp === "👑") { p.immune = true; note += "👑 Următorul șarpe este ignorat! "; }
+    if (sp === "🌸") { await sleep(250); await walkTo(i, Math.min(100, p.pos + 2)); note += "🌸 Înainte 2 pătrate! "; }
+    await sleep(250); if (my !== gen) return;
+    if (LADDERS[p.pos]) { note += "🪜 Scară în sus! "; await walkTo(i, LADDERS[p.pos]); }
+    else if (SNAKES[p.pos]) {
+      if (p.immune) { p.immune = false; note += "🐍 Șarpe ignorat datorită coroanei! "; }
+      else { note += "🐍 Șarpe! Aluneci în jos. "; await walkTo(i, SNAKES[p.pos]); }
+    }
+  } else note += "Prea departe, rămâi pe loc. ";
+  if (my !== gen) return;
+  if (p.pos === 100) { over = true; place(0); place(1); updateBar(); say(`🏆 ${p.name} a câștigat!`); busy = false; return; }
+  if (!again) turn = 1 - turn;
+  place(0); place(1);
+  updateBar(); say(note + (again ? `${p.name} mai aruncă o dată.` : `Rândul lui ${players[turn].name}.`));
+  busy = false; maybeCpu();
+}
+function maybeCpu() {
+  const my = gen, c = players[turn].cpu;
+  $("roll").disabled = c || over;
+  if (c && !over) setTimeout(() => { if (my === gen) doTurn(); }, 900);
+}
+$("roll").onclick = doTurn;
+$("start").onclick = startGame;
+$("restart").onclick = () => { gen++; $("game").style.display = "none"; $("setup").style.display = "flex"; };
+</script>
+</body>
+</html>
